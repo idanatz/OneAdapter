@@ -5,7 +5,7 @@ import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.android.oneadapter.let2
+import com.android.oneadapter.utils.let2
 
 /**
  * Created by Idan Atsmon on 19/11/2018.
@@ -13,18 +13,18 @@ import com.android.oneadapter.let2
 internal abstract class OneViewHolder<T>(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     private val viewMap: SparseArray<View> = SparseArray()
-    private var injector: Injector? = null
+    private var viewInteractor: ViewInteractor? = null
 
-    protected abstract fun onBind(data: T, injector: Injector)
+    protected abstract fun onBind(data: T, viewInteractor: ViewInteractor)
 
     constructor(parent: ViewGroup, itemLayoutRes: Int) : this(LayoutInflater.from(parent.context).inflate(itemLayoutRes, parent, false)) {}
 
     fun bind(data: T?) {
-        if (injector == null) {
-            injector = Injector(this)
+        if (viewInteractor == null) {
+            viewInteractor = ViewInteractor(this)
         }
 
-        let2(data, injector) { data, injector ->
+        let2(data, viewInteractor) { data, injector ->
             onBind(data, injector)
         }
     }

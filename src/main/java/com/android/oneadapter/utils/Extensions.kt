@@ -1,4 +1,4 @@
-package com.android.oneadapter
+package com.android.oneadapter.utils
 
 /**
  * Created by Idan Atsmon on 20/11/2018.

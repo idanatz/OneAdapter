@@ -1,4 +1,4 @@
-package com.android.oneadapter.internal.base;
+package com.android.oneadapter.base;
 
 import android.support.v7.widget.RecyclerView;
 import com.android.oneadapter.internal.OneViewHolder;

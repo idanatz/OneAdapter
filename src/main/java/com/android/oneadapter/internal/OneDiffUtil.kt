@@ -17,16 +17,16 @@ internal class OneDiffUtil internal constructor(
     override fun getNewListSize(): Int = newData?.size ?: 0
 
     override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-            if (oldData?.get(oldItemPosition) != null && newData?.get(newItemPosition) != null) {
-                diffCallback.areItemsTheSame(oldData[oldItemPosition], newData[newItemPosition])
-            } else {
-                false
-            }
+        if (oldData?.get(oldItemPosition) != null && newData?.get(newItemPosition) != null) {
+            diffCallback.areItemsTheSame(oldData[oldItemPosition], newData[newItemPosition])
+        } else {
+            false
+        }
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-            if (oldData?.get(oldItemPosition) != null && newData?.get(newItemPosition) != null) {
-                diffCallback.areContentsTheSame(oldData[oldItemPosition], newData[newItemPosition])
-            } else {
-                false
-            }
+        if (oldData?.get(oldItemPosition) != null && newData?.get(newItemPosition) != null) {
+            diffCallback.areContentsTheSame(oldData[oldItemPosition], newData[newItemPosition])
+        } else {
+            false
+        }
 }

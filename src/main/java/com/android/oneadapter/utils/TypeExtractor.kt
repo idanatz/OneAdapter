@@ -1,4 +1,4 @@
-package com.android.oneadapter.internal
+package com.android.oneadapter.utils
 
 import com.android.oneadapter.interfaces.HolderInjector
 import java.lang.reflect.ParameterizedType
@@ -18,7 +18,7 @@ internal class TypeExtractor {
                 if (type is ParameterizedType) {
                     if (type.rawType == HolderInjector::class.java) {
                         val actualType = type.actualTypeArguments[0]
-                        return actualType as? Class<*> ?: throw IllegalArgumentException("The generic type argument of SlimInjector is NOT support Generic Parameterized Type now, Please using a WRAPPER class install of it directly.")
+                        return actualType as? Class<*> ?: throw IllegalArgumentException("Could not get generic type argument of HolderInjector")
                     }
                 }
             }

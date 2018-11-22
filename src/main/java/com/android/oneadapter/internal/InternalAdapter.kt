@@ -6,9 +6,10 @@ import android.os.Message
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.view.ViewGroup
-import com.android.oneadapter.EndlessRecyclerViewScrollListener
-import com.android.oneadapter.internal.base.BaseAdapter
+import com.android.oneadapter.base.BaseAdapter
 import com.android.oneadapter.interfaces.*
+import com.android.oneadapter.utils.let2
+import com.android.oneadapter.utils.TypeExtractor
 import java.lang.reflect.Type
 import java.util.ArrayList
 import java.util.HashMap
@@ -35,7 +36,7 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
     private val uiHandler = object : Handler(Looper.getMainLooper()) {
         override fun dispatchMessage(msg: Message) {
             when (msg.what) {
-                WHAT_NOTIFY_DATA_SET_CHANGED -> notifyDataSetChanged()
+                EVENT_NOTIFY_DATA_SET_CHANGED -> notifyDataSetChanged()
             }
             super.dispatchMessage(msg)
         }
@@ -53,7 +54,7 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
 
     companion object {
 
-        private const val WHAT_NOTIFY_DATA_SET_CHANGED = 1
+        private const val EVENT_NOTIFY_DATA_SET_CHANGED = 999
         private const val TYPE_LOAD_MORE = -10
         private const val TYPE_EMPTY_STATE = -11
 
@@ -135,8 +136,8 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
             if (Looper.myLooper() == Looper.getMainLooper()) {
                 notifyDataSetChanged()
             } else {
-                uiHandler.removeMessages(WHAT_NOTIFY_DATA_SET_CHANGED)
-                uiHandler.sendEmptyMessage(WHAT_NOTIFY_DATA_SET_CHANGED)
+                uiHandler.removeMessages(EVENT_NOTIFY_DATA_SET_CHANGED)
+                uiHandler.sendEmptyMessage(EVENT_NOTIFY_DATA_SET_CHANGED)
             }
         } else if (isEmptyStateShowing()) { // special case, do not use diff utils here due to crash in recycler view
             this.data = data
@@ -148,8 +149,8 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
             if (Looper.myLooper() == Looper.getMainLooper()) {
                 diffResult.dispatchUpdatesTo(this)
             } else {
-                uiHandler.removeMessages(WHAT_NOTIFY_DATA_SET_CHANGED)
-                uiHandler.sendEmptyMessage(WHAT_NOTIFY_DATA_SET_CHANGED)
+                uiHandler.removeMessages(EVENT_NOTIFY_DATA_SET_CHANGED)
+                uiHandler.sendEmptyMessage(EVENT_NOTIFY_DATA_SET_CHANGED)
             }
         }
         return this
@@ -165,8 +166,8 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
         creators[type] = object : ViewHolderCreator<T> {
             override fun create(parent: ViewGroup): OneViewHolder<T> {
                 return object : OneViewHolder<T>(parent, holderInjector.layoutResource()) {
-                    override fun onBind(data: T, injector: Injector) {
-                        holderInjector.onInject(data, injector)
+                    override fun onBind(data: T, viewInteractor: ViewInteractor) {
+                        holderInjector.onInject(data, viewInteractor)
                     }
                 }
             }
@@ -180,7 +181,7 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
         loadMoreCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, loadMoreInjector.layoutResource()) {
-                    override fun onBind(data: Any, injector: Injector) {}
+                    override fun onBind(data: Any, viewInteractor: ViewInteractor) {}
                 }
             }
         }
@@ -192,7 +193,7 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
         emptyStateCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, emptyInjector.layoutResource()) {
-                    override fun onBind(data: Any, injector: Injector) {}
+                    override fun onBind(data: Any, viewInteractor: ViewInteractor) {}
                 }
             }
         }
@@ -200,8 +201,8 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
     }
 
     fun attachTo(recyclerView: RecyclerView): InternalAdapter {
-        if (loadMoreInjector != null) {
-            endlessScrollListener = EndlessRecyclerViewScrollListener(recyclerView.layoutManager, loadMoreInjector, emptyStateCreator != null)
+        let2(recyclerView.layoutManager, loadMoreInjector) { layoutManager, loadMoreInjector ->
+            endlessScrollListener = EndlessRecyclerViewScrollListener(layoutManager, loadMoreInjector, emptyStateCreator != null)
         }
         recyclerView.adapter = this
         return this
