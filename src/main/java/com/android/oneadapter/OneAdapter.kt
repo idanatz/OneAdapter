@@ -6,6 +6,7 @@ import com.android.oneadapter.interfaces.LoadMoreInjector
 import com.android.oneadapter.interfaces.Diffable
 import com.android.oneadapter.interfaces.EmptyInjector
 import com.android.oneadapter.interfaces.HolderInjector
+import java.lang.IllegalStateException
 import java.util.*
 
 /**
@@ -28,7 +29,7 @@ class OneAdapter {
     }
 
     fun add(item: Any) {
-        add(internalItems.lastIndex, item)
+        add(internalItems.size, item)
     }
 
     fun add(index: Int, item: Any) {
@@ -56,14 +57,19 @@ class OneAdapter {
     fun update(item: Any) {
         val indexToSet = getElementIndex(item)
         if (indexToSet != -1) {
-            update(indexToSet, item)
+            val modifiedList = LinkedList(internalItems).apply { set(indexToSet, item) }
+            internalAdapter.updateData(modifiedList)
         }
     }
 
-    fun update(index: Int, item: Any) {
-        val modifiedList = LinkedList(internalItems).apply { set(index, item) }
-        internalAdapter.updateData(modifiedList)
-    }
+//    fun update(index: Int, item: Any) {
+//        if (internalAdapter.isDiffDisabled()) {
+//            val modifiedList = LinkedList(internalItems).apply { set(index, item) }
+//            internalAdapter.updateData(modifiedList)
+//        } else {
+//            throw IllegalStateException("This method should be called only when disabling the diff function")
+//        }
+//    }
 
     fun <T> injectHolder(holderInjector: HolderInjector<T>): OneAdapter {
         internalAdapter.register(holderInjector)
@@ -85,10 +91,10 @@ class OneAdapter {
         return this
     }
 
-    fun disableDiffFunction(): OneAdapter {
-        internalAdapter.disableDiff()
-        return this
-    }
+//    fun disableDiffFunction(): OneAdapter {
+//        internalAdapter.disableDiff()
+//        return this
+//    }
 
     private fun getElementIndex(itemToFind: Any): Int {
         internalItems.forEachIndexed { index, item: Any ->

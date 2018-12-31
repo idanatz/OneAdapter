@@ -9,5 +9,5 @@ import com.android.oneadapter.internal.ViewInteractor
 
 interface HolderInjector<T> {
     @LayoutRes fun layoutResource(): Int
-    fun onInject(data: T, viewInteractor: ViewInteractor) {}
+    fun onInject(data: T, viewInteractor: ViewInteractor)
 }

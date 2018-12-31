@@ -131,15 +131,16 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
             endlessScrollListener?.resetState()
         }
 
-        if (diffCallback == null) {
-            this.data = data
-            if (Looper.myLooper() == Looper.getMainLooper()) {
-                notifyDataSetChanged()
-            } else {
-                uiHandler.removeMessages(EVENT_NOTIFY_DATA_SET_CHANGED)
-                uiHandler.sendEmptyMessage(EVENT_NOTIFY_DATA_SET_CHANGED)
-            }
-        } else if (isEmptyStateShowing()) { // special case, do not use diff utils here due to crash in recycler view
+//        if (isDiffDisabled()) {
+//            this.data = data
+//            if (Looper.myLooper() == Looper.getMainLooper()) {
+//                notifyDataSetChanged()
+//            } else {
+//                uiHandler.removeMessages(EVENT_NOTIFY_DATA_SET_CHANGED)
+//                uiHandler.sendEmptyMessage(EVENT_NOTIFY_DATA_SET_CHANGED)
+//            }
+//        } else
+        if (isEmptyStateShowing()) { // special case, do not use diff utils here due to crash in recycler view
             this.data = data
             notifyItemRemoved(0) // remove the empty holder
             notifyItemRangeInserted(0, data.size) // insert new data holders
@@ -156,10 +157,12 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
         return this
     }
 
-    fun disableDiff(): InternalAdapter {
-        diffCallback = null
-        return this
-    }
+//    fun disableDiff(): InternalAdapter {
+//        diffCallback = null
+//        return this
+//    }
+//
+//    fun isDiffDisabled() = diffCallback == null
 
     fun <T> register(holderInjector: HolderInjector<T>): InternalAdapter {
         val type = TypeExtractor.getViewInjectorActualTypeArguments(holderInjector) ?: throw IllegalArgumentException()
