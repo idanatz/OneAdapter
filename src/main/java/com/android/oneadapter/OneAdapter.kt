@@ -62,16 +62,7 @@ class OneAdapter {
         }
     }
 
-//    fun update(index: Int, item: Any) {
-//        if (internalAdapter.isDiffDisabled()) {
-//            val modifiedList = LinkedList(internalItems).apply { set(index, item) }
-//            internalAdapter.updateData(modifiedList)
-//        } else {
-//            throw IllegalStateException("This method should be called only when disabling the diff function")
-//        }
-//    }
-
-    fun <T> injectHolder(holderInjector: HolderInjector<T>): OneAdapter {
+    fun <T : Any> injectHolder(holderInjector: HolderInjector<T>): OneAdapter {
         internalAdapter.register(holderInjector)
         return this
     }
@@ -90,11 +81,6 @@ class OneAdapter {
         internalAdapter.attachTo(recyclerView)
         return this
     }
-
-//    fun disableDiffFunction(): OneAdapter {
-//        internalAdapter.disableDiff()
-//        return this
-//    }
 
     private fun getElementIndex(itemToFind: Any): Int {
         internalItems.forEachIndexed { index, item: Any ->

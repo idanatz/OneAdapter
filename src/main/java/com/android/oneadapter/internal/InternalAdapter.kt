@@ -6,10 +6,9 @@ import android.os.Message
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.view.ViewGroup
-import com.android.oneadapter.base.BaseAdapter
 import com.android.oneadapter.interfaces.*
+import com.android.oneadapter.utils.isSameType
 import com.android.oneadapter.utils.let2
-import com.android.oneadapter.utils.TypeExtractor
 import java.lang.reflect.Type
 import java.util.ArrayList
 import java.util.HashMap
@@ -17,16 +16,16 @@ import java.util.HashMap
 /**
  * Created by Idan Atsmon on 20/11/2018.
  */
-internal class InternalAdapter private constructor() : BaseAdapter() {
+internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneViewHolder<Any>>() {
 
     var data: List<Any> = listOf()
         private set
 
     private val dataTypes = ArrayList<Type>()
-    private val creators = HashMap<Type, ViewHolderCreator<*>>()
+    private val holderCreators = HashMap<Type, ViewHolderCreator<Any>>()
 
     // endless scrolling
-    private var loadMoreCreator: ViewHolderCreator<*>? = null
+    private var loadMoreCreator: ViewHolderCreator<Any>? = null
     private var loadMoreInjector: LoadMoreInjector? = null
     private var endlessScrollListener: EndlessRecyclerViewScrollListener? = null
 
@@ -53,7 +52,6 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
     }
 
     companion object {
-
         private const val EVENT_NOTIFY_DATA_SET_CHANGED = 999
         private const val TYPE_LOAD_MORE = -10
         private const val TYPE_EMPTY_STATE = -11
@@ -63,17 +61,18 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OneViewHolder<*> {
-        return when(viewType) {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OneViewHolder<Any> {
+        return when (viewType) {
             TYPE_EMPTY_STATE -> emptyStateCreator!!.create(parent)
             TYPE_LOAD_MORE -> loadMoreCreator!!.create(parent)
             else -> {
                 val dataType = dataTypes[viewType]
-                var creator: ViewHolderCreator<*>? = creators[dataType]
+                var creator = holderCreators[dataType]
+
                 if (creator == null) {
-                    for (t in creators.keys) {
-                        if (TypeExtractor.isSameType(t, dataType)) {
-                            creator = creators[t]
+                    for (type in holderCreators.keys) {
+                        if (dataType.isSameType(type)) {
+                            creator = holderCreators[type]
                             break
                         }
                     }
@@ -88,10 +87,8 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
         }
     }
 
-    override fun getItem(position: Int): Any? = when {
-        loadMoreInjector != null && data.size <= position -> null
-        isEmptyStateShowing() -> null
-        else -> data[position]
+    override fun onBindViewHolder(holder: OneViewHolder<Any>, position: Int) {
+        holder.bind(getItem(position))
     }
 
     override fun getItemCount(): Int {
@@ -102,17 +99,15 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
         }
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return when {
-            isEmptyStateShowing() -> TYPE_EMPTY_STATE
-            loadMoreCreator != null && position == data.size -> TYPE_LOAD_MORE
-            else -> {
-                val item = data[position]
-                if (dataTypes.indexOf(item.javaClass) == -1) {
-                    dataTypes.add(item.javaClass)
-                }
-                dataTypes.indexOf(item.javaClass)
+    override fun getItemViewType(position: Int): Int = when {
+        isInEmptyState() -> TYPE_EMPTY_STATE
+        isInLoadMoreState(position) -> TYPE_LOAD_MORE
+        else -> {
+            val item = data[position]
+            if (dataTypes.indexOf(item.javaClass) == -1) {
+                dataTypes.add(item.javaClass)
             }
+            dataTypes.indexOf(item.javaClass)
         }
     }
 
@@ -131,16 +126,7 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
             endlessScrollListener?.resetState()
         }
 
-//        if (isDiffDisabled()) {
-//            this.data = data
-//            if (Looper.myLooper() == Looper.getMainLooper()) {
-//                notifyDataSetChanged()
-//            } else {
-//                uiHandler.removeMessages(EVENT_NOTIFY_DATA_SET_CHANGED)
-//                uiHandler.sendEmptyMessage(EVENT_NOTIFY_DATA_SET_CHANGED)
-//            }
-//        } else
-        if (isEmptyStateShowing()) { // special case, do not use diff utils here due to crash in recycler view
+        if (isInEmptyState()) { // special case, do not use diff utils here due to crash in recycler view
             this.data = data
             notifyItemRemoved(0) // remove the empty holder
             notifyItemRangeInserted(0, data.size) // insert new data holders
@@ -157,24 +143,18 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
         return this
     }
 
-//    fun disableDiff(): InternalAdapter {
-//        diffCallback = null
-//        return this
-//    }
-//
-//    fun isDiffDisabled() = diffCallback == null
-
-    fun <T> register(holderInjector: HolderInjector<T>): InternalAdapter {
-        val type = TypeExtractor.getViewInjectorActualTypeArguments(holderInjector) ?: throw IllegalArgumentException()
-        creators[type] = object : ViewHolderCreator<T> {
-            override fun create(parent: ViewGroup): OneViewHolder<T> {
-                return object : OneViewHolder<T>(parent, holderInjector.layoutResource()) {
-                    override fun onBind(data: T, viewInteractor: ViewInteractor) {
+    @Suppress("UNCHECKED_CAST")
+    fun <M : Any> register(holderInjector: HolderInjector<M>): InternalAdapter {
+        val dataType = holderInjector.extractActualTypeArguments() ?: throw IllegalArgumentException()
+        holderCreators[dataType] = object : ViewHolderCreator<M> {
+            override fun create(parent: ViewGroup): OneViewHolder<M> {
+                return object : OneViewHolder<M>(parent, holderInjector.layoutResource()) {
+                    override fun onBind(data: M, viewInteractor: ViewInteractor) {
                         holderInjector.onInject(data, viewInteractor)
                     }
                 }
             }
-        }
+        } as ViewHolderCreator<Any>
         return this
     }
 
@@ -192,7 +172,6 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
     }
 
     fun enableEmptyState(emptyInjector: EmptyInjector): InternalAdapter {
-
         emptyStateCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, emptyInjector.layoutResource()) {
@@ -204,12 +183,21 @@ internal class InternalAdapter private constructor() : BaseAdapter() {
     }
 
     fun attachTo(recyclerView: RecyclerView): InternalAdapter {
-        let2(recyclerView.layoutManager, loadMoreInjector) { layoutManager, loadMoreInjector ->
-            endlessScrollListener = EndlessRecyclerViewScrollListener(layoutManager, loadMoreInjector, emptyStateCreator != null)
+        recyclerView.run {
+            let2(layoutManager, loadMoreInjector) { layoutManager, loadMoreInjector ->
+                endlessScrollListener = EndlessRecyclerViewScrollListener(layoutManager, loadMoreInjector, emptyStateCreator != null)
+            }
+            adapter = this@InternalAdapter
         }
-        recyclerView.adapter = this
         return this
     }
 
-    private fun isEmptyStateShowing() = data.isEmpty() && emptyStateCreator != null
+    private fun getItem(position: Int): Any? = when {
+        isInLoadMoreState(position) -> null
+        isInEmptyState() -> null
+        else -> data[position]
+    }
+
+    private fun isInEmptyState() = data.isEmpty() && emptyStateCreator != null
+    private fun isInLoadMoreState(position: Int) = loadMoreInjector != null && data.size <= position
 }

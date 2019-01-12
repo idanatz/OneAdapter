@@ -5,7 +5,7 @@ import com.android.oneadapter.internal.ViewInteractor
 /**
  * Created by Idan Atsmon on 19/11/2018.
  */
-abstract class LoadMoreInjector : HolderInjector<Any> {
+abstract class LoadMoreInjector : HolderInjector<Any>() {
 
     abstract fun visibleThreshold(): Int
     abstract fun onLoadMore(currentPage: Int)

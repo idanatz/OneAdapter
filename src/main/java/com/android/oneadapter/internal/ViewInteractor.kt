@@ -9,8 +9,7 @@ import com.android.oneadapter.interfaces.GenericRunnable
  */
 class ViewInteractor internal constructor(private val viewHolder: OneViewHolder<*>) {
 
-//    fun <T : View> get(@IdRes id: Int, actionBlock: (T) -> Unit) = actionBlock.invoke(findViewById(id))
-    fun <T : View> interact(@IdRes id: Int, runnable: GenericRunnable<T>) = runnable.run(findViewById(id))
+    fun <V : View> interact(@IdRes id: Int, runnable: GenericRunnable<V>) = runnable.run(findViewById(id))
 
-    private fun <T : View> findViewById(id: Int): T = viewHolder.findViewById(id) as T
+    private fun <V : View> findViewById(id: Int): V = viewHolder.findViewById(id) as V
 }
