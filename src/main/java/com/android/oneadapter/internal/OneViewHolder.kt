@@ -12,30 +12,13 @@ import com.android.oneadapter.utils.let2
  */
 internal abstract class OneViewHolder<in M>(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    private val viewMap: SparseArray<View> = SparseArray()
-    private var viewInteractor: ViewInteractor? = null
-
-    protected abstract fun onBind(data: M, viewInteractor: ViewInteractor)
+    protected abstract fun onBind(data: M, inflatedView: View)
 
     constructor(parent: ViewGroup, itemLayoutRes: Int) : this(LayoutInflater.from(parent.context).inflate(itemLayoutRes, parent, false))
 
-    fun bind(data: M?) {
-        if (viewInteractor == null) {
-            viewInteractor = ViewInteractor(this)
+    fun onBindViewHolder(data: M?) {
+        data?.let {
+            onBind(it, itemView.rootView)
         }
-
-        let2(data, viewInteractor) { nonNullData, injector ->
-            onBind(nonNullData, injector)
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun <V : View> findViewById(id: Int): V {
-        var view: View? = viewMap[id]
-        if (view == null) {
-            view = itemView.findViewById(id)
-            viewMap.put(id, view)
-        }
-        return view as V
     }
 }

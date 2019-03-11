@@ -5,6 +5,7 @@ import android.os.Looper
 import android.os.Message
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
+import android.view.View
 import android.view.ViewGroup
 import com.android.oneadapter.interfaces.*
 import com.android.oneadapter.utils.isSameType
@@ -88,7 +89,7 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
     }
 
     override fun onBindViewHolder(holder: OneViewHolder<Any>, position: Int) {
-        holder.bind(getItem(position))
+        holder.onBindViewHolder(getItem(position))
     }
 
     override fun getItemCount(): Int {
@@ -149,8 +150,8 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
         holderCreators[dataType] = object : ViewHolderCreator<M> {
             override fun create(parent: ViewGroup): OneViewHolder<M> {
                 return object : OneViewHolder<M>(parent, holderInjector.layoutResource()) {
-                    override fun onBind(data: M, viewInteractor: ViewInteractor) {
-                        holderInjector.onInject(data, viewInteractor)
+                    override fun onBind(data: M, inflatedView: View) {
+                        holderInjector.onInject(data, inflatedView)
                     }
                 }
             }
@@ -164,7 +165,7 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
         loadMoreCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, loadMoreInjector.layoutResource()) {
-                    override fun onBind(data: Any, viewInteractor: ViewInteractor) {}
+                    override fun onBind(data: Any, inflatedView: View) {}
                 }
             }
         }
@@ -175,7 +176,7 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
         emptyStateCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, emptyInjector.layoutResource()) {
-                    override fun onBind(data: Any, viewInteractor: ViewInteractor) {}
+                    override fun onBind(data: Any, inflatedView: View) {}
                 }
             }
         }

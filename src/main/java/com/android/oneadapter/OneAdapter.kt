@@ -6,7 +6,6 @@ import com.android.oneadapter.interfaces.LoadMoreInjector
 import com.android.oneadapter.interfaces.Diffable
 import com.android.oneadapter.interfaces.EmptyInjector
 import com.android.oneadapter.interfaces.HolderInjector
-import java.lang.IllegalStateException
 import java.util.*
 
 /**
@@ -48,14 +47,14 @@ class OneAdapter {
     }
 
     fun remove(item: Any) {
-        val indexToRemove = getElementIndex(item)
+        val indexToRemove = getIndexOfItem(item)
         if (indexToRemove != -1) {
             remove(indexToRemove)
         }
     }
 
     fun update(item: Any) {
-        val indexToSet = getElementIndex(item)
+        val indexToSet = getIndexOfItem(item)
         if (indexToSet != -1) {
             val modifiedList = LinkedList(internalItems).apply { set(indexToSet, item) }
             internalAdapter.updateData(modifiedList)
@@ -82,13 +81,12 @@ class OneAdapter {
         return this
     }
 
-    private fun getElementIndex(itemToFind: Any): Int {
-        internalItems.forEachIndexed { index, item: Any ->
+    private fun getIndexOfItem(itemToFind: Any): Int {
+        return internalItems.indexOfFirst { item ->
             when (item) {
-                is Diffable -> if (item.areItemsTheSame(itemToFind)) return index
-                else -> if (item == itemToFind) return index
+                is Diffable -> item.areItemsTheSame(itemToFind)
+                else -> item == itemToFind
             }
         }
-        return -1
     }
 }

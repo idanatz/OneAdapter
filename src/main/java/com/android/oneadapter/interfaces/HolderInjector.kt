@@ -1,7 +1,7 @@
 package com.android.oneadapter.interfaces
 
 import android.support.annotation.LayoutRes
-import com.android.oneadapter.internal.ViewInteractor
+import android.view.View
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
@@ -12,7 +12,7 @@ import java.lang.reflect.Type
 abstract class HolderInjector<M> {
 
     @LayoutRes abstract fun layoutResource(): Int
-    abstract fun onInject(data: M, viewInteractor: ViewInteractor)
+    abstract fun onInject(data: M, inflatedView: View)
 
     fun extractActualTypeArguments(): Type? {
         val genericType = this.javaClass.genericSuperclass
