@@ -23,7 +23,7 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
         private set
 
     private val dataTypes = ArrayList<Type>()
-    private val holderCreators = HashMap<Type, ViewHolderCreator<Any>>()
+    private val holderCreators = HashMap<Class<*>, ViewHolderCreator<Any>>() // maps T.class -> ViewHolderCreator<T>
 
     // endless scrolling
     private var loadMoreCreator: ViewHolderCreator<Any>? = null
@@ -146,10 +146,10 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
 
     @Suppress("UNCHECKED_CAST")
     fun <M : Any> register(holderInjector: HolderInjector<M>): InternalAdapter {
-        val dataType = holderInjector.extractActualTypeArguments() ?: throw IllegalArgumentException()
-        holderCreators[dataType] = object : ViewHolderCreator<M> {
+        val dataClass = holderInjector.provideHolderConfig().modelClass ?: throw IllegalArgumentException("must provide data class for holder injector")
+        holderCreators[dataClass] = object : ViewHolderCreator<M> {
             override fun create(parent: ViewGroup): OneViewHolder<M> {
-                return object : OneViewHolder<M>(parent, holderInjector.layoutResource()) {
+                return object : OneViewHolder<M>(parent, holderInjector.provideHolderConfig().layoutResource) {
                     override fun onBind(data: M, inflatedView: View) {
                         holderInjector.onInject(data, inflatedView)
                     }
@@ -164,7 +164,7 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
 
         loadMoreCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
-                return object : OneViewHolder<Any>(parent, loadMoreInjector.layoutResource()) {
+                return object : OneViewHolder<Any>(parent, loadMoreInjector.provideHolderConfig().layoutResource) {
                     override fun onBind(data: Any, inflatedView: View) {}
                 }
             }
@@ -175,7 +175,7 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
     fun enableEmptyState(emptyInjector: EmptyInjector): InternalAdapter {
         emptyStateCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
-                return object : OneViewHolder<Any>(parent, emptyInjector.layoutResource()) {
+                return object : OneViewHolder<Any>(parent, emptyInjector.provideHolderConfig().layoutResource) {
                     override fun onBind(data: Any, inflatedView: View) {}
                 }
             }

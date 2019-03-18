@@ -1,15 +1,12 @@
 package com.android.oneadapter.interfaces
 
-import android.view.View
+import com.android.oneadapter.internal.holder_config.LoadMoreHolderConfig
 
 /**
  * Created by Idan Atsmon on 19/11/2018.
  */
-abstract class LoadMoreInjector : HolderInjector<Any>() {
+abstract class LoadMoreInjector {
 
-    abstract fun visibleThreshold(): Int
+    abstract fun provideHolderConfig(): LoadMoreHolderConfig
     abstract fun onLoadMore(currentPage: Int)
-
-    // there is no data for empty injector, so use empty implementation
-    override fun onInject(data: Any, inflatedView: View) {}
 }

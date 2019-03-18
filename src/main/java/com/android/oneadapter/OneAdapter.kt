@@ -20,7 +20,7 @@ class OneAdapter {
         get() = internalAdapter.data
 
     fun setItems(items: List<Any>) {
-        internalAdapter.updateData(items)
+        internalAdapter.updateData(LinkedList(items))
     }
 
     fun clear() {

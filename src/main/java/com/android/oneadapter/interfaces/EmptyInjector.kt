@@ -1,12 +1,11 @@
 package com.android.oneadapter.interfaces
 
-import android.view.View
+import com.android.oneadapter.internal.holder_config.EmptyHolderConfig
 
 /**
  * Created by Idan Atsmon on 19/11/2018.
  */
-abstract class EmptyInjector : HolderInjector<Any>() {
+abstract class EmptyInjector {
 
-    // there is no data for empty injector, so use empty implementation
-    override fun onInject(data: Any, inflatedView: View) {}
+    abstract fun provideHolderConfig(): EmptyHolderConfig
 }
