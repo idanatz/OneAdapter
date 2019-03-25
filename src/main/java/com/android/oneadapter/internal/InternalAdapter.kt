@@ -1,6 +1,7 @@
 package com.android.oneadapter.internal
 
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import android.os.Message
 import android.support.v7.util.DiffUtil
@@ -8,21 +9,22 @@ import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
 import com.android.oneadapter.interfaces.*
-import com.android.oneadapter.utils.isSameType
 import com.android.oneadapter.utils.let2
-import java.lang.reflect.Type
+import com.android.oneadapter.utils.removeClassIfExist
 import java.util.ArrayList
 import java.util.HashMap
 
 /**
  * Created by Idan Atsmon on 20/11/2018.
  */
-internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneViewHolder<Any>>() {
+internal class InternalAdapter :
+        RecyclerView.Adapter<OneViewHolder<Any>>(),
+        EndlessRecyclerViewScrollListener.InternalListener {
 
-    var data: List<Any> = listOf()
+    var data: MutableList<Any> = mutableListOf()
         private set
 
-    private val dataTypes = ArrayList<Type>()
+    private val dataTypes = ArrayList<Class<*>>() // maps T.class to unique indexes for adapter's getItemViewType
     private val holderCreators = HashMap<Class<*>, ViewHolderCreator<Any>>() // maps T.class -> ViewHolderCreator<T>
 
     // endless scrolling
@@ -33,54 +35,33 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
     // empty state
     private var emptyStateCreator: ViewHolderCreator<Any>? = null
 
-    private val uiHandler = object : Handler(Looper.getMainLooper()) {
-        override fun dispatchMessage(msg: Message) {
-            when (msg.what) {
-                EVENT_NOTIFY_DATA_SET_CHANGED -> notifyDataSetChanged()
+    // handlers
+    private val uiHandler by lazy { Handler(Looper.getMainLooper()) }
+    private val backgroundHandler by lazy { Handler(HandlerThread("BackgroundHandler").apply { start() }.looper) }
+
+    private val diffCallback: DiffUtilCallback by lazy {
+        object : DiffUtilCallback {
+            override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean {
+                return oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.areItemsTheSame(newItem)
             }
-            super.dispatchMessage(msg)
+
+            override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean {
+                return oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.areContentTheSame(newItem)
+            }
         }
     }
 
-    private var diffCallback: DiffUtilCallback? = object : DiffUtilCallback {
-        override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean {
-            return oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.areItemsTheSame(newItem)
-        }
-
-        override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean {
-            return oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.areContentTheSame(newItem)
-        }
-    }
-
-    companion object {
-        private const val EVENT_NOTIFY_DATA_SET_CHANGED = 999
-        private const val TYPE_LOAD_MORE = -10
-        private const val TYPE_EMPTY_STATE = -11
-
-        fun create(): InternalAdapter {
-            return InternalAdapter()
-        }
-    }
-
+    //region Traditional Adapter Stuff
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OneViewHolder<Any> {
         return when (viewType) {
-            TYPE_EMPTY_STATE -> emptyStateCreator!!.create(parent)
-            TYPE_LOAD_MORE -> loadMoreCreator!!.create(parent)
+            EmptyIndicator.getType() -> emptyStateCreator!!.create(parent)
+            LoadingIndicator.getType() -> loadMoreCreator!!.create(parent)
             else -> {
                 val dataType = dataTypes[viewType]
-                var creator = holderCreators[dataType]
+                val creator = holderCreators[dataType]
 
                 if (creator == null) {
-                    for (type in holderCreators.keys) {
-                        if (dataType.isSameType(type)) {
-                            creator = holderCreators[type]
-                            break
-                        }
-                    }
-                }
-
-                if (creator == null) {
-                    throw IllegalArgumentException(String.format("TYPE: %s injector not found...", dataType))
+                    throw IllegalArgumentException(String.format("Injector not found for model class %s...", dataType))
                 } else {
                     return creator.create(parent)
                 }
@@ -89,26 +70,98 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
     }
 
     override fun onBindViewHolder(holder: OneViewHolder<Any>, position: Int) {
-        holder.onBindViewHolder(getItem(position))
+        val item = data[position].run {
+            when (this) {
+                is EmptyIndicator, is LoadingIndicator -> null
+                else -> this
+            }
+        }
+        holder.onBindViewHolder(item)
     }
 
-    override fun getItemCount(): Int {
-        return if (data.isEmpty()) {
-            if (emptyStateCreator != null) 1 else 0
-        } else {
-            data.size + if (loadMoreCreator != null) 1 else 0
-        }
-    }
+    override fun getItemCount(): Int = data.size
 
     override fun getItemViewType(position: Int): Int = when {
-        isInEmptyState() -> TYPE_EMPTY_STATE
-        isInLoadMoreState(position) -> TYPE_LOAD_MORE
+        data[position] is EmptyIndicator -> EmptyIndicator.getType()
+        data[position] is LoadingIndicator -> LoadingIndicator.getType()
         else -> {
             val item = data[position]
             if (dataTypes.indexOf(item.javaClass) == -1) {
                 dataTypes.add(item.javaClass)
             }
             dataTypes.indexOf(item.javaClass)
+        }
+    }
+    //endregion
+
+    fun updateData(data: MutableList<Any>) {
+        backgroundHandler.post {
+            // modify the incoming data if needed
+            if (data.isEmpty()) {
+                if (emptyStateCreator != null) {
+                    data.add(0, EmptyIndicator())
+                }
+                endlessScrollListener?.resetState()
+            } else {
+                data.removeClassIfExist(EmptyIndicator::class.java)
+                data.removeClassIfExist(LoadingIndicator::class.java)
+            }
+
+            // handle the diffing
+            val diffResult = DiffUtil.calculateDiff(OneDiffUtil(this.data, data, diffCallback))
+            this.data = data
+            uiHandler.post { diffResult.dispatchUpdatesTo(this) }
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <M : Any> register(holderInjector: HolderInjector<M>) {
+        val dataClass = holderInjector.provideHolderConfig().modelClass ?: throw IllegalArgumentException("must provide data class for holder injector")
+        holderCreators[dataClass] = object : ViewHolderCreator<M> {
+            override fun create(parent: ViewGroup): OneViewHolder<M> {
+                return object : OneViewHolder<M>(parent, holderInjector.provideHolderConfig().layoutResource) {
+                    override fun onBind(data: M, viewFinder: ViewFinder) {
+                        holderInjector.onInject(data, viewFinder)
+                    }
+                }
+            }
+        } as ViewHolderCreator<Any>
+    }
+
+    fun enableLoadMore(loadMoreInjector: LoadMoreInjector) {
+        // save the injector for later use, e.g invoking onLoadMore callback
+        this.loadMoreInjector = loadMoreInjector
+
+        loadMoreCreator = object : ViewHolderCreator<Any> {
+            override fun create(parent: ViewGroup): OneViewHolder<Any> {
+                return object : OneViewHolder<Any>(parent, loadMoreInjector.provideHolderConfig().layoutResource) {
+                    override fun onBind(data: Any, viewFinder: ViewFinder) {}
+                }
+            }
+        }
+    }
+
+    fun enableEmptyState(emptyInjector: EmptyInjector) {
+        emptyStateCreator = object : ViewHolderCreator<Any> {
+            override fun create(parent: ViewGroup): OneViewHolder<Any> {
+                return object : OneViewHolder<Any>(parent, emptyInjector.provideHolderConfig().layoutResource) {
+                    override fun onBind(data: Any, viewFinder: ViewFinder) {}
+                }
+            }
+        }
+    }
+
+    //region RecyclerView Stuff
+    fun attachTo(recyclerView: RecyclerView) {
+        recyclerView.run {
+            let2(layoutManager, loadMoreInjector) { layoutManager, loadMoreInjector ->
+                endlessScrollListener = EndlessRecyclerViewScrollListener(
+                        layoutManager = layoutManager,
+                        visibleThreshold = loadMoreInjector.provideHolderConfig().visibleThreshold,
+                        includeEmptyState = emptyStateCreator != null,
+                        internalListener = this@InternalAdapter)
+            }
+            adapter = this@InternalAdapter
         }
     }
 
@@ -121,84 +174,22 @@ internal class InternalAdapter private constructor() : RecyclerView.Adapter<OneV
         endlessScrollListener?.let { recyclerView.removeOnScrollListener(it) }
         super.onDetachedFromRecyclerView(recyclerView)
     }
+    //endregion
 
-    fun updateData(data: List<Any>): InternalAdapter {
-        if (data.isEmpty()) {
-            endlessScrollListener?.resetState()
-        }
+    override fun onLoadingStateChanged(loading: Boolean) {
+        if (loading) {
+            data.indexOfFirst { it is LoadingIndicator }.let { index ->
+                if (index == -1) {
+                    data.add(data.size, LoadingIndicator())
 
-        if (isInEmptyState()) { // special case, do not use diff utils here due to crash in recycler view
-            this.data = data
-            notifyItemRemoved(0) // remove the empty holder
-            notifyItemRangeInserted(0, data.size) // insert new data holders
-        } else {
-            val diffResult = DiffUtil.calculateDiff(OneDiffUtil(this.data, data, diffCallback!!))
-            this.data = data
-            if (Looper.myLooper() == Looper.getMainLooper()) {
-                diffResult.dispatchUpdatesTo(this)
-            } else {
-                uiHandler.removeMessages(EVENT_NOTIFY_DATA_SET_CHANGED)
-                uiHandler.sendEmptyMessage(EVENT_NOTIFY_DATA_SET_CHANGED)
-            }
-        }
-        return this
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun <M : Any> register(holderInjector: HolderInjector<M>): InternalAdapter {
-        val dataClass = holderInjector.provideHolderConfig().modelClass ?: throw IllegalArgumentException("must provide data class for holder injector")
-        holderCreators[dataClass] = object : ViewHolderCreator<M> {
-            override fun create(parent: ViewGroup): OneViewHolder<M> {
-                return object : OneViewHolder<M>(parent, holderInjector.provideHolderConfig().layoutResource) {
-                    override fun onBind(data: M, inflatedView: View) {
-                        holderInjector.onInject(data, inflatedView)
-                    }
-                }
-            }
-        } as ViewHolderCreator<Any>
-        return this
-    }
-
-    fun enableLoadMore(loadMoreInjector: LoadMoreInjector): InternalAdapter {
-        this.loadMoreInjector = loadMoreInjector
-
-        loadMoreCreator = object : ViewHolderCreator<Any> {
-            override fun create(parent: ViewGroup): OneViewHolder<Any> {
-                return object : OneViewHolder<Any>(parent, loadMoreInjector.provideHolderConfig().layoutResource) {
-                    override fun onBind(data: Any, inflatedView: View) {}
+                    // post it to the UI handler because the recycler crashes when calling notify from an onScroll callback
+                    uiHandler.post { notifyItemInserted(data.size) }
                 }
             }
         }
-        return this
     }
 
-    fun enableEmptyState(emptyInjector: EmptyInjector): InternalAdapter {
-        emptyStateCreator = object : ViewHolderCreator<Any> {
-            override fun create(parent: ViewGroup): OneViewHolder<Any> {
-                return object : OneViewHolder<Any>(parent, emptyInjector.provideHolderConfig().layoutResource) {
-                    override fun onBind(data: Any, inflatedView: View) {}
-                }
-            }
-        }
-        return this
+    override fun notifyLoadMore(currentPage: Int) {
+        loadMoreInjector?.onLoadMore(currentPage)
     }
-
-    fun attachTo(recyclerView: RecyclerView): InternalAdapter {
-        recyclerView.run {
-            let2(layoutManager, loadMoreInjector) { layoutManager, loadMoreInjector ->
-                endlessScrollListener = EndlessRecyclerViewScrollListener(layoutManager, loadMoreInjector, emptyStateCreator != null)
-            }
-            adapter = this@InternalAdapter
-        }
-        return this
-    }
-
-    private fun getItem(position: Int): Any? = when {
-        isInLoadMoreState(position) -> null
-        isInEmptyState() -> null
-        else -> data[position]
-    }
-
-    private fun isInEmptyState() = data.isEmpty() && emptyStateCreator != null
-    private fun isInLoadMoreState(position: Int) = loadMoreInjector != null && data.size <= position
 }

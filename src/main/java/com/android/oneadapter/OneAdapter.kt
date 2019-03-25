@@ -14,7 +14,7 @@ import java.util.*
 
 class OneAdapter {
 
-    private val internalAdapter: InternalAdapter = InternalAdapter.create()
+    private val internalAdapter = InternalAdapter()
 
     private val internalItems: List<Any>
         get() = internalAdapter.data
@@ -24,7 +24,7 @@ class OneAdapter {
     }
 
     fun clear() {
-        internalAdapter.updateData(listOf())
+        internalAdapter.updateData(mutableListOf())
     }
 
     fun add(item: Any) {
@@ -78,6 +78,7 @@ class OneAdapter {
 
     fun attachTo(recyclerView: RecyclerView): OneAdapter {
         internalAdapter.attachTo(recyclerView)
+        clear() // after attaching the recycler we init the adapter
         return this
     }
 

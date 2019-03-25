@@ -10,13 +10,13 @@ import android.view.ViewGroup
  */
 internal abstract class OneViewHolder<in M>(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    protected abstract fun onBind(data: M, inflatedView: View)
+    protected abstract fun onBind(data: M, viewFinder: ViewFinder)
 
     constructor(parent: ViewGroup, itemLayoutRes: Int) : this(LayoutInflater.from(parent.context).inflate(itemLayoutRes, parent, false))
 
     fun onBindViewHolder(model: M?) {
         model?.let {
-            onBind(it, itemView.rootView)
+            onBind(it, ViewFinder(itemView))
         }
     }
 }

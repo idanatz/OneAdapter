@@ -1,66 +1,38 @@
 package com.android.oneadapter.internal
 
 import android.support.v7.widget.GridLayoutManager
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
-import com.android.oneadapter.interfaces.LoadMoreInjector
+import com.android.oneadapter.utils.findLastVisibleItemPosition
 
 /**
  * Created by Idan Atsmon on 22/11/2018.
  */
-class EndlessRecyclerViewScrollListener(private val layoutManager: RecyclerView.LayoutManager, private val loadMoreInjector: LoadMoreInjector, private val includeEmptyState: Boolean) : RecyclerView.OnScrollListener() {
+class EndlessRecyclerViewScrollListener(
+        private val layoutManager: RecyclerView.LayoutManager,
+        private var visibleThreshold: Int = 0, // The minimum amount of items to have below your current scroll position before loading more.
+        private val includeEmptyState: Boolean,
+        private val internalListener: InternalListener
+) : RecyclerView.OnScrollListener() {
 
-    // The minimum amount of items to have below your current scroll position before loading more.
-    private var visibleThreshold: Int = 0
-    // The current offset index of data you have loaded
-    private var currentPage = 0
-    // The total number of items in the data set after the last load
-    private var previousTotalItemCount = 0
-    // True if we are still waiting for the last set of data to load.
-    var loading = true
-    // Sets the starting page index
-    private val startingPageIndex = 0
+    private var currentPage = 0 // The current offset index of data you have loaded
+    private var previousTotalItemCount = 0 // The total number of items in the data set after the last load
+    private var loading = true // True if we are still waiting for the last set of data to load.
+    private val startingPageIndex = 0 // Sets the starting page index
 
     init {
         when (layoutManager) {
-            is GridLayoutManager -> visibleThreshold = loadMoreInjector.provideHolderConfig().visibleThreshold * layoutManager.spanCount
-            is LinearLayoutManager -> this.visibleThreshold = loadMoreInjector.provideHolderConfig().visibleThreshold
-            is StaggeredGridLayoutManager -> visibleThreshold = loadMoreInjector.provideHolderConfig().visibleThreshold * layoutManager.spanCount
+            is GridLayoutManager -> visibleThreshold *= layoutManager.spanCount
+            is StaggeredGridLayoutManager -> visibleThreshold *= layoutManager.spanCount
         }
         resetState()
     }
 
     // This happens many times a second during a scroll, so be wary of the code you place here.
-    // We are given a few useful parameters to help us work out if we need to load some more data,
-    // but first we check if we are waiting for the previous load to finish.
     override fun onScrolled(view: RecyclerView, dx: Int, dy: Int) {
-        var lastVisibleItemPosition = 0
         val totalItemCount = layoutManager.itemCount
+        val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
 
-        when (layoutManager) {
-            is StaggeredGridLayoutManager -> {
-                val lastVisibleItemPositions = layoutManager.findLastVisibleItemPositions(null)
-                // get maximum element within the list
-                lastVisibleItemPosition = getLastVisibleItem(lastVisibleItemPositions)
-            }
-            is GridLayoutManager -> lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-            is LinearLayoutManager -> lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-        }
-
-            // If the total item count is zero and the previous isn't, assume the
-        // list is invalidated and should be reset back to initial state
-        // If it’s still loading, we check to see if the dataset count has
-        // changed, if so we conclude it has finished loading and update the current page
-        // number and total item count.
-
-        // If it isn’t currently loading, we check to see if we have breached
-        // the withVisibleThreshold and need to reload more data.
-        // If we do need to reload some more data, we execute onLoadMore to fetch the data.
-        // threshold should reflect how many total columns there are too
-
-        // If the total item count is zero and the previous isn't, assume the
-        // list is invalidated and should be reset back to initial state
         if (totalItemCount < previousTotalItemCount) {
             this.currentPage = this.startingPageIndex
             this.previousTotalItemCount = totalItemCount
@@ -69,39 +41,26 @@ class EndlessRecyclerViewScrollListener(private val layoutManager: RecyclerView.
             }
         }
 
-        // If it’s still loading, we check to see if the dataset count has
-        // changed, if so we conclude it has finished loading and update the current page
-        // number and total item count.
         if (loading && totalItemCount > previousTotalItemCount) {
             loading = false
             previousTotalItemCount = totalItemCount
-        }
-
-        // If it isn’t currently loading, we check to see if we have breached the visibleThreshold and need to reload more data.
-        // the -1 on the totalItemCount is for not including the load more holder
-        if (!loading && lastVisibleItemPosition + visibleThreshold > totalItemCount) {
+            internalListener.onLoadingStateChanged(loading)
+        } else if (!loading && lastVisibleItemPosition + visibleThreshold > totalItemCount) {
             currentPage++
-            loadMoreInjector.onLoadMore(currentPage)
+            internalListener.notifyLoadMore(currentPage)
             loading = true
+            internalListener.onLoadingStateChanged(loading)
         }
     }
 
-    // Call this method whenever performing new searches
     fun resetState() {
         currentPage = this.startingPageIndex
         loading = true
         previousTotalItemCount = if (includeEmptyState) 1 else 0
     }
 
-    private fun getLastVisibleItem(lastVisibleItemPositions: IntArray): Int {
-        var maxSize = 0
-        for (i in lastVisibleItemPositions.indices) {
-            if (i == 0) {
-                maxSize = lastVisibleItemPositions[i]
-            } else if (lastVisibleItemPositions[i] > maxSize) {
-                maxSize = lastVisibleItemPositions[i]
-            }
-        }
-        return maxSize
+    interface InternalListener {
+        fun onLoadingStateChanged(loading: Boolean)
+        fun notifyLoadMore(currentPage: Int)
     }
 }

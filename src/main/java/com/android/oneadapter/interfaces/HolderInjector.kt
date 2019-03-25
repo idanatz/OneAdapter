@@ -1,6 +1,6 @@
 package com.android.oneadapter.interfaces
 
-import android.view.View
+import com.android.oneadapter.internal.ViewFinder
 import com.android.oneadapter.internal.holder_config.HolderConfig
 
 /**
@@ -9,5 +9,5 @@ import com.android.oneadapter.internal.holder_config.HolderConfig
 abstract class HolderInjector<M> {
 
     abstract fun provideHolderConfig(): HolderConfig<M>
-    abstract fun onInject(model: M, inflatedView: View)
+    abstract fun onInject(model: M, viewFinder: ViewFinder)
 }

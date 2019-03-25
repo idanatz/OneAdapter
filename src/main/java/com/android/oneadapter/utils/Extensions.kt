@@ -1,7 +1,10 @@
 package com.android.oneadapter.utils
 
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
+import android.support.v7.widget.GridLayoutManager
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.StaggeredGridLayoutManager
+import java.lang.IllegalStateException
 
 /**
  * Created by Idan Atsmon on 20/11/2018.
@@ -14,26 +17,32 @@ internal inline fun <A : Any?, B : Any?, R> let2(v1: A?, v2: B?, callback: (A, B
     }
 }
 
-internal fun Type.isSameType(targetType: Type): Boolean {
-    if (this is Class<*> && targetType is Class<*>) {
-        if (this.isAssignableFrom(targetType)) {
-            return true
-        }
-    } else if (this is ParameterizedType && targetType is ParameterizedType) {
-        if (this.rawType .isSameType(targetType.rawType)) {
-            val types = this.actualTypeArguments
-            val targetTypes = targetType.actualTypeArguments
-            if (types.size != targetTypes.size) {
-                return false
-            }
-            val len = types.size
-            for (i in 0 until len) {
-                if (!types[i].isSameType(targetTypes[i])) {
-                    return false
-                }
-            }
-            return true
+internal fun <T, M> MutableList<T>.removeClassIfExist(classToRemove: Class<M>) {
+    indexOfFirst { classToRemove.isInstance(it) }.let { foundIndex ->
+        if (foundIndex != -1) {
+            removeAt(foundIndex)
         }
     }
-    return false
+}
+
+internal fun RecyclerView.LayoutManager.findLastVisibleItemPosition(): Int {
+    return when (this) {
+        is LinearLayoutManager -> findLastVisibleItemPosition()
+        is GridLayoutManager -> findLastVisibleItemPosition()
+        is StaggeredGridLayoutManager -> {
+            val lastVisibleItemPositions = findLastVisibleItemPositions(null)
+
+            // get maximum element within the list
+            var maxSize = 0
+            for (i in lastVisibleItemPositions.indices) {
+                if (i == 0) {
+                    maxSize = lastVisibleItemPositions[i]
+                } else if (lastVisibleItemPositions[i] > maxSize) {
+                    maxSize = lastVisibleItemPositions[i]
+                }
+            }
+            return maxSize
+        }
+        else -> throw IllegalStateException("Recycler view layout manager is not supported")
+    }
 }
