@@ -8,15 +8,21 @@ import android.view.ViewGroup
 /**
  * Created by Idan Atsmon on 19/11/2018.
  */
-internal abstract class OneViewHolder<in M>(itemView: View) : RecyclerView.ViewHolder(itemView) {
+internal abstract class OneViewHolder<in M> (
+        parent: ViewGroup,
+        itemLayoutRes: Int
+) : RecyclerView.ViewHolder(LayoutInflater.from(parent.context).inflate(itemLayoutRes, parent, false)) {
 
-    protected abstract fun onBind(data: M, viewFinder: ViewFinder)
+    lateinit var viewFinder: ViewFinder
 
-    constructor(parent: ViewGroup, itemLayoutRes: Int) : this(LayoutInflater.from(parent.context).inflate(itemLayoutRes, parent, false))
+    protected abstract fun onBind(data: M)
+    abstract fun onUnbind()
 
     fun onBindViewHolder(model: M?) {
+        viewFinder = ViewFinder(itemView)
+
         model?.let {
-            onBind(it, ViewFinder(itemView))
+            onBind(it)
         }
     }
 }

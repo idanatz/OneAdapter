@@ -9,5 +9,6 @@ import com.android.oneadapter.internal.holder_config.HolderConfig
 abstract class HolderInjector<M> {
 
     abstract fun provideHolderConfig(): HolderConfig<M>
-    abstract fun onInject(model: M, viewFinder: ViewFinder)
+    abstract fun onBind(model: M, viewFinder: ViewFinder)
+    open fun onUnbind(viewFinder: ViewFinder) {}
 }

@@ -1,5 +1,6 @@
 package com.android.oneadapter.interfaces
 
+import com.android.oneadapter.internal.ViewFinder
 import com.android.oneadapter.internal.holder_config.LoadMoreHolderConfig
 
 /**
@@ -9,4 +10,5 @@ abstract class LoadMoreInjector {
 
     abstract fun provideHolderConfig(): LoadMoreHolderConfig
     abstract fun onLoadMore(currentPage: Int)
+    fun onUnbind(viewFinder: ViewFinder) {}
 }

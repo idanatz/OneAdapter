@@ -1,5 +1,6 @@
 package com.android.oneadapter.interfaces
 
+import com.android.oneadapter.internal.ViewFinder
 import com.android.oneadapter.internal.holder_config.EmptyHolderConfig
 
 /**
@@ -8,4 +9,5 @@ import com.android.oneadapter.internal.holder_config.EmptyHolderConfig
 abstract class EmptyInjector {
 
     abstract fun provideHolderConfig(): EmptyHolderConfig
+    fun onUnbind(viewFinder: ViewFinder) {}
 }

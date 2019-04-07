@@ -3,10 +3,8 @@ package com.android.oneadapter.internal
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import android.os.Message
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
-import android.view.View
 import android.view.ViewGroup
 import com.android.oneadapter.interfaces.*
 import com.android.oneadapter.utils.let2
@@ -92,6 +90,11 @@ internal class InternalAdapter :
             dataTypes.indexOf(item.javaClass)
         }
     }
+
+    override fun onViewDetachedFromWindow(holder: OneViewHolder<Any>) {
+        super.onViewDetachedFromWindow(holder)
+        holder.onUnbind()
+    }
     //endregion
 
     fun updateData(data: MutableList<Any>) {
@@ -120,14 +123,27 @@ internal class InternalAdapter :
         holderCreators[dataClass] = object : ViewHolderCreator<M> {
             override fun create(parent: ViewGroup): OneViewHolder<M> {
                 return object : OneViewHolder<M>(parent, holderInjector.provideHolderConfig().layoutResource) {
-                    override fun onBind(data: M, viewFinder: ViewFinder) {
-                        holderInjector.onInject(data, viewFinder)
-                    }
+                    override fun onBind(data: M) = holderInjector.onBind(data, viewFinder)
+                    override fun onUnbind() = holderInjector.onUnbind(viewFinder)
                 }
             }
         } as ViewHolderCreator<Any>
     }
 
+    //region Empty State Stuff
+    fun enableEmptyState(emptyInjector: EmptyInjector) {
+        emptyStateCreator = object : ViewHolderCreator<Any> {
+            override fun create(parent: ViewGroup): OneViewHolder<Any> {
+                return object : OneViewHolder<Any>(parent, emptyInjector.provideHolderConfig().layoutResource) {
+                    override fun onBind(data: Any) {}
+                    override fun onUnbind() = emptyInjector.onUnbind(viewFinder)
+                }
+            }
+        }
+    }
+    //endregion
+
+    //region Load More Stuff
     fun enableLoadMore(loadMoreInjector: LoadMoreInjector) {
         // save the injector for later use, e.g invoking onLoadMore callback
         this.loadMoreInjector = loadMoreInjector
@@ -135,21 +151,30 @@ internal class InternalAdapter :
         loadMoreCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, loadMoreInjector.provideHolderConfig().layoutResource) {
-                    override fun onBind(data: Any, viewFinder: ViewFinder) {}
+                    override fun onBind(data: Any) {}
+                    override fun onUnbind() = loadMoreInjector.onUnbind(viewFinder)
                 }
             }
         }
     }
 
-    fun enableEmptyState(emptyInjector: EmptyInjector) {
-        emptyStateCreator = object : ViewHolderCreator<Any> {
-            override fun create(parent: ViewGroup): OneViewHolder<Any> {
-                return object : OneViewHolder<Any>(parent, emptyInjector.provideHolderConfig().layoutResource) {
-                    override fun onBind(data: Any, viewFinder: ViewFinder) {}
+    override fun onLoadingStateChanged(loading: Boolean) {
+        if (loading) {
+            data.indexOfFirst { it is LoadingIndicator }.let { index ->
+                if (index == -1) {
+                    data.add(data.size, LoadingIndicator())
+
+                    // post it to the UI handler because the recycler crashes when calling notify from an onScroll callback
+                    uiHandler.post { notifyItemInserted(data.size) }
                 }
             }
         }
     }
+
+    override fun notifyLoadMore(currentPage: Int) {
+        loadMoreInjector?.onLoadMore(currentPage)
+    }
+    //endregion
 
     //region RecyclerView Stuff
     fun attachTo(recyclerView: RecyclerView) {
@@ -175,21 +200,4 @@ internal class InternalAdapter :
         super.onDetachedFromRecyclerView(recyclerView)
     }
     //endregion
-
-    override fun onLoadingStateChanged(loading: Boolean) {
-        if (loading) {
-            data.indexOfFirst { it is LoadingIndicator }.let { index ->
-                if (index == -1) {
-                    data.add(data.size, LoadingIndicator())
-
-                    // post it to the UI handler because the recycler crashes when calling notify from an onScroll callback
-                    uiHandler.post { notifyItemInserted(data.size) }
-                }
-            }
-        }
-    }
-
-    override fun notifyLoadMore(currentPage: Int) {
-        loadMoreInjector?.onLoadMore(currentPage)
-    }
 }
