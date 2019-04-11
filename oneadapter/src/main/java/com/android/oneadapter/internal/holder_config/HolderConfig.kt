@@ -1,6 +1,7 @@
 package com.android.oneadapter.internal.holder_config
 
 import android.support.annotation.LayoutRes
+import com.android.oneadapter.utils.MissingBuilderArgumentException
 
 open class HolderConfig<M> protected constructor(@LayoutRes var layoutResource: Int, var modelClass: Class<M>?) {
 
@@ -21,7 +22,7 @@ open class HolderConfig<M> protected constructor(@LayoutRes var layoutResource: 
         fun build(): HolderConfig<M> {
             layoutResource?.let { layoutResource ->
                 return HolderConfig(layoutResource, modelClass)
-            } ?: throw Throwable("layout resource must not be null")
+            } ?: throw MissingBuilderArgumentException("HolderConfigBuilder Missing Layout Resource")
         }
     }
 }

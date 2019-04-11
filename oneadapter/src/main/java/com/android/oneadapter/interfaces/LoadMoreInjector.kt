@@ -10,5 +10,5 @@ abstract class LoadMoreInjector {
 
     abstract fun provideHolderConfig(): LoadMoreHolderConfig
     abstract fun onLoadMore(currentPage: Int)
-    fun onUnbind(viewFinder: ViewFinder) {}
+    open fun onUnbind(viewFinder: ViewFinder) {}
 }

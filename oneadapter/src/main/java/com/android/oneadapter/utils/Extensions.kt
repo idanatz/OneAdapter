@@ -18,11 +18,7 @@ internal inline fun <A : Any?, B : Any?, R> let2(v1: A?, v2: B?, callback: (A, B
 }
 
 internal fun <T, M> MutableList<T>.removeClassIfExist(classToRemove: Class<M>) {
-    indexOfFirst { classToRemove.isInstance(it) }.let { foundIndex ->
-        if (foundIndex != -1) {
-            removeAt(foundIndex)
-        }
-    }
+    indexOfFirst { classToRemove.isInstance(it) }.takeIf { it != -1 }?.let { foundIndex -> removeAt(foundIndex) }
 }
 
 internal fun RecyclerView.LayoutManager.findLastVisibleItemPosition(): Int {

@@ -18,7 +18,7 @@ class EndlessRecyclerViewScrollListener(
 
     private var currentPage = 0 // The current offset index of data you have loaded
     private var previousTotalItemCount = 0 // The total number of items in the data set after the last load
-    private var loading = true // True if we are still waiting for the last set of data to load.
+    private var loading = false // True if we are still waiting for the last set of data to load.
     private val startingPageIndex = 0 // Sets the starting page index
 
     init {
@@ -37,9 +37,11 @@ class EndlessRecyclerViewScrollListener(
             val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
 
             if (isLoadingFinished(totalItemCount)) {
+                Log.d("Idan-Log", "isLoadingFinished")
                 loading = false
                 internalListener.onLoadingStateChanged(loading)
             } else if (shouldStartLoading(lastVisibleItemPosition, totalItemCount)) {
+                Log.d("Idan-Log", "shouldStartLoading")
                 currentPage++
                 internalListener.notifyLoadMore(currentPage)
                 loading = true
@@ -52,7 +54,7 @@ class EndlessRecyclerViewScrollListener(
 
     fun resetState() {
         currentPage = this.startingPageIndex
-        loading = true
+        loading = false
         previousTotalItemCount = if (includeEmptyState) 1 else 0
     }
 
@@ -60,7 +62,7 @@ class EndlessRecyclerViewScrollListener(
 
     private fun shouldStartLoading(lastVisibleItemPosition: Int, totalItemCount: Int) = !loading && lastVisibleItemPosition + visibleThreshold > totalItemCount
 
-    private fun isLoadingFinished(totalItemCount: Int) = loading && totalItemCount >= previousTotalItemCount
+    private fun isLoadingFinished(totalItemCount: Int) = loading && totalItemCount > (previousTotalItemCount + 1) // + 1 for the loading holder
 
     interface InternalListener {
         fun onLoadingStateChanged(loading: Boolean)

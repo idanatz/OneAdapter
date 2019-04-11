@@ -71,6 +71,7 @@ class Presenter : ViewModel() {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun cutItems() {
         items.filter { it is MessageModel && it.id % 2 == 0 }.let {
             items = createHeaders(it as List<MessageModel>)

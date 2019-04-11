@@ -15,14 +15,11 @@ internal abstract class OneViewHolder<in M> (
 
     lateinit var viewFinder: ViewFinder
 
-    protected abstract fun onBind(data: M)
+    protected abstract fun onBind(model: M?)
     abstract fun onUnbind()
 
     fun onBindViewHolder(model: M?) {
         viewFinder = ViewFinder(itemView)
-
-        model?.let {
-            onBind(it)
-        }
+        onBind(model)
     }
 }

@@ -1,6 +1,7 @@
 package com.android.oneadapter.internal.holder_config
 
 import android.support.annotation.LayoutRes
+import com.android.oneadapter.utils.MissingBuilderArgumentException
 
 class LoadMoreHolderConfig private constructor(
         @LayoutRes layoutResource: Int,
@@ -24,7 +25,7 @@ class LoadMoreHolderConfig private constructor(
         fun build(): LoadMoreHolderConfig {
             layoutResource?.let { layoutResource ->
                 return LoadMoreHolderConfig(layoutResource, visibleThreshold)
-            } ?: throw Throwable("layout resource must not be null")
+            } ?: throw MissingBuilderArgumentException("HolderConfigBuilder Missing Layout Resource")
         }
     }
 }

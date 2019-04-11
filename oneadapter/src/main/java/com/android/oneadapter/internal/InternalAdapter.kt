@@ -7,6 +7,8 @@ import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.view.ViewGroup
 import com.android.oneadapter.interfaces.*
+import com.android.oneadapter.utils.MissingBuilderArgumentException
+import com.android.oneadapter.utils.MultipleHolderConflictException
 import com.android.oneadapter.utils.let2
 import com.android.oneadapter.utils.removeClassIfExist
 import java.util.ArrayList
@@ -119,11 +121,16 @@ internal class InternalAdapter :
 
     @Suppress("UNCHECKED_CAST")
     fun <M : Any> register(holderInjector: HolderInjector<M>) {
-        val dataClass = holderInjector.provideHolderConfig().modelClass ?: throw IllegalArgumentException("must provide data class for holder injector")
+        val dataClass = holderInjector.provideHolderConfig().modelClass ?: throw MissingBuilderArgumentException("HolderConfigBuilder Missing Model Class")
+
+        if (holderCreators.containsKey(dataClass)) {
+            throw MultipleHolderConflictException("Holder With Model Class ${dataClass.simpleName} Already Injected")
+        }
+
         holderCreators[dataClass] = object : ViewHolderCreator<M> {
             override fun create(parent: ViewGroup): OneViewHolder<M> {
                 return object : OneViewHolder<M>(parent, holderInjector.provideHolderConfig().layoutResource) {
-                    override fun onBind(data: M) = holderInjector.onBind(data, viewFinder)
+                    override fun onBind(model: M?) { model?.let { holderInjector.onBind(it, viewFinder) } }
                     override fun onUnbind() = holderInjector.onUnbind(viewFinder)
                 }
             }
@@ -135,7 +142,7 @@ internal class InternalAdapter :
         emptyStateCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, emptyInjector.provideHolderConfig().layoutResource) {
-                    override fun onBind(data: Any) {}
+                    override fun onBind(model: Any?) = emptyInjector.onBind(viewFinder)
                     override fun onUnbind() = emptyInjector.onUnbind(viewFinder)
                 }
             }
@@ -151,7 +158,7 @@ internal class InternalAdapter :
         loadMoreCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, loadMoreInjector.provideHolderConfig().layoutResource) {
-                    override fun onBind(data: Any) {}
+                    override fun onBind(model: Any?) {}
                     override fun onUnbind() = loadMoreInjector.onUnbind(viewFinder)
                 }
             }

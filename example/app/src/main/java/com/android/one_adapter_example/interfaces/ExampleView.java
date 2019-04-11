@@ -11,5 +11,4 @@ public interface ExampleView {
     void setOne(@NotNull Object updatedItem);
     void removeIndex(int it);
     void removeItem(@NotNull Object removedItem);
-    void addAll(@NotNull List<Object> loadMoreItems);
 }

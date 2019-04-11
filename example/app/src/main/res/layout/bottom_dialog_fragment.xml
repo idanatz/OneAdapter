@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/set_all"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Set All" />
+
+        <Button
+            android:id="@+id/set_one_item"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Set One Item" />
+
+        <Button
+            android:id="@+id/delete_one_item"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delete One Item" />
+
+        <Button
+            android:id="@+id/delete_one_index"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delete One Index" />
+
+        <Button
+            android:id="@+id/clear"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Clear" />
+
+        <Button
+            android:id="@+id/add_one"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add One" />
+
+        <Button
+            android:id="@+id/cut"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cut" />
+    </LinearLayout>
+
+</android.support.design.widget.CoordinatorLayout>
