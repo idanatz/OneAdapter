@@ -22,7 +22,7 @@ class ModelProvider {
 
     fun addMessage(): MessageModel {
         val messageModel = MessageModel(models.size, 0, R.drawable.six, "Person Added", "This Message is added!")
-        models.add(2, messageModel)
+        models.add(1, messageModel)
         return messageModel
     }
 

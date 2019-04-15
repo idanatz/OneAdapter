@@ -21,7 +21,8 @@ class Presenter : ViewModel() {
         view?.setAll(items)
     }
 
-    private fun createHeaders(models: List<MessageModel>): MutableList<Any> {
+    @Suppress("UNCHECKED_CAST")
+    private fun createHeaders(models: List<MessageModel> = items as List<MessageModel>): MutableList<Any> {
         val list = mutableListOf<Any>()
 
         models.groupBy { it.headerId }.forEach { headerIndex, messages ->
@@ -39,14 +40,21 @@ class Presenter : ViewModel() {
 
     fun addOne() {
         val newItem = modelProvider.addMessage()
-        items.add(2, newItem)
-        view?.addOne(2, newItem)
+
+        if (items.isEmpty()) {
+            items.add(0, newItem)
+            items = createHeaders()
+            view?.setAll(items)
+        } else {
+            items.add(1, newItem)
+            view?.addOne(1, newItem)
+        }
     }
 
     fun setOne() {
         val updatedItem = modelProvider.updateMessage(2)
 
-        items.indexOfFirst { it is MessageModel && it.id == updatedItem.id }.let {
+        items.indexOfFirstAsNullable { it is MessageModel && it.id == updatedItem.id }?.let {
             items.removeAt(it)
             items.add(it, updatedItem)
             view?.setOne(updatedItem)
@@ -56,7 +64,7 @@ class Presenter : ViewModel() {
     fun removeIndex() {
         val removedItem = modelProvider.removeIndex(1)
 
-        items.indexOfFirst { it is MessageModel && it.id == removedItem.id }.let {
+        items.indexOfFirstAsNullable { it is MessageModel && it.id == removedItem.id }?.let {
             items.removeAt(it)
             view?.removeIndex(it)
         }
@@ -65,7 +73,7 @@ class Presenter : ViewModel() {
     fun removeItem() {
         val removedItem = modelProvider.removeItem()
 
-        items.indexOfFirst { it is MessageModel && it.id == removedItem.id }.let {
+        items.indexOfFirstAsNullable { it is MessageModel && it.id == removedItem.id }?.let {
             items.removeAt(it)
             view?.removeItem(removedItem)
         }
@@ -96,7 +104,7 @@ class Presenter : ViewModel() {
         model.checked = checked
 
         if (checked) {
-            items.indexOfFirst { it is HeaderModel && it.id == model.id }.takeIf { it != -1 }?.let {
+            items.indexOfFirstAsNullable { it is HeaderModel && it.id == model.id }?.let {
                 items.addAll(it + 1, modelProvider.getMessagesWithHeaderId(model.id))
             }
         } else {
@@ -105,4 +113,6 @@ class Presenter : ViewModel() {
 
         view?.setAll(items)
     }
+
+    private inline fun <T> List<T>.indexOfFirstAsNullable(predicate: (T) -> Boolean) = indexOfFirst(predicate).takeIf { it != -1 }
 }
