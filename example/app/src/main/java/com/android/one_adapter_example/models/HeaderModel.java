@@ -1,6 +1,6 @@
 package com.android.one_adapter_example.models;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.android.oneadapter.interfaces.Diffable;
 
@@ -20,8 +20,8 @@ public class HeaderModel implements Diffable, Comparable {
     }
 
     @Override
-    public boolean areItemsTheSame(@NonNull Object other) {
-        return (other instanceof HeaderModel) && id == ((HeaderModel) other).id;
+    public long getUniqueIdentifier() {
+        return id;
     }
 
     @Override

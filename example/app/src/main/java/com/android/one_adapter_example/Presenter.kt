@@ -1,117 +1,127 @@
 package com.android.one_adapter_example
 
-import android.arch.lifecycle.ViewModel
+import androidx.lifecycle.ViewModel
 import android.os.Handler
-import com.android.one_adapter_example.interfaces.ExampleView
 import com.android.one_adapter_example.models.HeaderModel
 import com.android.one_adapter_example.models.MessageModel
+import com.android.one_adapter_example.models.ModelGenerator
+import com.android.one_adapter_example.persistence.RoomDB
+import io.reactivex.Single
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.BehaviorSubject
 
 class Presenter : ViewModel() {
 
-    private var view: ExampleView? = null
-    private val modelProvider = ModelProvider()
-    private var items = mutableListOf<Any>()
+    private val modelProvider = ModelGenerator()
+    private val compositeDisposable: CompositeDisposable = CompositeDisposable()
+    var itemsSubject: BehaviorSubject<List<Any>> = BehaviorSubject.createDefault(listOf())
 
-    fun setView(view: ExampleView) {
-        this.view = view
+    init {
+        compositeDisposable.add(
+                Single.fromCallable { RoomDB.instance.clearAllTables() }
+                        .flatMapObservable { RoomDB.instance.messageDao().observeTable().toObservable() }
+                        .subscribeOn(Schedulers.io())
+                        .subscribe { itemsSubject.onNext(createHeaders(it)) }
+        )
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.dispose()
     }
 
     fun setAll() {
-        items = createHeaders(modelProvider.models)
-        view?.setAll(items)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun createHeaders(models: List<MessageModel> = items as List<MessageModel>): MutableList<Any> {
-        val list = mutableListOf<Any>()
-
-        models.groupBy { it.headerId }.forEach { headerIndex, messages ->
-            list.add(HeaderModel(headerIndex, "Header " + (headerIndex + 1)))
-            list.addAll(messages)
-        }
-
-        return list
+        compositeDisposable.add(
+                Single.fromCallable { RoomDB.instance.messageDao().insert(modelProvider.generateFirstModels()) }
+                        .subscribeOn(Schedulers.io())
+                        .subscribe()
+        )
     }
 
     fun clearAll() {
-        items.clear()
-        view?.clearAll()
+        compositeDisposable.add(
+                Single.fromCallable { RoomDB.instance.messageDao().deleteAll() }
+                        .subscribeOn(Schedulers.io())
+                        .subscribe()
+        )
     }
 
     fun addOne() {
-        val newItem = modelProvider.addMessage()
-
-        if (items.isEmpty()) {
-            items.add(0, newItem)
-            items = createHeaders()
-            view?.setAll(items)
-        } else {
-            items.add(1, newItem)
-            view?.addOne(1, newItem)
-        }
+        compositeDisposable.add(
+                Single.fromCallable { RoomDB.instance.messageDao().insert(modelProvider.generateMessage()) }
+                        .subscribeOn(Schedulers.io())
+                        .subscribe()
+        )
     }
 
     fun setOne() {
-        val updatedItem = modelProvider.updateMessage(2)
-
-        items.indexOfFirstAsNullable { it is MessageModel && it.id == updatedItem.id }?.let {
-            items.removeAt(it)
-            items.add(it, updatedItem)
-            view?.setOne(updatedItem)
-        }
+        compositeDisposable.add(
+                Single.fromCallable { RoomDB.instance.messageDao().update(modelProvider.generateUpdatedMessage()) }
+                        .subscribeOn(Schedulers.io())
+                        .subscribe()
+        )
     }
 
-    fun removeIndex() {
-        val removedItem = modelProvider.removeIndex(1)
-
-        items.indexOfFirstAsNullable { it is MessageModel && it.id == removedItem.id }?.let {
-            items.removeAt(it)
-            view?.removeIndex(it)
-        }
+    fun onDeleteItemsClicked(items: List<Any>) {
+        compositeDisposable.add(
+                Single.fromCallable { RoomDB.instance.messageDao().delete(items as List<MessageModel>) }
+                        .subscribeOn(Schedulers.io())
+                        .subscribe()
+        )
     }
 
-    fun removeItem() {
-        val removedItem = modelProvider.removeItem()
-
-        items.indexOfFirstAsNullable { it is MessageModel && it.id == removedItem.id }?.let {
-            items.removeAt(it)
-            view?.removeItem(removedItem)
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
     fun cutItems() {
-        items.filter { it is MessageModel && it.id % 2 == 0 }.let {
-            items = createHeaders(it as List<MessageModel>)
-            view?.setAll(items)
-        }
+        compositeDisposable.add(
+                Single.fromCallable { RoomDB.instance.messageDao().deleteEvenIds() }
+                        .subscribeOn(Schedulers.io())
+                        .subscribe()
+        )
     }
 
     fun loadMore() {
         Handler().postDelayed({
-            val loadMoreItems = modelProvider.createLoadMoreItems()
-            val headerId = loadMoreItems.first().headerId
-
-            items.find { it is HeaderModel && it.id == headerId }?.takeIf { it is HeaderModel && it.checked }?.let {
-                items.addAll(loadMoreItems)
-            }
-
-            view?.setAll(items)
+            val loadMoreItems = modelProvider.generateLoadMoreItems()
+            compositeDisposable.add(
+                    Single.fromCallable { RoomDB.instance.messageDao().insert(loadMoreItems) }
+                            .subscribeOn(Schedulers.io())
+                            .subscribe()
+            )
         }, 2500)
     }
 
     fun headerCheckedChanged(model: HeaderModel, checked: Boolean) {
         model.checked = checked
 
-        if (checked) {
-            items.indexOfFirstAsNullable { it is HeaderModel && it.id == model.id }?.let {
-                items.addAll(it + 1, modelProvider.getMessagesWithHeaderId(model.id))
+        val items = itemsSubject.value?.toMutableList()
+        items?.let {
+            if (checked) {
+                items.indexOfFirstAsNullable { it is HeaderModel && it.id == model.id }?.let { indexToInsert ->
+                    compositeDisposable.add(
+                        RoomDB.instance.messageDao().getMessageWithHeaderId(model.id)
+                                .subscribeOn(Schedulers.io())
+                                .subscribe({ messagesWithHeaderId ->
+                                    items.addAll(indexToInsert + 1, messagesWithHeaderId)
+                                }, {})
+                    )
+                }
+            } else {
+                items.removeIf { it is MessageModel && it.headerId == model.id }
             }
-        } else {
-            items.removeIf { it is MessageModel && it.headerId == model.id }
+
+            itemsSubject.onNext(items)
+        }
+    }
+
+    private fun createHeaders(models: List<MessageModel>): MutableList<Any> {
+        val list = mutableListOf<Any>()
+
+        models.groupBy { it.headerId }.forEach { (headerIndex, messages) ->
+            list.add(HeaderModel(headerIndex, "Header " + (headerIndex + 1)))
+            list.addAll(messages)
         }
 
-        view?.setAll(items)
+        return list
     }
 
     private inline fun <T> List<T>.indexOfFirstAsNullable(predicate: (T) -> Boolean) = indexOfFirst(predicate).takeIf { it != -1 }

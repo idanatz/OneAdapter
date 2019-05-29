@@ -1,12 +1,13 @@
-package com.android.oneadapter.internal.holder_config
+package com.android.oneadapter.modules.load_more
 
-import android.support.annotation.LayoutRes
+import androidx.annotation.LayoutRes
+import com.android.oneadapter.modules.holder.HolderModuleConfig
 import com.android.oneadapter.utils.MissingBuilderArgumentException
 
-class LoadMoreHolderConfig private constructor(
+class LoadMoreModuleConfig private constructor(
         @LayoutRes layoutResource: Int,
         var visibleThreshold: Int
-) : HolderConfig<Any>(layoutResource, null) {
+) : HolderModuleConfig<Any>(layoutResource, null) {
 
     class HolderConfigBuilder {
         @LayoutRes private var layoutResource: Int? = null
@@ -22,10 +23,10 @@ class LoadMoreHolderConfig private constructor(
             return this
         }
 
-        fun build(): LoadMoreHolderConfig {
+        fun build(): LoadMoreModuleConfig {
             layoutResource?.let { layoutResource ->
-                return LoadMoreHolderConfig(layoutResource, visibleThreshold)
-            } ?: throw MissingBuilderArgumentException("HolderConfigBuilder Missing Layout Resource")
+                return LoadMoreModuleConfig(layoutResource, visibleThreshold)
+            } ?: throw MissingBuilderArgumentException("HolderConfigBuilder missing layout resource")
         }
     }
 }

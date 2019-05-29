@@ -1,4 +1,4 @@
-package com.android.oneadapter.internal
+package com.android.oneadapter.internal.holders
 
 class LoadingIndicator {
 

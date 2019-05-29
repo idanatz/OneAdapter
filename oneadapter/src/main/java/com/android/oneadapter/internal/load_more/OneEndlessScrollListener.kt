@@ -1,19 +1,18 @@
-package com.android.oneadapter.internal
+package com.android.oneadapter.internal.load_more
 
-import android.support.v7.widget.GridLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.StaggeredGridLayoutManager
-import android.util.Log
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.android.oneadapter.utils.findLastVisibleItemPosition
 
 /**
  * Created by Idan Atsmon on 22/11/2018.
  */
-class EndlessRecyclerViewScrollListener(
+internal class OneEndlessScrollListener (
         private val layoutManager: RecyclerView.LayoutManager,
         private var visibleThreshold: Int = 0, // The minimum amount of items to have below your current scroll position before loading more.
         private val includeEmptyState: Boolean,
-        private val internalListener: InternalListener
+        private val endlessScrollListener: EndlessScrollListener
 ) : RecyclerView.OnScrollListener() {
 
     private var currentPage = 0 // The current offset index of data you have loaded
@@ -37,15 +36,13 @@ class EndlessRecyclerViewScrollListener(
             val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
 
             if (isLoadingFinished(totalItemCount)) {
-                Log.d("Idan-Log", "isLoadingFinished")
                 loading = false
-                internalListener.onLoadingStateChanged(loading)
+                endlessScrollListener.onLoadingStateChanged(loading)
             } else if (shouldStartLoading(lastVisibleItemPosition, totalItemCount)) {
-                Log.d("Idan-Log", "shouldStartLoading")
                 currentPage++
-                internalListener.notifyLoadMore(currentPage)
+                endlessScrollListener.notifyLoadMore(currentPage)
                 loading = true
-                internalListener.onLoadingStateChanged(loading)
+                endlessScrollListener.onLoadingStateChanged(loading)
             }
         }
 
@@ -63,9 +60,9 @@ class EndlessRecyclerViewScrollListener(
     private fun shouldStartLoading(lastVisibleItemPosition: Int, totalItemCount: Int) = !loading && lastVisibleItemPosition + visibleThreshold > totalItemCount
 
     private fun isLoadingFinished(totalItemCount: Int) = loading && totalItemCount > (previousTotalItemCount + 1) // + 1 for the loading holder
+}
 
-    interface InternalListener {
-        fun onLoadingStateChanged(loading: Boolean)
-        fun notifyLoadMore(currentPage: Int)
-    }
+interface EndlessScrollListener {
+    fun onLoadingStateChanged(loading: Boolean)
+    fun notifyLoadMore(currentPage: Int)
 }

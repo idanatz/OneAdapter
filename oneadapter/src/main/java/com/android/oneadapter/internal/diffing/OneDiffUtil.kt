@@ -1,6 +1,7 @@
-package com.android.oneadapter.internal
+package com.android.oneadapter.internal.diffing
 
-import android.support.v7.util.DiffUtil
+import android.util.Log
+import androidx.recyclerview.widget.DiffUtil
 import com.android.oneadapter.interfaces.DiffUtilCallback
 
 /**
@@ -12,14 +13,15 @@ internal class OneDiffUtil internal constructor(
         private val diffCallback: DiffUtilCallback
 ) : DiffUtil.Callback() {
 
-    override fun getOldListSize(): Int = oldData?.size ?: 0
+    override fun getOldListSize() = oldData?.size ?: 0
 
-    override fun getNewListSize(): Int = newData?.size ?: 0
+    override fun getNewListSize() = newData?.size ?: 0
 
     override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
         if (oldData?.get(oldItemPosition) != null && newData?.get(newItemPosition) != null) {
             diffCallback.areItemsTheSame(oldData[oldItemPosition], newData[newItemPosition])
         } else {
+            Log.d("OneAdapter", "areItemsTheSame -> false, old: $oldItemPosition, new: $newItemPosition")
             false
         }
 
@@ -27,6 +29,7 @@ internal class OneDiffUtil internal constructor(
         if (oldData?.get(oldItemPosition) != null && newData?.get(newItemPosition) != null) {
             diffCallback.areContentsTheSame(oldData[oldItemPosition], newData[newItemPosition])
         } else {
+            Log.d("OneAdapter", "areContentsTheSame -> false, old: $oldItemPosition, new: $newItemPosition")
             false
         }
 }

@@ -1,12 +1,13 @@
 package com.android.one_adapter_example;
 
-import android.arch.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.BottomSheetDialogFragment;
+import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -50,13 +51,13 @@ public class BottomDialogFragment extends BottomSheetDialogFragment {
         });
 
         rootView.findViewById(R.id.delete_one_item).setOnClickListener(view -> {
-            presenter.removeItem();
-            dismiss();
+//            presenter.removeItem();
+//            dismiss();
         });
 
         rootView.findViewById(R.id.delete_one_index).setOnClickListener(view -> {
-            presenter.removeIndex();
-            dismiss();
+//            presenter.removeIndex();
+//            dismiss();
         });
 
         rootView.findViewById(R.id.cut).setOnClickListener(view -> {

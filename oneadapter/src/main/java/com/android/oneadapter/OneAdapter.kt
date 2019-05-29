@@ -1,11 +1,12 @@
 package com.android.oneadapter
 
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
+import com.android.oneadapter.interfaces.*
 import com.android.oneadapter.internal.InternalAdapter
-import com.android.oneadapter.interfaces.LoadMoreInjector
-import com.android.oneadapter.interfaces.Diffable
-import com.android.oneadapter.interfaces.EmptyInjector
-import com.android.oneadapter.interfaces.HolderInjector
+import com.android.oneadapter.modules.empty_state.EmptyStateModule
+import com.android.oneadapter.modules.holder.HolderModule
+import com.android.oneadapter.modules.load_more.LoadMoreModule
+import com.android.oneadapter.modules.selection_state.SelectionStateModule
 import java.util.*
 
 /**
@@ -61,18 +62,23 @@ class OneAdapter {
         }
     }
 
-    fun <T : Any> injectHolder(holderInjector: HolderInjector<T>): OneAdapter {
-        internalAdapter.register(holderInjector)
+    fun <M : Any> attachHolderModule(holderModule: HolderModule<M>): OneAdapter {
+        internalAdapter.register(holderModule)
         return this
     }
 
-    fun injectLoadMoreHolder(loadMoreInjector: LoadMoreInjector): OneAdapter {
-        internalAdapter.enableLoadMore(loadMoreInjector)
+    fun attachLoadMoreModule(loadMoreModule: LoadMoreModule): OneAdapter {
+        internalAdapter.enableLoadMore(loadMoreModule)
         return this
     }
 
-    fun injectEmptyHolder(emptyInjector: EmptyInjector): OneAdapter {
-        internalAdapter.enableEmptyState(emptyInjector)
+    fun attachEmptyStateModule(emptyStateModule: EmptyStateModule): OneAdapter {
+        internalAdapter.enableEmptyState(emptyStateModule)
+        return this
+    }
+
+    fun attachSelectionStateModule(selectionStateModule: SelectionStateModule): OneAdapter {
+        internalAdapter.enableSelection(selectionStateModule)
         return this
     }
 
@@ -82,10 +88,13 @@ class OneAdapter {
         return this
     }
 
+    fun getSelectedItems() = internalAdapter.getSelectedItems()
+    fun clearSelection() = internalAdapter.clearSelection()
+
     private fun getIndexOfItem(itemToFind: Any): Int {
         return internalItems.indexOfFirst { item ->
-            when (item) {
-                is Diffable -> item.areItemsTheSame(itemToFind)
+            when {
+                item is Diffable && itemToFind is Diffable -> item.getUniqueIdentifier() == itemToFind.getUniqueIdentifier()
                 else -> item == itemToFind
             }
         }
