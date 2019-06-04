@@ -9,16 +9,16 @@ class LoadMoreModuleConfig private constructor(
         var visibleThreshold: Int
 ) : HolderModuleConfig<Any>(layoutResource, null) {
 
-    class HolderConfigBuilder {
+    class Builder {
         @LayoutRes private var layoutResource: Int? = null
         private var visibleThreshold: Int = 5
 
-        fun withLayoutResource(@LayoutRes layoutResource: Int): HolderConfigBuilder {
+        fun withLayoutResource(@LayoutRes layoutResource: Int): Builder {
             this.layoutResource = layoutResource
             return this
         }
 
-        fun withVisibleThreshold(visibleThreshold: Int): HolderConfigBuilder {
+        fun withVisibleThreshold(visibleThreshold: Int): Builder {
             this.visibleThreshold = visibleThreshold
             return this
         }

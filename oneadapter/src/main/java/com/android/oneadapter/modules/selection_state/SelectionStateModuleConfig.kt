@@ -6,10 +6,10 @@ class SelectionModuleConfig private constructor(
         var selectionType: SelectionType
 ) {
 
-    class SelectionModuleBuilder {
+    class Builder {
         private var selectionType: SelectionType? = null
 
-        fun withSelectionType(selectionType: SelectionType): SelectionModuleBuilder {
+        fun withSelectionType(selectionType: SelectionType): Builder {
             this.selectionType = selectionType
             return this
         }

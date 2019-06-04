@@ -8,10 +8,10 @@ class EmptyStateModuleConfig private constructor(
         @LayoutRes layoutResource: Int
 ) : HolderModuleConfig<Any>(layoutResource, null) {
 
-    class HolderConfigBuilder {
+    class Builder {
         @LayoutRes private var layoutResource: Int? = null
 
-        fun withLayoutResource(@LayoutRes layoutResource: Int): HolderConfigBuilder {
+        fun withLayoutResource(@LayoutRes layoutResource: Int): Builder {
             this.layoutResource = layoutResource
             return this
         }

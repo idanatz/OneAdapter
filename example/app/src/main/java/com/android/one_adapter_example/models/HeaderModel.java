@@ -7,7 +7,7 @@ import com.android.oneadapter.interfaces.Diffable;
 /**
  * Created by Idan Atsmon on 14/11/2018.
  */
-public class HeaderModel implements Diffable, Comparable {
+public class HeaderModel implements Diffable {
 
     public int id;
     public String name;
@@ -27,10 +27,5 @@ public class HeaderModel implements Diffable, Comparable {
     @Override
     public boolean areContentTheSame(@NonNull Object other) {
         return (other instanceof HeaderModel) && name.equals(((HeaderModel) other).name);
-    }
-
-    @Override
-    public int compareTo(Object o) {
-        return Integer.compare(this.id, ((HeaderModel) o).id);
     }
 }

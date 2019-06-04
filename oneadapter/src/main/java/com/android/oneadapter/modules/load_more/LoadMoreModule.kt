@@ -1,5 +1,6 @@
 package com.android.oneadapter.modules.load_more
 
+import androidx.annotation.NonNull
 import com.android.oneadapter.internal.holders.ViewFinder
 
 /**
@@ -7,7 +8,9 @@ import com.android.oneadapter.internal.holders.ViewFinder
  */
 abstract class LoadMoreModule {
 
-    abstract fun provideModuleConfig(): LoadMoreModuleConfig
+    internal lateinit var loadMoreModuleConfig: LoadMoreModuleConfig
+
+    abstract fun provideModuleConfig(builder: LoadMoreModuleConfig.Builder): LoadMoreModuleConfig
     abstract fun onLoadMore(currentPage: Int)
-    open fun onUnbind(viewFinder: ViewFinder) {}
+    open fun onUnbind(@NonNull viewFinder: ViewFinder) {}
 }

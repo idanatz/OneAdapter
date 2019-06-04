@@ -2,7 +2,6 @@ package com.android.one_adapter_example;
 
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProviders;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Color;
@@ -75,7 +74,6 @@ public class JavaMainActivity extends AppCompatActivity {
         );
     }
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -85,17 +83,16 @@ public class JavaMainActivity extends AppCompatActivity {
     @NotNull
     private HolderModule<HeaderModel> headerItem() {
         return new HolderModule<HeaderModel>() {
-            @Override @NonNull
-            public HolderModuleConfig<HeaderModel> provideModuleConfig() {
-                return new HolderModuleConfig.HolderConfigBuilder<HeaderModel>()
+            @NotNull @Override
+            public HolderModuleConfig<HeaderModel> provideModuleConfig(@NotNull HolderModuleConfig.Builder<HeaderModel> builder) {
+                return builder
                         .withLayoutResource(R.layout.header_model)
                         .withModelClass(HeaderModel.class)
-                        .enableSelection()
                         .build();
             }
 
             @Override
-            public void onBind(HeaderModel model, @NotNull ViewFinder viewFinder) {
+            public void onBind(@NotNull HeaderModel model, @NotNull ViewFinder viewFinder) {
                 TextView headerTitle = viewFinder.findViewById(R.id.header_title);
                 SwitchCompat headerSwitch = viewFinder.findViewById(R.id.header_switch);
 
@@ -109,9 +106,9 @@ public class JavaMainActivity extends AppCompatActivity {
     @NotNull
     private HolderModule<MessageModel> messageItem() {
         return new HolderModule<MessageModel>() {
-            @Override @NonNull
-            public HolderModuleConfig<MessageModel> provideModuleConfig() {
-                return new HolderModuleConfig.HolderConfigBuilder<MessageModel>()
+            @Override @NotNull
+            public HolderModuleConfig<MessageModel> provideModuleConfig(@NotNull HolderModuleConfig.Builder<MessageModel> builder) {
+                return builder
                         .withLayoutResource(R.layout.message_model)
                         .withModelClass(MessageModel.class)
                         .enableSelection()
@@ -119,7 +116,7 @@ public class JavaMainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onBind(MessageModel model, @NotNull ViewFinder viewFinder) {
+            public void onBind(@NotNull MessageModel model, @NotNull ViewFinder viewFinder) {
                 TextView title = viewFinder.findViewById(R.id.title);
                 TextView body  = viewFinder.findViewById(R.id.body);
                 ImageView image = viewFinder.findViewById(R.id.image);
@@ -136,10 +133,10 @@ public class JavaMainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onSelected(MessageModel model, boolean selected) {
+            public void onSelected(@NotNull MessageModel model, boolean selected) {
                 model.isSelected = selected;
                 selectedItemsCount = selected ? selectedItemsCount + 1 : selectedItemsCount - 1;
-                getSupportActionBar().setTitle(selectedItemsCount + " selected");
+                setToolbarText(selectedItemsCount + " selected");
             }
         };
     }
@@ -147,9 +144,9 @@ public class JavaMainActivity extends AppCompatActivity {
     @NotNull
     private EmptyStateModule emptyStateModule() {
         return new EmptyStateModule() {
-            @Override @NonNull
-            public EmptyStateModuleConfig provideModuleConfig() {
-                return new EmptyStateModuleConfig.HolderConfigBuilder()
+            @Override @NotNull
+            public EmptyStateModuleConfig provideModuleConfig(@NotNull EmptyStateModuleConfig.Builder builder) {
+                return builder
                         .withLayoutResource(R.layout.empty_state)
                         .build();
             }
@@ -172,9 +169,9 @@ public class JavaMainActivity extends AppCompatActivity {
     @NotNull
     private LoadMoreModule loadMoreModule() {
         return new LoadMoreModule() {
-            @Override @NonNull
-            public LoadMoreModuleConfig provideModuleConfig() {
-                return new LoadMoreModuleConfig.HolderConfigBuilder()
+            @Override @NotNull
+            public LoadMoreModuleConfig provideModuleConfig(@NotNull LoadMoreModuleConfig.Builder builder) {
+                return builder
                         .withLayoutResource(R.layout.load_more)
                         .withVisibleThreshold(3)
                         .build();
@@ -191,10 +188,9 @@ public class JavaMainActivity extends AppCompatActivity {
     @NotNull
     private SelectionStateModule selectionStateModule() {
         return new SelectionStateModule() {
-            @NotNull
-            @Override
-            public SelectionModuleConfig provideModuleConfig() {
-                return new SelectionModuleConfig.SelectionModuleBuilder()
+            @Override @NotNull
+            public SelectionModuleConfig provideModuleConfig(@NotNull SelectionModuleConfig.Builder builder) {
+                return builder
                         .withSelectionType(SelectionType.Multiple)
                         .build();
             }
@@ -206,10 +202,16 @@ public class JavaMainActivity extends AppCompatActivity {
 
             @Override
             public void onSelectionModeEnded() {
-                getSupportActionBar().setTitle(R.string.app_name);
+                setToolbarText(getString(R.string.app_name));
                 toolbarMenu.findItem(R.id.action_delete).setVisible(false);
             }
         };
+    }
+
+    private void setToolbarText(String text) {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(text);
+        }
     }
 
     @Override
@@ -229,6 +231,8 @@ public class JavaMainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+
 
 //    public void addOne(int index, @NotNull Object item) {
 //        oneAdapter.add(index, item);

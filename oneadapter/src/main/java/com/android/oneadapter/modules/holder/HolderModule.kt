@@ -1,5 +1,6 @@
 package com.android.oneadapter.modules.holder
 
+import androidx.annotation.NonNull
 import com.android.oneadapter.internal.holders.ViewFinder
 
 /**
@@ -7,8 +8,8 @@ import com.android.oneadapter.internal.holders.ViewFinder
  */
 abstract class HolderModule<M> {
 
-    abstract fun provideModuleConfig(): HolderModuleConfig<M>
-    abstract fun onBind(model: M, viewFinder: ViewFinder)
-    open fun onUnbind(viewFinder: ViewFinder) {}
-    open fun onSelected(model: M, selected: Boolean) {}
+    abstract fun provideModuleConfig(builder: HolderModuleConfig.Builder<M>): HolderModuleConfig<M>
+    abstract fun onBind(@NonNull model: M, @NonNull viewFinder: ViewFinder)
+    open fun onUnbind(@NonNull viewFinder: ViewFinder) {}
+    open fun onSelected(@NonNull model: M, selected: Boolean) {}
 }

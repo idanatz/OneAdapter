@@ -23,8 +23,12 @@ import com.android.oneadapter.internal.selection.OneItemKeyProvider
 import com.android.oneadapter.internal.selection.OneSelectionObserver
 import com.android.oneadapter.internal.selection.SelectionObserver
 import com.android.oneadapter.modules.empty_state.EmptyStateModule
+import com.android.oneadapter.modules.empty_state.EmptyStateModuleConfig
 import com.android.oneadapter.modules.holder.HolderModule
+import com.android.oneadapter.modules.holder.HolderModuleConfig
 import com.android.oneadapter.modules.load_more.LoadMoreModule
+import com.android.oneadapter.modules.load_more.LoadMoreModuleConfig
+import com.android.oneadapter.modules.selection_state.SelectionModuleConfig
 import com.android.oneadapter.modules.selection_state.SelectionStateModule
 import com.android.oneadapter.utils.MissingBuilderArgumentException
 import com.android.oneadapter.utils.MultipleHolderConflictException
@@ -47,7 +51,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
     private val dataTypes = ArrayList<Class<*>>() // maps T.class to unique indexes for adapter's getItemViewType
     private val holderCreators = HashMap<Class<*>, ViewHolderCreator<Any>>() // maps T.class -> ViewHolderCreator<T>
 
-    // endless scrolling
+    // load more state
     private var loadMoreCreator: ViewHolderCreator<Any>? = null
     private var loadMoreModule: LoadMoreModule? = null
     private var oneEndlessScrollListener: OneEndlessScrollListener? = null
@@ -55,15 +59,15 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
     // empty state
     private var emptyStateCreator: ViewHolderCreator<Any>? = null
 
-    // handlers
-    private val uiHandler by lazy { Handler(Looper.getMainLooper()) }
-    private val backgroundHandler by lazy { Handler(HandlerThread("BackgroundHandler").apply { start() }.looper) }
-
-    // selection
+    // selection state
     private var selectionStateModule: SelectionStateModule? = null
     private var selectionTracker: SelectionTracker<Long>? = null
     private var itemKeyProvider: OneItemKeyProvider? = null
     private var duringSelection = false
+
+    // handlers
+    private val uiHandler by lazy { Handler(Looper.getMainLooper()) }
+    private val backgroundHandler by lazy { Handler(HandlerThread("BackgroundHandler").apply { start() }.looper) }
 
     private val diffCallback =
             object : DiffUtilCallback {
@@ -160,7 +164,8 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
     }
 
     fun <M : Any> register(holderModule: HolderModule<M>) {
-        val dataClass = holderModule.provideModuleConfig().modelClass ?: throw MissingBuilderArgumentException("HolderModuleConfig missing model class")
+        val holderModuleConfig = holderModule.provideModuleConfig(HolderModuleConfig.Builder())
+        val dataClass = holderModuleConfig.modelClass ?: throw MissingBuilderArgumentException("HolderModuleConfig missing model class")
 
         if (holderCreators.containsKey(dataClass)) {
             throw MultipleHolderConflictException("HolderModule with model class ${dataClass.simpleName} already attached")
@@ -168,7 +173,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
 
         holderCreators[dataClass] = object : ViewHolderCreator<M> {
             override fun create(parent: ViewGroup): OneViewHolder<M> {
-                return object : OneViewHolder<M>(parent, holderModule.provideModuleConfig()) {
+                return object : OneViewHolder<M>(parent, holderModuleConfig) {
                     override fun onBind(model: M?) { model?.let { holderModule.onBind(it, viewFinder) } }
                     override fun onUnbind() = holderModule.onUnbind(viewFinder)
                     override fun onSelected(model: M?) { if (selectionStateModule != null) model?.let { holderModule.onSelected(it, true) } }
@@ -182,7 +187,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
     fun enableEmptyState(emptyStateModule: EmptyStateModule) {
         emptyStateCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
-                return object : OneViewHolder<Any>(parent, emptyStateModule.provideModuleConfig()) {
+                return object : OneViewHolder<Any>(parent, emptyStateModule.provideModuleConfig(EmptyStateModuleConfig.Builder())) {
                     override fun onBind(model: Any?) = emptyStateModule.onBind(viewFinder)
                     override fun onUnbind() = emptyStateModule.onUnbind(viewFinder)
                     override fun onSelected(model: Any?) {}
@@ -195,12 +200,13 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
 
     //region Load More Module
     fun enableLoadMore(loadMoreModule: LoadMoreModule) {
-        // save the module for later use, e.g invoking onLoadMore callback
+        // save the module and the config for later use, e.g invoking onLoadMore callback
+        loadMoreModule.loadMoreModuleConfig = loadMoreModule.provideModuleConfig(LoadMoreModuleConfig.Builder())
         this.loadMoreModule = loadMoreModule
 
         loadMoreCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
-                return object : OneViewHolder<Any>(parent, loadMoreModule.provideModuleConfig()) {
+                return object : OneViewHolder<Any>(parent, loadMoreModule.loadMoreModuleConfig) {
                     override fun onBind(model: Any?) {}
                     override fun onUnbind() = loadMoreModule.onUnbind(viewFinder)
                     override fun onSelected(model: Any?) {}
@@ -281,7 +287,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
         let2(recyclerView.layoutManager, loadMoreModule) { layoutManager, loadMoreModule ->
             oneEndlessScrollListener = OneEndlessScrollListener(
                     layoutManager = layoutManager,
-                    visibleThreshold = loadMoreModule.provideModuleConfig().visibleThreshold,
+                    visibleThreshold = loadMoreModule.loadMoreModuleConfig.visibleThreshold,
                     includeEmptyState = emptyStateCreator != null,
                     endlessScrollListener = this@InternalAdapter
             ).also { recyclerView.addOnScrollListener(it) }
@@ -297,7 +303,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
                     OneItemDetailLookup(recyclerView),
                     StorageStrategy.createLongStorage()
             )
-            .withSelectionPredicate(when (selectionModule.provideModuleConfig().selectionType) {
+            .withSelectionPredicate(when (selectionModule.provideModuleConfig(SelectionModuleConfig.Builder()).selectionType) {
                 SelectionType.Single -> SelectionPredicates.createSelectSingleAnything()
                 SelectionType.Multiple -> SelectionPredicates.createSelectAnything()
             })

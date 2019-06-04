@@ -9,22 +9,22 @@ open class HolderModuleConfig<M> protected constructor(
         var selectionEnabled: Boolean = false
 ) {
 
-    class HolderConfigBuilder<M> {
+    class Builder<M> {
         @LayoutRes private var layoutResource: Int? = null
         private var modelClass: Class<M>? = null
         private var selectionEnabled = false
 
-        fun withLayoutResource(@LayoutRes layoutResource: Int): HolderConfigBuilder<M> {
+        fun withLayoutResource(@LayoutRes layoutResource: Int): Builder<M> {
             this.layoutResource = layoutResource
             return this
         }
 
-        fun withModelClass(modelClass: Class<M>): HolderConfigBuilder<M> {
+        fun withModelClass(modelClass: Class<M>): Builder<M> {
             this.modelClass = modelClass
             return this
         }
 
-        fun enableSelection(): HolderConfigBuilder<M> {
+        fun enableSelection(): Builder<M> {
             this.selectionEnabled = true
             return this
         }

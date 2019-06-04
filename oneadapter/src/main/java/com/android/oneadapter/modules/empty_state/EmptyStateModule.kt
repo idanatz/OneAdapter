@@ -1,5 +1,6 @@
 package com.android.oneadapter.modules.empty_state
 
+import androidx.annotation.NonNull
 import com.android.oneadapter.internal.holders.ViewFinder
 
 /**
@@ -7,7 +8,7 @@ import com.android.oneadapter.internal.holders.ViewFinder
  */
 abstract class EmptyStateModule {
 
-    abstract fun provideModuleConfig(): EmptyStateModuleConfig
-    open fun onBind(viewFinder: ViewFinder) {}
-    open fun onUnbind(viewFinder: ViewFinder) {}
+    abstract fun provideModuleConfig(builder: EmptyStateModuleConfig.Builder): EmptyStateModuleConfig
+    open fun onBind(@NonNull viewFinder: ViewFinder) {}
+    open fun onUnbind(@NonNull viewFinder: ViewFinder) {}
 }
