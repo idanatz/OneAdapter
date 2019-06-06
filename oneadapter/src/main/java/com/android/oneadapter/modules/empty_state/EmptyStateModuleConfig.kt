@@ -6,7 +6,7 @@ import com.android.oneadapter.utils.MissingBuilderArgumentException
 
 class EmptyStateModuleConfig private constructor(
         @LayoutRes layoutResource: Int
-) : HolderModuleConfig<Any>(layoutResource, null) {
+) : HolderModuleConfig<Any>(layoutResource) {
 
     class Builder {
         @LayoutRes private var layoutResource: Int? = null

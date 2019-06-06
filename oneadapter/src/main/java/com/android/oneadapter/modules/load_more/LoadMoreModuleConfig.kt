@@ -7,7 +7,7 @@ import com.android.oneadapter.utils.MissingBuilderArgumentException
 class LoadMoreModuleConfig private constructor(
         @LayoutRes layoutResource: Int,
         var visibleThreshold: Int
-) : HolderModuleConfig<Any>(layoutResource, null) {
+) : HolderModuleConfig<Any>(layoutResource) {
 
     class Builder {
         @LayoutRes private var layoutResource: Int? = null

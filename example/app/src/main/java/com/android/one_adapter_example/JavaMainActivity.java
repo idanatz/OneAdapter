@@ -87,7 +87,7 @@ public class JavaMainActivity extends AppCompatActivity {
             public HolderModuleConfig<HeaderModel> provideModuleConfig(@NotNull HolderModuleConfig.Builder<HeaderModel> builder) {
                 return builder
                         .withLayoutResource(R.layout.header_model)
-                        .withModelClass(HeaderModel.class)
+//                        .withModelClass(HeaderModel.class)
                         .build();
             }
 
@@ -110,7 +110,7 @@ public class JavaMainActivity extends AppCompatActivity {
             public HolderModuleConfig<MessageModel> provideModuleConfig(@NotNull HolderModuleConfig.Builder<MessageModel> builder) {
                 return builder
                         .withLayoutResource(R.layout.message_model)
-                        .withModelClass(MessageModel.class)
+//                        .withModelClass(MessageModel.class)
                         .enableSelection()
                         .build();
             }
@@ -135,8 +135,6 @@ public class JavaMainActivity extends AppCompatActivity {
             @Override
             public void onSelected(@NotNull MessageModel model, boolean selected) {
                 model.isSelected = selected;
-                selectedItemsCount = selected ? selectedItemsCount + 1 : selectedItemsCount - 1;
-                setToolbarText(selectedItemsCount + " selected");
             }
         };
     }
@@ -180,7 +178,6 @@ public class JavaMainActivity extends AppCompatActivity {
             @Override
             public void onLoadMore(int currentPage) {
                 presenter.loadMore();
-                Toast.makeText(JavaMainActivity.this, "loading more...", Toast.LENGTH_SHORT).show();
             }
         };
     }
@@ -196,14 +193,14 @@ public class JavaMainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onSelectionModeStarted() {
-                toolbarMenu.findItem(R.id.action_delete).setVisible(true);
-            }
-
-            @Override
-            public void onSelectionModeEnded() {
-                setToolbarText(getString(R.string.app_name));
-                toolbarMenu.findItem(R.id.action_delete).setVisible(false);
+            public void onSelectionUpdated(int selectedCount) {
+                if (selectedCount == 0) {
+                    setToolbarText(getString(R.string.app_name));
+                    toolbarMenu.findItem(R.id.action_delete).setVisible(false);
+                } else {
+                    setToolbarText(selectedCount + " selected");
+                    toolbarMenu.findItem(R.id.action_delete).setVisible(true);
+                }
             }
         };
     }

@@ -30,6 +30,7 @@ import com.android.oneadapter.modules.load_more.LoadMoreModule
 import com.android.oneadapter.modules.load_more.LoadMoreModuleConfig
 import com.android.oneadapter.modules.selection_state.SelectionModuleConfig
 import com.android.oneadapter.modules.selection_state.SelectionStateModule
+import com.android.oneadapter.utils.*
 import com.android.oneadapter.utils.MissingBuilderArgumentException
 import com.android.oneadapter.utils.MultipleHolderConflictException
 import com.android.oneadapter.utils.let2
@@ -41,8 +42,7 @@ import java.util.HashMap
  * Created by Idan Atsmon on 20/11/2018.
  */
 @Suppress("UNCHECKED_CAST")
-internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
-        EndlessScrollListener, SelectionObserver {
+internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), EndlessScrollListener, SelectionObserver {
 
     private var recyclerView: RecyclerView? = null
     var data: MutableList<Any> = mutableListOf()
@@ -63,7 +63,6 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
     private var selectionStateModule: SelectionStateModule? = null
     private var selectionTracker: SelectionTracker<Long>? = null
     private var itemKeyProvider: OneItemKeyProvider? = null
-    private var duringSelection = false
 
     // handlers
     private val uiHandler by lazy { Handler(Looper.getMainLooper()) }
@@ -118,7 +117,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
         holder.onBindSelection(model, selected)
     }
 
-    override fun getItemCount(): Int = data.size
+    override fun getItemCount() = data.size
 
     override fun getItemId(position: Int): Long = when(val item = data[position]) {
         // javaClass is used for lettings different Diffable models share the same unique identifier
@@ -165,7 +164,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
 
     fun <M : Any> register(holderModule: HolderModule<M>) {
         val holderModuleConfig = holderModule.provideModuleConfig(HolderModuleConfig.Builder())
-        val dataClass = holderModuleConfig.modelClass ?: throw MissingBuilderArgumentException("HolderModuleConfig missing model class")
+        val dataClass = extractGenericClass(holderModule.javaClass) ?: throw MissingBuilderArgumentException("HolderModuleConfig missing model class")
 
         if (holderCreators.containsKey(dataClass)) {
             throw MultipleHolderConflictException("HolderModule with model class ${dataClass.simpleName} already attached")
@@ -208,7 +207,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, loadMoreModule.loadMoreModuleConfig) {
                     override fun onBind(model: Any?) {}
-                    override fun onUnbind() = loadMoreModule.onUnbind(viewFinder)
+                    override fun onUnbind() {}
                     override fun onSelected(model: Any?) {}
                     override fun onUnSelected(model: Any?) {}
                 }
@@ -249,13 +248,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(),
 
     override fun onSelectionStateChanged() {
         selectionTracker?.let {
-            if (it.selection.isEmpty) {
-                duringSelection = false
-                selectionStateModule?.onSelectionModeEnded()
-            } else {
-                if (duringSelection) return else duringSelection = true
-                selectionStateModule?.onSelectionModeStarted()
-            }
+            selectionStateModule?.onSelectionUpdated(it.selection.size())
         }
     }
 
