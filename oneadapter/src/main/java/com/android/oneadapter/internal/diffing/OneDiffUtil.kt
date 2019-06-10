@@ -7,7 +7,7 @@ import com.android.oneadapter.interfaces.DiffUtilCallback
 /**
  * Created by Idan Atsmon on 19/11/2018.
  */
-internal class OneDiffUtil internal constructor(
+internal class OneDiffUtil constructor(
         private val oldData: List<Any>?,
         private val newData: List<Any>?,
         private val diffCallback: DiffUtilCallback
@@ -17,19 +17,25 @@ internal class OneDiffUtil internal constructor(
 
     override fun getNewListSize() = newData?.size ?: 0
 
-    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-        if (oldData?.get(oldItemPosition) != null && newData?.get(newItemPosition) != null) {
-            diffCallback.areItemsTheSame(oldData[oldItemPosition], newData[newItemPosition])
-        } else {
-            Log.d("OneAdapter", "areItemsTheSame -> false, old: $oldItemPosition, new: $newItemPosition")
-            false
-        }
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val result =
+                if (oldData?.get(oldItemPosition) != null && newData?.get(newItemPosition) != null)
+                    diffCallback.areItemsTheSame(oldData[oldItemPosition], newData[newItemPosition])
+                else
+                    false
 
-    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-        if (oldData?.get(oldItemPosition) != null && newData?.get(newItemPosition) != null) {
-            diffCallback.areContentsTheSame(oldData[oldItemPosition], newData[newItemPosition])
-        } else {
-            Log.d("OneAdapter", "areContentsTheSame -> false, old: $oldItemPosition, new: $newItemPosition")
-            false
-        }
+        Log.d("OneAdapter", "areItemsTheSame -> $result, old: $oldItemPosition, new: $newItemPosition")
+        return result
+    }
+
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val result =
+                if (oldData?.get(oldItemPosition) != null && newData?.get(newItemPosition) != null)
+                    diffCallback.areContentsTheSame(oldData[oldItemPosition], newData[newItemPosition])
+                else
+                    false
+
+        Log.d("OneAdapter", "areContentsTheSame -> $result, old: $oldItemPosition, new: $newItemPosition")
+        return result
+    }
 }

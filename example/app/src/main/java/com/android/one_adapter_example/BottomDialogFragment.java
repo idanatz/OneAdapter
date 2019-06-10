@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class BottomDialogFragment extends BottomSheetDialogFragment {
 
-    private Presenter presenter;
+    private AdvancedExampleViewModel viewModel;
 
     public static BottomDialogFragment getInstance() {
         return new BottomDialogFragment();
@@ -22,7 +22,7 @@ public class BottomDialogFragment extends BottomSheetDialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        presenter = ViewModelProviders.of(getActivity()).get(Presenter.class);
+        viewModel = ViewModelProviders.of(getActivity()).get(AdvancedExampleViewModel.class);
     }
 
     @Nullable
@@ -31,37 +31,37 @@ public class BottomDialogFragment extends BottomSheetDialogFragment {
         final View rootView = inflater.inflate(R.layout.bottom_dialog_fragment, container, false);
 
         rootView.findViewById(R.id.add_one).setOnClickListener(view -> {
-            presenter.addOne();
+            viewModel.addOne();
             dismiss();
         });
 
         rootView.findViewById(R.id.clear).setOnClickListener(view -> {
-            presenter.clearAll();
+            viewModel.clearAll();
             dismiss();
         });
 
         rootView.findViewById(R.id.set_all).setOnClickListener(view -> {
-            presenter.setAll();
+            viewModel.setAll();
             dismiss();
         });
 
         rootView.findViewById(R.id.set_one_item).setOnClickListener(view -> {
-            presenter.setOne();
+            viewModel.setOne();
             dismiss();
         });
 
         rootView.findViewById(R.id.delete_one_item).setOnClickListener(view -> {
-//            presenter.removeItem();
+//            viewModel.removeItem();
 //            dismiss();
         });
 
         rootView.findViewById(R.id.delete_one_index).setOnClickListener(view -> {
-//            presenter.removeIndex();
+//            viewModel.removeIndex();
 //            dismiss();
         });
 
         rootView.findViewById(R.id.cut).setOnClickListener(view -> {
-            presenter.cutItems();
+            viewModel.cutItems();
             dismiss();
         });
 

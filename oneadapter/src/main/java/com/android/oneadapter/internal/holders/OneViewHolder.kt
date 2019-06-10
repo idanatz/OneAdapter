@@ -15,7 +15,7 @@ internal abstract class OneViewHolder<in M> (
         private val holderModuleConfig: HolderModuleConfig<M>
 ) : RecyclerView.ViewHolder(LayoutInflater.from(parent.context).inflate(holderModuleConfig.layoutResource, parent, false)) {
 
-    lateinit var viewFinder: ViewFinder
+    lateinit var viewBinder: ViewBinder
 
     abstract fun onBind(model: M?)
     abstract fun onUnbind()
@@ -23,7 +23,7 @@ internal abstract class OneViewHolder<in M> (
     abstract fun onUnSelected(model: M?)
 
     fun onBindViewHolder(model: M?) {
-        this.viewFinder = ViewFinder(itemView)
+        this.viewBinder = ViewBinder(itemView)
         onBind(model)
     }
 

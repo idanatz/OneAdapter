@@ -18,7 +18,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.android.one_adapter_example.models.HeaderModel;
@@ -29,7 +28,7 @@ import com.android.oneadapter.modules.selection_state.SelectionType;
 import com.android.oneadapter.modules.empty_state.EmptyStateModule;
 import com.android.oneadapter.modules.load_more.LoadMoreModule;
 import com.android.oneadapter.modules.holder.HolderModule;
-import com.android.oneadapter.internal.holders.ViewFinder;
+import com.android.oneadapter.internal.holders.ViewBinder;
 import com.android.oneadapter.modules.empty_state.EmptyStateModuleConfig;
 import com.android.oneadapter.modules.holder.HolderModuleConfig;
 import com.android.oneadapter.modules.load_more.LoadMoreModuleConfig;
@@ -38,20 +37,19 @@ import com.bumptech.glide.Glide;
 
 import org.jetbrains.annotations.NotNull;
 
-public class JavaMainActivity extends AppCompatActivity {
+public class AdvancedExampleActivity extends AppCompatActivity {
 
-    private Presenter presenter;
+    private AdvancedExampleViewModel viewModel;
     private OneAdapter oneAdapter;
     private CompositeDisposable compositeDisposable;
     private Menu toolbarMenu;
-    private int selectedItemsCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         compositeDisposable = new CompositeDisposable();
-        presenter = ViewModelProviders.of(this).get(Presenter.class);
+        viewModel = ViewModelProviders.of(this).get(AdvancedExampleViewModel.class);
 
         RecyclerView recyclerView = findViewById(R.id.recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -68,7 +66,7 @@ public class JavaMainActivity extends AppCompatActivity {
         optionsButton.setOnClickListener(v -> BottomDialogFragment.getInstance().show(getSupportFragmentManager(), BottomDialogFragment.class.getSimpleName()));
 
         compositeDisposable.add(
-                presenter.getItemsSubject()
+                viewModel.getItemsSubject()
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(items -> oneAdapter.setItems(items))
         );
@@ -87,18 +85,17 @@ public class JavaMainActivity extends AppCompatActivity {
             public HolderModuleConfig<HeaderModel> provideModuleConfig(@NotNull HolderModuleConfig.Builder<HeaderModel> builder) {
                 return builder
                         .withLayoutResource(R.layout.header_model)
-//                        .withModelClass(HeaderModel.class)
                         .build();
             }
 
             @Override
-            public void onBind(@NotNull HeaderModel model, @NotNull ViewFinder viewFinder) {
-                TextView headerTitle = viewFinder.findViewById(R.id.header_title);
-                SwitchCompat headerSwitch = viewFinder.findViewById(R.id.header_switch);
+            public void onBind(@NotNull HeaderModel model, @NotNull ViewBinder viewBinder) {
+                TextView headerTitle = viewBinder.findViewById(R.id.header_title);
+                SwitchCompat headerSwitch = viewBinder.findViewById(R.id.header_switch);
 
                 headerTitle.setText(model.name);
                 headerSwitch.setChecked(model.checked);
-                headerSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> presenter.headerCheckedChanged(model , isChecked));
+                headerSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.headerCheckedChanged(model , isChecked));
             }
         };
     }
@@ -110,26 +107,25 @@ public class JavaMainActivity extends AppCompatActivity {
             public HolderModuleConfig<MessageModel> provideModuleConfig(@NotNull HolderModuleConfig.Builder<MessageModel> builder) {
                 return builder
                         .withLayoutResource(R.layout.message_model)
-//                        .withModelClass(MessageModel.class)
                         .enableSelection()
                         .build();
             }
 
             @Override
-            public void onBind(@NotNull MessageModel model, @NotNull ViewFinder viewFinder) {
-                TextView title = viewFinder.findViewById(R.id.title);
-                TextView body  = viewFinder.findViewById(R.id.body);
-                ImageView image = viewFinder.findViewById(R.id.image);
-                ImageView selectedLayer = viewFinder.findViewById(R.id.selected_layer);
+            public void onBind(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
+                TextView title = viewBinder.findViewById(R.id.title);
+                TextView body  = viewBinder.findViewById(R.id.body);
+                ImageView image = viewBinder.findViewById(R.id.image);
+                ImageView selectedLayer = viewBinder.findViewById(R.id.selected_layer);
 
                 title.setText(model.title);
                 body.setText(model.body);
-                Glide.with(JavaMainActivity.this).load(model.imageId).into(image);
+                Glide.with(AdvancedExampleActivity.this).load(model.imageId).into(image);
 
                 // selected UI
                 image.setAlpha(model.isSelected ? 0.5f : 1f);
                 selectedLayer.setVisibility(model.isSelected? View.VISIBLE : View.GONE);
-                viewFinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(JavaMainActivity.this, R.color.light_gray) : Color.TRANSPARENT);
+                viewBinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(AdvancedExampleActivity.this, R.color.light_gray) : Color.TRANSPARENT);
             }
 
             @Override
@@ -150,15 +146,15 @@ public class JavaMainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onBind(@NotNull ViewFinder viewFinder) {
-                LottieAnimationView animation = viewFinder.findViewById(R.id.animation_view);
+            public void onBind(@NotNull ViewBinder viewBinder) {
+                LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
                 animation.setAnimation(R.raw.empty_list);
                 animation.playAnimation();
             }
 
             @Override
-            public void onUnbind(@NotNull ViewFinder viewFinder) {
-                LottieAnimationView animation = viewFinder.findViewById(R.id.animation_view);
+            public void onUnbind(@NotNull ViewBinder viewBinder) {
+                LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
                 animation.pauseAnimation();
             }
         };
@@ -177,7 +173,7 @@ public class JavaMainActivity extends AppCompatActivity {
 
             @Override
             public void onLoadMore(int currentPage) {
-                presenter.loadMore();
+                viewModel.loadMore();
             }
         };
     }
@@ -222,25 +218,10 @@ public class JavaMainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_delete) {
-            presenter.onDeleteItemsClicked(oneAdapter.getSelectedItems());
+            viewModel.onDeleteItemsClicked(oneAdapter.getSelectedItems());
             oneAdapter.clearSelection();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
-
-
-
-//    public void addOne(int index, @NotNull Object item) {
-//        oneAdapter.add(index, item);
-//    }
-//    public void setOne(@NotNull Object item) {
-//        oneAdapter.update(item);
-//    }
-//    public void removeIndex(int index) {
-//        oneAdapter.remove(index);
-//    }
-//    public void removeItem(@NotNull Object item) {
-//        oneAdapter.remove(item);
-//    }
 }

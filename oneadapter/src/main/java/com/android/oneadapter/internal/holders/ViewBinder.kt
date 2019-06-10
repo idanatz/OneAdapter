@@ -6,7 +6,7 @@ import android.view.View
 /**
  * This class responsibility is to supply findViewById abilities while caching the found views.
  */
-class ViewFinder(private val rootView: View, private val cachedViews: SparseArray<View> = SparseArray()) {
+class ViewBinder(private val rootView: View, private val cachedViews: SparseArray<View> = SparseArray()) {
 
     @Suppress("UNCHECKED_CAST")
     fun <V : View> findViewById(id: Int): V {

@@ -11,7 +11,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 
-class Presenter : ViewModel() {
+class AdvancedExampleViewModel : ViewModel() {
 
     private val modelProvider = ModelGenerator()
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()

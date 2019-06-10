@@ -48,7 +48,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), End
     var data: MutableList<Any> = mutableListOf()
         private set
 
-    private val dataTypes = ArrayList<Class<*>>() // maps T.class to unique indexes for adapter's getItemViewType
+    private val dataTypes = mutableListOf<Class<*>>() // maps T.class to unique indexes for adapter's getItemViewType
     private val holderCreators = HashMap<Class<*>, ViewHolderCreator<Any>>() // maps T.class -> ViewHolderCreator<T>
 
     // load more state
@@ -79,22 +79,15 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), End
     }
 
     //region Traditional Adapter Stuff
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OneViewHolder<Any> {
-        return when (viewType) {
-            EmptyIndicator.getType() -> emptyStateCreator!!.create(parent)
-            LoadingIndicator.getType() -> loadMoreCreator!!.create(parent)
-            else -> {
-                val dataType = dataTypes[viewType]
-                val creator = holderCreators[dataType]
-
-                if (creator == null) {
-                    throw IllegalArgumentException("$dataType has no associated Module attached")
-                } else {
-                    return creator.create(parent)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+            when (viewType) {
+                EmptyIndicator.getType() -> emptyStateCreator?.create(parent) ?: throw IllegalArgumentException("Empty state has no associated Module attached")
+                LoadingIndicator.getType() -> loadMoreCreator?.create(parent) ?: throw IllegalArgumentException("Loading state has no associated Module attached")
+                else -> {
+                    val dataType = dataTypes[viewType]
+                    holderCreators[dataType]?.create(parent) ?: throw IllegalArgumentException("$dataType has no associated Module attached")
                 }
             }
-        }
-    }
 
     override fun onBindViewHolder(holder: OneViewHolder<Any>, position: Int) {
         val model =
@@ -147,7 +140,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), End
             // modify the incoming data if needed
             if (data.isEmpty()) {
                 if (emptyStateCreator != null) {
-                    data.add(0, EmptyIndicator())
+                    data.add(0, EmptyIndicator)
                 }
                 oneEndlessScrollListener?.resetState()
             } else {
@@ -173,8 +166,8 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), End
         holderCreators[dataClass] = object : ViewHolderCreator<M> {
             override fun create(parent: ViewGroup): OneViewHolder<M> {
                 return object : OneViewHolder<M>(parent, holderModuleConfig) {
-                    override fun onBind(model: M?) { model?.let { holderModule.onBind(it, viewFinder) } }
-                    override fun onUnbind() = holderModule.onUnbind(viewFinder)
+                    override fun onBind(model: M?) { model?.let { holderModule.onBind(it, viewBinder) } }
+                    override fun onUnbind() = holderModule.onUnbind(viewBinder)
                     override fun onSelected(model: M?) { if (selectionStateModule != null) model?.let { holderModule.onSelected(it, true) } }
                     override fun onUnSelected(model: M?) { if (selectionStateModule != null) model?.let { holderModule.onSelected(it, false) } }
                 }
@@ -187,8 +180,8 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), End
         emptyStateCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, emptyStateModule.provideModuleConfig(EmptyStateModuleConfig.Builder())) {
-                    override fun onBind(model: Any?) = emptyStateModule.onBind(viewFinder)
-                    override fun onUnbind() = emptyStateModule.onUnbind(viewFinder)
+                    override fun onBind(model: Any?) = emptyStateModule.onBind(viewBinder)
+                    override fun onUnbind() = emptyStateModule.onUnbind(viewBinder)
                     override fun onSelected(model: Any?) {}
                     override fun onUnSelected(model: Any?) {}
                 }
@@ -219,7 +212,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), End
         if (loading) {
             data.indexOfFirst { it is LoadingIndicator }.let { index ->
                 if (index == -1) {
-                    data.add(data.size, LoadingIndicator())
+                    data.add(data.size, LoadingIndicator)
 
                     // post it to the UI handler because the recycler crashes when calling notify from an onScroll callback
                     uiHandler.post { notifyItemInserted(data.size) }
@@ -259,7 +252,6 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), End
     }
 
     fun clearSelection() = selectionTracker?.clearSelection()
-
     //endregion
 
     //region RecyclerView Stuff

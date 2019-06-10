@@ -1,19 +1,15 @@
 package com.android.oneadapter.internal.holders
 
-class LoadingIndicator {
+internal object LoadingIndicator {
 
-    companion object {
-        private const val TYPE_LOAD_MORE = -10
+    private const val TYPE_LOAD_MORE = -10
 
-        fun getType() = TYPE_LOAD_MORE
-    }
+    fun getType() = TYPE_LOAD_MORE
 }
 
-class EmptyIndicator {
+internal object EmptyIndicator {
 
-    companion object {
-        private const val TYPE_EMPTY_STATE = -11
+    private const val TYPE_EMPTY_STATE = -11
 
-        fun getType() = TYPE_EMPTY_STATE
-    }
+    fun getType() = TYPE_EMPTY_STATE
 }
