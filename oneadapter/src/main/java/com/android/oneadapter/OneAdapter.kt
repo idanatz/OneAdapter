@@ -1,12 +1,12 @@
 package com.android.oneadapter
 
 import androidx.recyclerview.widget.RecyclerView
-import com.android.oneadapter.interfaces.*
+import com.android.oneadapter.external.interfaces.*
 import com.android.oneadapter.internal.InternalAdapter
-import com.android.oneadapter.modules.empty_state.EmptyStateModule
-import com.android.oneadapter.modules.holder.HolderModule
-import com.android.oneadapter.modules.load_more.LoadMoreModule
-import com.android.oneadapter.modules.selection_state.SelectionStateModule
+import com.android.oneadapter.external.modules.EmptinessModule
+import com.android.oneadapter.external.modules.ItemModule
+import com.android.oneadapter.external.modules.PagingModule
+import com.android.oneadapter.external.modules.ItemSelectionModule
 import java.util.*
 
 /**
@@ -62,29 +62,29 @@ class OneAdapter {
         }
     }
 
-    fun <M : Any> attachHolderModule(holderModule: HolderModule<M>): OneAdapter {
-        internalAdapter.register(holderModule)
+    fun <M : Any> attachItemModule(itemModule: ItemModule<M>): OneAdapter {
+        internalAdapter.register(itemModule)
         return this
     }
 
-    fun attachLoadMoreModule(loadMoreModule: LoadMoreModule): OneAdapter {
-        internalAdapter.enableLoadMore(loadMoreModule)
+    fun attachPagingModule(pagingModule: PagingModule): OneAdapter {
+        internalAdapter.enablePaging(pagingModule)
         return this
     }
 
-    fun attachEmptyStateModule(emptyStateModule: EmptyStateModule): OneAdapter {
-        internalAdapter.enableEmptyState(emptyStateModule)
+    fun attachEmptinessModule(emptinessModule: EmptinessModule): OneAdapter {
+        internalAdapter.enableEmptiness(emptinessModule)
         return this
     }
 
-    fun attachSelectionStateModule(selectionStateModule: SelectionStateModule): OneAdapter {
-        internalAdapter.enableSelection(selectionStateModule)
+    fun attachItemSelectionModule(itemSelectionModule: ItemSelectionModule): OneAdapter {
+        internalAdapter.enableSelection(itemSelectionModule)
         return this
     }
 
     fun attachTo(recyclerView: RecyclerView): OneAdapter {
         internalAdapter.attachTo(recyclerView)
-        clear() // after attaching the recycler we init the adapter
+//        clear() // after attaching the recycler we init the adapter
         return this
     }
 

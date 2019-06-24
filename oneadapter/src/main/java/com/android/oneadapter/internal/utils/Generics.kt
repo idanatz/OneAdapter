@@ -1,4 +1,4 @@
-package com.android.oneadapter.utils
+package com.android.oneadapter.internal.utils
 
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type

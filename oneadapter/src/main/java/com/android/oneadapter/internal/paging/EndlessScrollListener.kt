@@ -1,18 +1,18 @@
-package com.android.oneadapter.internal.load_more
+package com.android.oneadapter.internal.paging
 
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.android.oneadapter.utils.findLastVisibleItemPosition
+import com.android.oneadapter.internal.utils.findLastVisibleItemPosition
 
 /**
  * Created by Idan Atsmon on 22/11/2018.
  */
-internal class OneEndlessScrollListener (
+internal class EndlessScrollListener (
         private val layoutManager: RecyclerView.LayoutManager,
         private var visibleThreshold: Int = 0, // The minimum amount of items to have below your current scroll position before loading more.
         private val includeEmptyState: Boolean,
-        private val endlessScrollListener: EndlessScrollListener
+        private val loadMoreObserver: LoadMoreObserver
 ) : RecyclerView.OnScrollListener() {
 
     private var currentPage = 0 // The current offset index of data you have loaded
@@ -37,12 +37,12 @@ internal class OneEndlessScrollListener (
 
             if (isLoadingFinished(totalItemCount)) {
                 loading = false
-                endlessScrollListener.onLoadingStateChanged(loading)
+                loadMoreObserver.onLoadingStateChanged(loading)
             } else if (shouldStartLoading(lastVisibleItemPosition, totalItemCount)) {
                 currentPage++
-                endlessScrollListener.notifyLoadMore(currentPage)
+                loadMoreObserver.onLoadMore(currentPage)
                 loading = true
-                endlessScrollListener.onLoadingStateChanged(loading)
+                loadMoreObserver.onLoadingStateChanged(loading)
             }
         }
 
@@ -62,7 +62,7 @@ internal class OneEndlessScrollListener (
     private fun isLoadingFinished(totalItemCount: Int) = loading && totalItemCount > (previousTotalItemCount + 1) // + 1 for the loading holder
 }
 
-interface EndlessScrollListener {
+interface LoadMoreObserver {
     fun onLoadingStateChanged(loading: Boolean)
-    fun notifyLoadMore(currentPage: Int)
+    fun onLoadMore(currentPage: Int)
 }

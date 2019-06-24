@@ -4,7 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import com.android.oneadapter.interfaces.Diffable;
+import com.android.oneadapter.external.interfaces.Diffable;
 
 /**
  * Created by Idan Atsmon on 14/11/2018.

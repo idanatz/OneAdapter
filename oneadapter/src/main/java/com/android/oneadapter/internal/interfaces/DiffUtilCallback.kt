@@ -1,4 +1,4 @@
-package com.android.oneadapter.interfaces
+package com.android.oneadapter.internal.interfaces
 
 /**
  * Created by Idan Atsmon on 20/11/2018.

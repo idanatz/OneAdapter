@@ -1,4 +1,4 @@
-package com.android.one_adapter_example
+package com.android.one_adapter_example.advanced_example.view_model
 
 import androidx.lifecycle.ViewModel
 import android.os.Handler

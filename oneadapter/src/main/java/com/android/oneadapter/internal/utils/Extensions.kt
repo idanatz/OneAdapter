@@ -1,4 +1,4 @@
-package com.android.oneadapter.utils
+package com.android.oneadapter.internal.utils
 
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager

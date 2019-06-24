@@ -1,4 +1,4 @@
-package com.android.one_adapter_example;
+package com.android.one_adapter_example.advanced_example.view;
 
 import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
@@ -7,16 +7,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.android.one_adapter_example.R;
+import com.android.one_adapter_example.advanced_example.view_model.AdvancedExampleViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import org.jetbrains.annotations.NotNull;
 
-public class BottomDialogFragment extends BottomSheetDialogFragment {
+public class ActionsDialogFragment extends BottomSheetDialogFragment {
 
     private AdvancedExampleViewModel viewModel;
 
-    public static BottomDialogFragment getInstance() {
-        return new BottomDialogFragment();
+    public static ActionsDialogFragment getInstance() {
+        return new ActionsDialogFragment();
     }
 
     @Override

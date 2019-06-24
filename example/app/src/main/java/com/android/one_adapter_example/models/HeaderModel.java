@@ -2,7 +2,7 @@ package com.android.one_adapter_example.models;
 
 import androidx.annotation.NonNull;
 
-import com.android.oneadapter.interfaces.Diffable;
+import com.android.oneadapter.external.interfaces.Diffable;
 
 /**
  * Created by Idan Atsmon on 14/11/2018.

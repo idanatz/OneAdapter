@@ -1,5 +1,6 @@
-package com.android.one_adapter_example;
+package com.android.one_adapter_example.advanced_example.view;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,26 +19,30 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.android.one_adapter_example.R;
 import com.android.one_adapter_example.models.HeaderModel;
 import com.android.one_adapter_example.models.MessageModel;
+import com.android.one_adapter_example.advanced_example.view_model.AdvancedExampleViewModel;
 import com.android.oneadapter.OneAdapter;
-import com.android.oneadapter.modules.selection_state.SelectionModuleConfig;
-import com.android.oneadapter.modules.selection_state.SelectionType;
-import com.android.oneadapter.modules.empty_state.EmptyStateModule;
-import com.android.oneadapter.modules.load_more.LoadMoreModule;
-import com.android.oneadapter.modules.holder.HolderModule;
+import com.android.oneadapter.external.events.ClickEventHook;
+import com.android.oneadapter.external.modules.EmptinessModuleConfig;
+import com.android.oneadapter.external.modules.ItemModuleConfig;
+import com.android.oneadapter.external.modules.PagingModuleConfig;
+import com.android.oneadapter.external.modules.ItemSelectionModuleConfig;
+import com.android.oneadapter.external.modules.EmptinessModule;
+import com.android.oneadapter.external.modules.PagingModule;
+import com.android.oneadapter.external.modules.ItemModule;
 import com.android.oneadapter.internal.holders.ViewBinder;
-import com.android.oneadapter.modules.empty_state.EmptyStateModuleConfig;
-import com.android.oneadapter.modules.holder.HolderModuleConfig;
-import com.android.oneadapter.modules.load_more.LoadMoreModuleConfig;
-import com.android.oneadapter.modules.selection_state.SelectionStateModule;
+import com.android.oneadapter.external.modules.ItemSelectionModule;
+import com.android.oneadapter.external.states.SelectionState;
 import com.bumptech.glide.Glide;
 
 import org.jetbrains.annotations.NotNull;
 
-public class AdvancedExampleActivity extends AppCompatActivity {
+public class AdvancedJavaExampleActivity extends AppCompatActivity {
 
     private AdvancedExampleViewModel viewModel;
     private OneAdapter oneAdapter;
@@ -47,7 +52,7 @@ public class AdvancedExampleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.advanced_example_activity);
         compositeDisposable = new CompositeDisposable();
         viewModel = ViewModelProviders.of(this).get(AdvancedExampleViewModel.class);
 
@@ -55,15 +60,15 @@ public class AdvancedExampleActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         oneAdapter = new OneAdapter()
-                .attachHolderModule(headerItem())
-                .attachHolderModule(messageItem())
-                .attachEmptyStateModule(emptyStateModule())
-                .attachLoadMoreModule(loadMoreModule())
-                .attachSelectionStateModule(selectionStateModule())
+                .attachItemModule(headerItem())
+                .attachItemModule(messageItem().addState(selectionState()).addEventHook(clickEventHook()))
+                .attachEmptinessModule(emptinessModule())
+                .attachPagingModule(pagingModule())
+                .attachItemSelectionModule(itemSelectionModule())
                 .attachTo(recyclerView);
 
         Button optionsButton = findViewById(R.id.show_options_button);
-        optionsButton.setOnClickListener(v -> BottomDialogFragment.getInstance().show(getSupportFragmentManager(), BottomDialogFragment.class.getSimpleName()));
+        optionsButton.setOnClickListener(v -> ActionsDialogFragment.getInstance().show(getSupportFragmentManager(), ActionsDialogFragment.class.getSimpleName()));
 
         compositeDisposable.add(
                 viewModel.getItemsSubject()
@@ -79,13 +84,14 @@ public class AdvancedExampleActivity extends AppCompatActivity {
     }
 
     @NotNull
-    private HolderModule<HeaderModel> headerItem() {
-        return new HolderModule<HeaderModel>() {
+    private ItemModule<HeaderModel> headerItem() {
+        return new ItemModule<HeaderModel>() {
             @NotNull @Override
-            public HolderModuleConfig<HeaderModel> provideModuleConfig(@NotNull HolderModuleConfig.Builder<HeaderModel> builder) {
-                return builder
-                        .withLayoutResource(R.layout.header_model)
-                        .build();
+            public ItemModuleConfig<HeaderModel> provideModuleConfig() {
+                return new ItemModuleConfig<HeaderModel>() {
+                    @Override
+                    public int withLayoutResource() { return R.layout.header_model; }
+                };
             }
 
             @Override
@@ -101,14 +107,14 @@ public class AdvancedExampleActivity extends AppCompatActivity {
     }
 
     @NotNull
-    private HolderModule<MessageModel> messageItem() {
-        return new HolderModule<MessageModel>() {
-            @Override @NotNull
-            public HolderModuleConfig<MessageModel> provideModuleConfig(@NotNull HolderModuleConfig.Builder<MessageModel> builder) {
-                return builder
-                        .withLayoutResource(R.layout.message_model)
-                        .enableSelection()
-                        .build();
+    private ItemModule<MessageModel> messageItem() {
+        return new ItemModule<MessageModel>() {
+            @NotNull @Override
+            public ItemModuleConfig<MessageModel> provideModuleConfig() {
+                return new ItemModuleConfig<MessageModel>() {
+                    @Override
+                    public int withLayoutResource() { return R.layout.message_model; }
+                };
             }
 
             @Override
@@ -120,29 +126,50 @@ public class AdvancedExampleActivity extends AppCompatActivity {
 
                 title.setText(model.title);
                 body.setText(model.body);
-                Glide.with(AdvancedExampleActivity.this).load(model.imageId).into(image);
+                Glide.with(AdvancedJavaExampleActivity.this).load(model.imageId).into(image);
 
                 // selected UI
                 image.setAlpha(model.isSelected ? 0.5f : 1f);
                 selectedLayer.setVisibility(model.isSelected? View.VISIBLE : View.GONE);
-                viewBinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(AdvancedExampleActivity.this, R.color.light_gray) : Color.TRANSPARENT);
+                viewBinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(AdvancedJavaExampleActivity.this, R.color.light_gray) : Color.TRANSPARENT);
+            }
+        };
+    }
+
+    @NotNull
+    private SelectionState<MessageModel> selectionState() {
+        return new SelectionState<MessageModel>() {
+            @Override
+            public boolean selectionEnabled(@NonNull MessageModel model) {
+                return true;
             }
 
             @Override
-            public void onSelected(@NotNull MessageModel model, boolean selected) {
+            public void onSelected(@NonNull MessageModel model, boolean selected) {
                 model.isSelected = selected;
             }
         };
     }
 
     @NotNull
-    private EmptyStateModule emptyStateModule() {
-        return new EmptyStateModule() {
-            @Override @NotNull
-            public EmptyStateModuleConfig provideModuleConfig(@NotNull EmptyStateModuleConfig.Builder builder) {
-                return builder
-                        .withLayoutResource(R.layout.empty_state)
-                        .build();
+    private ClickEventHook<MessageModel> clickEventHook() {
+        return new ClickEventHook<MessageModel>() {
+            @Override
+            public void onClick(@NonNull MessageModel model) {
+                Toast.makeText(AdvancedJavaExampleActivity.this, model.title + "clicked", Toast.LENGTH_SHORT).show();
+            }
+        };
+    }
+
+    @NotNull
+    private EmptinessModule emptinessModule() {
+        return new EmptinessModule() {
+            @NotNull @Override
+            public EmptinessModuleConfig provideModuleConfig() {
+                return new EmptinessModuleConfig() {
+                    @Override
+                    public int withLayoutResource() { return R.layout.empty_state; }
+                };
             }
 
             @Override
@@ -161,14 +188,17 @@ public class AdvancedExampleActivity extends AppCompatActivity {
     }
 
     @NotNull
-    private LoadMoreModule loadMoreModule() {
-        return new LoadMoreModule() {
-            @Override @NotNull
-            public LoadMoreModuleConfig provideModuleConfig(@NotNull LoadMoreModuleConfig.Builder builder) {
-                return builder
-                        .withLayoutResource(R.layout.load_more)
-                        .withVisibleThreshold(3)
-                        .build();
+    private PagingModule pagingModule() {
+        return new PagingModule() {
+            @NotNull @Override
+            public PagingModuleConfig provideModuleConfig() {
+                return new PagingModuleConfig() {
+                    @Override
+                    public int withLayoutResource() { return R.layout.load_more; }
+
+                    @Override
+                    public int withVisibleThreshold() { return 3; }
+                };
             }
 
             @Override
@@ -179,13 +209,14 @@ public class AdvancedExampleActivity extends AppCompatActivity {
     }
 
     @NotNull
-    private SelectionStateModule selectionStateModule() {
-        return new SelectionStateModule() {
-            @Override @NotNull
-            public SelectionModuleConfig provideModuleConfig(@NotNull SelectionModuleConfig.Builder builder) {
-                return builder
-                        .withSelectionType(SelectionType.Multiple)
-                        .build();
+    private ItemSelectionModule itemSelectionModule() {
+        return new ItemSelectionModule() {
+            @NotNull @Override
+            public ItemSelectionModuleConfig provideModuleConfig() {
+                return new ItemSelectionModuleConfig() {
+                    @NotNull @Override
+                    public SelectionType withSelectionType() { return SelectionType.Multiple; }
+                };
             }
 
             @Override
