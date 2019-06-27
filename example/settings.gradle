@@ -1,2 +1,0 @@
-include ':app', ':oneadapter'
-project(':oneadapter').projectDir = new File('../OneAdapter')

@@ -2,8 +2,6 @@ package com.android.oneadapter.internal
 
 import android.os.Handler
 import android.os.HandlerThread
-import android.os.Looper
-import android.util.Log
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
@@ -19,11 +17,13 @@ import com.android.oneadapter.internal.interfaces.DiffUtilCallback
 import com.android.oneadapter.internal.interfaces.ViewHolderCreator
 import com.android.oneadapter.internal.paging.LoadMoreObserver
 import com.android.oneadapter.internal.paging.EndlessScrollListener
+import com.android.oneadapter.external.modules.*
+import com.android.oneadapter.internal.selection.OneItemSelection
+import com.android.oneadapter.internal.selection.ItemSelectionActionsProvider
 import com.android.oneadapter.internal.selection.OneItemDetailLookup
 import com.android.oneadapter.internal.selection.OneItemKeyProvider
-import com.android.oneadapter.internal.selection.OneSelectionObserver
+import com.android.oneadapter.internal.selection.SelectionTrackerObserver
 import com.android.oneadapter.internal.selection.SelectionObserver
-import com.android.oneadapter.external.modules.*
 import com.android.oneadapter.internal.utils.*
 import com.android.oneadapter.internal.utils.MissingBuilderArgumentException
 import com.android.oneadapter.internal.utils.MultipleHolderConflictException
@@ -32,31 +32,32 @@ import com.android.oneadapter.internal.utils.removeClassIfExist
 import java.util.HashMap
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
-internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), LoadMoreObserver, SelectionObserver {
+internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), LoadMoreObserver, SelectionObserver, ItemSelectionActionsProvider {
 
     private var recyclerView: RecyclerView? = null
-    var data: MutableList<Any> = mutableListOf()
+    internal val modules = Modules()
+    internal var data: MutableList<Any> = mutableListOf()
         private set
 
+    // Items
     private val dataTypes = mutableListOf<Class<*>>() // maps T.class to unique indexes for adapter's getItemViewType
     private val holderCreators = HashMap<Class<*>, ViewHolderCreator<Any>>() // maps T.class -> ViewHolderCreator<T>
 
-    // Paging state
+    // Paging
     private var pagingCreator: ViewHolderCreator<Any>? = null
-    private var pagingModule: PagingModule? = null
     private var endlessScrollListener: EndlessScrollListener? = null
 
-    // Emptiness state
+    // Emptiness
     private var emptinessCreator: ViewHolderCreator<Any>? = null
 
     // Item Selection
-    private var itemSelectionModule: ItemSelectionModule? = null
     private var selectionTracker: SelectionTracker<Long>? = null
     private var itemKeyProvider: OneItemKeyProvider? = null
 
     // Handlers
-    private val uiHandler by lazy { Handler(Looper.getMainLooper()) }
-    private val backgroundHandler by lazy { Handler(HandlerThread("OneAdapterBackgroundHandler").apply { start() }.looper) }
+    private val backgroundHandler = Handler(HandlerThread("OneAdapterBackgroundHandler").apply { start() }.looper)
+    private val uiHandler
+        get() = recyclerView?.handler
 
     private val diffCallback = object : DiffUtilCallback {
         override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.getUniqueIdentifier() == newItem.getUniqueIdentifier()
@@ -85,7 +86,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
                 else -> model
             }
 
-        Log.d("OneAdapter", "onBindViewHolder -> position: $position, model: $model")
+        Logger.logd {"onBindViewHolder -> position: $position, model: $model" }
         holder.onBindViewHolder(model)
     }
 
@@ -95,7 +96,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
                 is EmptyIndicator, is LoadingIndicator -> null
                 else -> model
             }
-        Log.d("OneAdapter", "onBindSelection -> position: $position, model: $model, selected: $selected")
+        Logger.logd {"onBindSelection -> position: $position, model: $model, selected: $selected" }
         holder.onBindSelection(model, selected)
     }
 
@@ -140,7 +141,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
             // handle the diffing
             val diffResult = DiffUtil.calculateDiff(OneDiffUtil(this.data, data, diffCallback))
             this.data = data
-            uiHandler.post { diffResult.dispatchUpdatesTo(this) }
+            uiHandler?.post { diffResult.dispatchUpdatesTo(this) }
         }
     }
 
@@ -166,6 +167,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
 
     //region Emptiness Module
     fun enableEmptiness(emptinessModule: EmptinessModule) {
+        modules.emptinessModule = emptinessModule
         emptinessCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, emptinessModule.provideModuleConfig()) {
@@ -181,13 +183,13 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
     fun enablePaging(pagingModule: PagingModule) {
         // save the module and the config for later use, e.g invoking onLoadMore callback
         pagingModule.pagingModuleConfig = pagingModule.provideModuleConfig()
-        this.pagingModule = pagingModule
+        modules.pagingModule = pagingModule
 
         pagingCreator = object : ViewHolderCreator<Any> {
             override fun create(parent: ViewGroup): OneViewHolder<Any> {
                 return object : OneViewHolder<Any>(parent, pagingModule.pagingModuleConfig) {
-                    override fun onBind(model: Any?) {}
-                    override fun onUnbind() {}
+                    override fun onBind(model: Any?) = pagingModule.onBind(viewBinder)
+                    override fun onUnbind() = pagingModule.onUnbind(viewBinder)
                 }
             }
         }
@@ -200,20 +202,20 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
                     data.add(data.size, LoadingIndicator)
 
                     // post it to the UI handler because the recycler crashes when calling notify from an onScroll callback
-                    uiHandler.post { notifyItemInserted(data.size) }
+                    uiHandler?.post { notifyItemInserted(data.size) }
                 }
             }
         }
     }
 
     override fun onLoadMore(currentPage: Int) {
-        pagingModule?.onLoadMore(currentPage)
+        modules.pagingModule?.onLoadMore(currentPage)
     }
     //endregion
 
     //region Selection Module
     fun enableSelection(itemSelectionModule: ItemSelectionModule) {
-        this.itemSelectionModule = itemSelectionModule
+        modules.oneItemSelection = OneItemSelection(itemSelectionModule, ItemSelectionActions(this))
     }
 
     override fun onItemStateChanged(key: Long, selected: Boolean) {
@@ -226,17 +228,17 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
 
     override fun onSelectionStateChanged() {
         selectionTracker?.let {
-            itemSelectionModule?.onSelectionUpdated(it.selection.size())
+            modules.oneItemSelection?.module?.onSelectionUpdated(it.selection.size())
         }
     }
 
-    fun getSelectedItems(): List<Any> {
+    override fun getSelectedItems(): List<Any> {
         return let2(selectionTracker, itemKeyProvider) { selectionTracker, itemKeyProvider ->
             selectionTracker.selection?.map { key -> itemKeyProvider.getPosition(key) }?.filter { it >= 0 }?.map { position -> data[position] } ?: emptyList()
         } ?: emptyList()
     }
 
-    fun clearSelection() = selectionTracker?.clearSelection()
+    override fun clearSelection() = selectionTracker?.clearSelection()
     //endregion
 
     //region RecyclerView
@@ -257,13 +259,13 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
     //region Internal Configurations
     private fun configureEmptinessModule() {
         // in case emptiness module is configured, add empty indicator item
-        if (emptinessCreator != null) {
+        if (data.isEmpty() && emptinessCreator != null) {
             data.add(0, EmptyIndicator)
         }
     }
 
     private fun configurePagingModule(recyclerView: RecyclerView) {
-        let2(recyclerView.layoutManager, pagingModule) { layoutManager, loadMoreModule ->
+        let2(recyclerView.layoutManager, modules.pagingModule) { layoutManager, loadMoreModule ->
             endlessScrollListener = EndlessScrollListener(
                     layoutManager = layoutManager,
                     visibleThreshold = loadMoreModule.pagingModuleConfig.withVisibleThreshold(),
@@ -274,7 +276,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
     }
 
     private fun configureItemSelectionModule(recyclerView: RecyclerView) {
-        itemSelectionModule?.let { selectionModule ->
+        modules.oneItemSelection?.module?.let { selectionModule ->
             selectionTracker = SelectionTracker.Builder<Long>(
                     recyclerView.id.toString(),
                     recyclerView,
@@ -287,7 +289,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
                 ItemSelectionModuleConfig.SelectionType.Multiple -> SelectionPredicates.createSelectAnything()
             })
             .build()
-            .also { it.addObserver(OneSelectionObserver(this@InternalAdapter)) }
+            .also { it.addObserver(SelectionTrackerObserver(this@InternalAdapter)) }
         }
     }
     //endregion

@@ -2,16 +2,9 @@ package com.android.oneadapter
 
 import androidx.recyclerview.widget.RecyclerView
 import com.android.oneadapter.external.interfaces.*
+import com.android.oneadapter.external.modules.*
 import com.android.oneadapter.internal.InternalAdapter
-import com.android.oneadapter.external.modules.EmptinessModule
-import com.android.oneadapter.external.modules.ItemModule
-import com.android.oneadapter.external.modules.PagingModule
-import com.android.oneadapter.external.modules.ItemSelectionModule
 import java.util.*
-
-/**
- * Created by Idan Atsmon on 19/11/2018.
- */
 
 class OneAdapter {
 
@@ -19,6 +12,9 @@ class OneAdapter {
 
     private val internalItems: List<Any>
         get() = internalAdapter.data
+
+    val itemSelectionActions: ItemSelectionActions?
+        get() = internalAdapter.modules.oneItemSelection?.actions
 
     fun setItems(items: List<Any>) {
         internalAdapter.updateData(LinkedList(items))
@@ -84,12 +80,8 @@ class OneAdapter {
 
     fun attachTo(recyclerView: RecyclerView): OneAdapter {
         internalAdapter.attachTo(recyclerView)
-//        clear() // after attaching the recycler we init the adapter
         return this
     }
-
-    fun getSelectedItems() = internalAdapter.getSelectedItems()
-    fun clearSelection() = internalAdapter.clearSelection()
 
     private fun getIndexOfItem(itemToFind: Any): Int {
         return internalItems.indexOfFirst { item ->

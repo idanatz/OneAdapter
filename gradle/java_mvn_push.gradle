@@ -1,0 +1,54 @@
+apply plugin: "com.jfrog.bintray"
+apply plugin: 'maven-publish'
+apply plugin: 'maven'
+
+// custom tasks for creating source/javadoc jars
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+// add javadoc/source jar tasks as artifacts
+artifacts {
+    archives sourcesJar, javadocJar
+}
+
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+            from components.java
+            groupId = GROUP
+            artifactId = POM_ARTIFACT_ID
+            version = VERSION_NAME
+
+            artifact(sourcesJar)
+            artifact(javadocJar)
+        }
+    }
+}
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty('bintray.user')
+    key = properties.getProperty('bintray.apikey')
+    publications = ["MyPublication"]
+    publish = true
+    pkg {
+        repo = REP
+        name = POM_ARTIFACT_ID
+        userOrg = properties.getProperty('bintray.org')
+        licenses = [POM_LICENCE]
+        vcsUrl = GIT_URL
+        version {
+            name = VERSION_NAME
+            desc = POM_DESCRIPTION
+            released  = new Date()
+        }
+    }
+}

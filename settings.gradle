@@ -1,0 +1,3 @@
+include ':app', ':oneadapter'
+project(':app').projectDir = new File('sample/app')
+project(':oneadapter').projectDir = new File('oneadapter')

@@ -11,14 +11,10 @@ import com.android.oneadapter.internal.interfaces.InternalModuleConfig
 import com.android.oneadapter.external.states.StatesMap
 import com.android.oneadapter.internal.utils.let2
 
-/**
- * Created by Idan Atsmon on 19/11/2018.
- */
-
 @Suppress("NAME_SHADOWING")
 internal abstract class OneViewHolder<M> (
         parent: ViewGroup,
-        moduleConfig: InternalModuleConfig<M>,
+        moduleConfig: InternalModuleConfig,
         private val statesMap: StatesMap<M>? = null,
         private val eventsMap: EventHooksMap<M>? = null
 ) : RecyclerView.ViewHolder(LayoutInflater.from(parent.context).inflate(moduleConfig.withLayoutResource(), parent, false)) {
@@ -39,7 +35,7 @@ internal abstract class OneViewHolder<M> (
 
     private fun handleEventHooks() {
         let2(eventsMap?.getClickEventHook(), model) { clickEventHook, model ->
-            itemView.setOnClickListener { clickEventHook.onClick(model) }
+            itemView.setOnClickListener { clickEventHook.onClick(model, viewBinder) }
         }
     }
 

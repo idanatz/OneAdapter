@@ -10,15 +10,12 @@ import com.android.oneadapter.external.states.SelectionState
 import com.android.oneadapter.external.states.State
 import com.android.oneadapter.external.states.StatesMap
 
-/**
- * Created by Idan Atsmon on 19/11/2018.
- */
 abstract class ItemModule<M> {
 
     internal val statesMap = StatesMap<M>()
     internal val eventHooksMap = EventHooksMap<M>()
 
-    abstract fun provideModuleConfig(): ItemModuleConfig<M>
+    abstract fun provideModuleConfig(): ItemModuleConfig
     abstract fun onBind(@NonNull model: M, @NonNull viewBinder: ViewBinder)
 
     open fun onUnbind(@NonNull viewBinder: ViewBinder) {}
@@ -38,4 +35,4 @@ abstract class ItemModule<M> {
     }
 }
 
-abstract class ItemModuleConfig<M> : InternalModuleConfig<M>()
+abstract class ItemModuleConfig : InternalModuleConfig()

@@ -5,9 +5,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.android.oneadapter.internal.utils.findLastVisibleItemPosition
 
-/**
- * Created by Idan Atsmon on 22/11/2018.
- */
 internal class EndlessScrollListener (
         private val layoutManager: RecyclerView.LayoutManager,
         private var visibleThreshold: Int = 0, // The minimum amount of items to have below your current scroll position before loading more.

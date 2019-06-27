@@ -4,9 +4,6 @@ import android.util.Log
 import androidx.recyclerview.widget.DiffUtil
 import com.android.oneadapter.internal.interfaces.DiffUtilCallback
 
-/**
- * Created by Idan Atsmon on 19/11/2018.
- */
 internal class OneDiffUtil constructor(
         private val oldData: List<Any>?,
         private val newData: List<Any>?,

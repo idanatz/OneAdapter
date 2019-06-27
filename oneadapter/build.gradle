@@ -2,14 +2,21 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+ext {
+    RECYCLER_VIEW_VERSION = '1.0.0'
+}
+
 android {
-    compileSdkVersion 28
+    compileSdkVersion COMPILE_SDK_VERSION
+
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion MIN_SDK_VERSION
+        targetSdkVersion TARGET_SDK_VERSION
+        versionCode VERSION_CODE
+        versionName VERSION_NAME
+        buildToolsVersion BUILD_TOOLS_VERSION
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -18,8 +25,10 @@ android {
     }
 }
 
+apply from: rootProject.file('gradle/android_mvn_push.gradle')
+
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.21"
-    implementation "androidx.recyclerview:recyclerview:1.0.0"
-    implementation "androidx.recyclerview:recyclerview-selection:1.0.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KOTLIN_VERSION"
+    implementation "androidx.recyclerview:recyclerview:$RECYCLER_VIEW_VERSION"
+    implementation "androidx.recyclerview:recyclerview-selection:$RECYCLER_VIEW_VERSION"
 }
