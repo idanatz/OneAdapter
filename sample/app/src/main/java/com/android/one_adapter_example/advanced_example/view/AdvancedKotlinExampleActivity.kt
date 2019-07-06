@@ -32,6 +32,7 @@ import io.reactivex.disposables.CompositeDisposable
 
 class AdvancedKotlinExampleActivity : AppCompatActivity() {
 
+    private lateinit var recyclerView: RecyclerView
     private lateinit var viewModel: AdvancedExampleViewModel
     private lateinit var oneAdapter: OneAdapter
     private lateinit var compositeDisposable: CompositeDisposable
@@ -40,11 +41,11 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_example)
+
         compositeDisposable = CompositeDisposable()
         viewModel = ViewModelProviders.of(this).get(AdvancedExampleViewModel::class.java)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recycler)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        initViews()
 
         oneAdapter = OneAdapter()
                 .attachItemModule(storyItem())
@@ -55,19 +56,24 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
                 .attachItemSelectionModule(itemSelectionModule())
                 .attachTo(recyclerView)
 
-        val optionsButton = findViewById<Button>(R.id.show_options_button)
-        optionsButton.setOnClickListener { AdvancedActionsDialog.getInstance().show(supportFragmentManager, AdvancedActionsDialog::class.java.simpleName) }
-
-        compositeDisposable.add(
-                viewModel.itemsSubject
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { items -> oneAdapter.setItems(items) }
-        )
+        observeViewModel()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         compositeDisposable.dispose()
+    }
+    private fun initViews() {
+        recyclerView = findViewById<RecyclerView>(R.id.recycler).apply { layoutManager = LinearLayoutManager(this@AdvancedKotlinExampleActivity) }
+        findViewById<Button>(R.id.show_options_button).setOnClickListener { AdvancedActionsDialog.newInstance().show(supportFragmentManager, AdvancedActionsDialog::class.java.simpleName) }
+    }
+
+    private fun observeViewModel() {
+        compositeDisposable.add(
+                viewModel.itemsSubject
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe { items -> oneAdapter.setItems(items) }
+        )
     }
 
     private fun storyItem(): ItemModule<StoriesModel> = object : ItemModule<StoriesModel>() {
@@ -107,11 +113,13 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
         }
 
         override fun onBind(model: MessageModel, viewBinder: ViewBinder) {
+            val id = viewBinder.findViewById<TextView>(R.id.id)
             val title = viewBinder.findViewById<TextView>(R.id.title)
             val body = viewBinder.findViewById<TextView>(R.id.body)
             val avatarImage = viewBinder.findViewById<ImageView>(R.id.avatarImage)
             val selectedLayer = viewBinder.findViewById<ImageView>(R.id.selected_layer)
 
+            id.text = getString(R.string.message_model_id).format(model.id)
             title.text = model.title
             body.text = model.body
             Glide.with(this@AdvancedKotlinExampleActivity).load(model.avatarImageId).into(avatarImage)
@@ -159,7 +167,7 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
         }
 
         override fun onLoadMore(currentPage: Int) {
-            viewModel.loadMore()
+            viewModel.onLoadMore()
         }
     }
 

@@ -1,31 +1,33 @@
-package com.android.one_adapter_example.advanced_example.view;
+package com.android.one_adapter_example.simple_example;
 
-import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
 import com.android.one_adapter_example.R;
-import com.android.one_adapter_example.advanced_example.view_model.AdvancedExampleViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import org.jetbrains.annotations.NotNull;
 
-public class AdvancedActionsDialog extends BottomSheetDialogFragment {
+import androidx.annotation.Nullable;
 
-    private AdvancedExampleViewModel viewModel;
+public class SimpleActionsDialog extends BottomSheetDialogFragment {
 
-    public static AdvancedActionsDialog newInstance() {
-        return new AdvancedActionsDialog();
+    private ActionsListener listener;
+
+    public static SimpleActionsDialog getInstance() {
+        return new SimpleActionsDialog();
+    }
+
+    public void setListener(ActionsListener listener) {
+        this.listener = listener;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewModel = ViewModelProviders.of(getActivity()).get(AdvancedExampleViewModel.class);
     }
 
     @Nullable
@@ -36,25 +38,25 @@ public class AdvancedActionsDialog extends BottomSheetDialogFragment {
         rootView.findViewById(R.id.add_item).setOnClickListener(view -> {
             String id = ((EditText)rootView.findViewById(R.id.add_item_edit_text)).getText().toString();
             if (!id.isEmpty()) {
-                viewModel.onAddItemClicked(Integer.parseInt(id));
+                listener.onAddItemClicked(Integer.parseInt(id));
             }
             dismiss();
         });
 
         rootView.findViewById(R.id.clear).setOnClickListener(view -> {
-            viewModel.onClearAllClicked();
+            listener.onClearAllClicked();
             dismiss();
         });
 
         rootView.findViewById(R.id.set_all).setOnClickListener(view -> {
-            viewModel.onSetAllClicked();
+            listener.onSetAllClicked();
             dismiss();
         });
 
         rootView.findViewById(R.id.update_item).setOnClickListener(view -> {
             String id = ((EditText)rootView.findViewById(R.id.update_item_edit_text)).getText().toString();
             if (!id.isEmpty()) {
-                viewModel.onUpdatedItemClicked(Integer.parseInt(id));
+                listener.onUpdatedItemClicked(Integer.parseInt(id));
             }
             dismiss();
         });
@@ -62,7 +64,7 @@ public class AdvancedActionsDialog extends BottomSheetDialogFragment {
         rootView.findViewById(R.id.delete_item).setOnClickListener(view -> {
             String id = ((EditText)rootView.findViewById(R.id.delete_item_edit_text)).getText().toString();
             if (!id.isEmpty()) {
-                viewModel.onDeleteItemClicked(Integer.parseInt(id));
+                listener.onDeleteItemClicked(Integer.parseInt(id));
             }
             dismiss();
         });
@@ -70,16 +72,33 @@ public class AdvancedActionsDialog extends BottomSheetDialogFragment {
         rootView.findViewById(R.id.delete_index).setOnClickListener(view -> {
             String id = ((EditText)rootView.findViewById(R.id.delete_index_edit_text)).getText().toString();
             if (!id.isEmpty()) {
-                viewModel.onDeleteIndexClicked(Integer.parseInt(id));
+                listener.onDeleteIndexClicked(Integer.parseInt(id));
             }
             dismiss();
         });
 
         rootView.findViewById(R.id.large_diff).setOnClickListener(view -> {
-            viewModel.onLargeDiffClicked();
+            listener.largeDiff();
             dismiss();
         });
 
         return rootView;
+    }
+
+    public interface ActionsListener {
+
+        void onAddItemClicked(int id);
+
+        void onClearAllClicked();
+
+        void onSetAllClicked();
+
+        void onUpdatedItemClicked(int id);
+
+        void onDeleteItemClicked(int id);
+
+        void onDeleteIndexClicked(int index);
+
+        void largeDiff();
     }
 }

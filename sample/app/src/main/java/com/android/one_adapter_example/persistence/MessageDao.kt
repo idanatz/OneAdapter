@@ -15,6 +15,9 @@ abstract class MessageDao : BaseDao<MessageModel>() {
     @Query("SELECT * FROM messages WHERE headerId == :headerId")
     abstract fun getMessageWithHeaderId(headerId: Int): Single<List<MessageModel>>
 
+    @Query("SELECT * FROM messages WHERE id == :id")
+    abstract fun getMessageWithId(id: Int): Single<MessageModel>
+
     @Query("DELETE FROM messages")
     abstract fun deleteAll()
 

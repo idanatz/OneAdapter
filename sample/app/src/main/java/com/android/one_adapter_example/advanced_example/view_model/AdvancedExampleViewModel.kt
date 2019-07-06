@@ -10,6 +10,7 @@ import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
+import kotlin.math.absoluteValue
 
 @Suppress("UNCHECKED_CAST")
 class AdvancedExampleViewModel : ViewModel() {
@@ -38,7 +39,7 @@ class AdvancedExampleViewModel : ViewModel() {
         compositeDisposable.dispose()
     }
 
-    fun setAll() {
+    fun onSetAllClicked() {
         compositeDisposable.add(
                 Single.fromCallable { RoomDB.instance.messageDao().insert(modelProvider.generateFirstModels()) }
                         .subscribeOn(Schedulers.io())
@@ -46,7 +47,7 @@ class AdvancedExampleViewModel : ViewModel() {
         )
     }
 
-    fun clearAll() {
+    fun onClearAllClicked() {
         compositeDisposable.add(
                 Single.fromCallable { RoomDB.instance.messageDao().deleteAll() }
                         .subscribeOn(Schedulers.io())
@@ -54,19 +55,41 @@ class AdvancedExampleViewModel : ViewModel() {
         )
     }
 
-    fun addOne() {
+    fun onAddItemClicked(id: Int) {
         compositeDisposable.add(
-                Single.fromCallable { RoomDB.instance.messageDao().insert(modelProvider.generateMessage()) }
-                        .subscribeOn(Schedulers.io())
-                        .subscribe()
+                Single.fromCallable {
+                    val newItem = modelProvider.generateMessage(id)
+                    newItem.headerId = findClosestHeaderForId(id)
+                    RoomDB.instance.messageDao().insert(newItem)
+                }
+                .subscribeOn(Schedulers.io())
+                .subscribe({}, {})
         )
     }
 
-    fun setOne() {
+    private fun findClosestHeaderForId(id: Int): Int {
+        var closestHeaderId = -1
+        var minVal = -1
+        itemsSubject.value?.filter { it is MessageModel }?.map { it as MessageModel }?.forEach {
+            val newVal = (it.id - id).absoluteValue
+            if (minVal == -1 || minVal > newVal) {
+                minVal = newVal
+                closestHeaderId = it.headerId
+            }
+        }
+        return closestHeaderId
+    }
+
+    fun onUpdatedItemClicked(id: Int) {
         compositeDisposable.add(
-                Single.fromCallable { RoomDB.instance.messageDao().update(modelProvider.generateUpdatedMessage()) }
+                RoomDB.instance.messageDao().getMessageWithId(id)
+                        .flatMap {
+                            Single.fromCallable {
+                                RoomDB.instance.messageDao().update(modelProvider.generateUpdatedMessage(it.id, it.headerId))
+                            }
+                        }
                         .subscribeOn(Schedulers.io())
-                        .subscribe()
+                        .subscribe({}, {})
         )
     }
 
@@ -78,7 +101,34 @@ class AdvancedExampleViewModel : ViewModel() {
         )
     }
 
-    fun cutItems() {
+    fun onDeleteIndexClicked(index: Int) {
+        val item = itemsSubject.value?.get(index) as? MessageModel
+
+        compositeDisposable.add(
+                Single.fromCallable {
+                    item?.let {
+                        RoomDB.instance.messageDao().delete(it)
+                    }
+                }
+                .subscribeOn(Schedulers.io())
+                .subscribe({}, {})
+        )
+    }
+
+    fun onDeleteItemClicked(id: Int) {
+        compositeDisposable.add(
+                RoomDB.instance.messageDao().getMessageWithId(id)
+                        .flatMap {
+                            Single.fromCallable {
+                                RoomDB.instance.messageDao().delete(it)
+                            }
+                        }
+                        .subscribeOn(Schedulers.io())
+                        .subscribe({}, {})
+        )
+    }
+
+    fun onLargeDiffClicked() {
         compositeDisposable.add(
                 Single.fromCallable { RoomDB.instance.messageDao().deleteEvenIds() }
                         .subscribeOn(Schedulers.io())
@@ -86,7 +136,7 @@ class AdvancedExampleViewModel : ViewModel() {
         )
     }
 
-    fun loadMore() {
+    fun onLoadMore() {
         Handler().postDelayed({
             val loadMoreItems = modelProvider.generateLoadMoreItems()
             compositeDisposable.add(
@@ -113,7 +163,7 @@ class AdvancedExampleViewModel : ViewModel() {
                     )
                 }
             } else {
-                items.removeIf { it is MessageModel && it.headerId == model.id }
+                items.removeAll { it is MessageModel && it.headerId == model.id }
             }
 
             itemsSubject.onNext(items)
@@ -125,7 +175,7 @@ class AdvancedExampleViewModel : ViewModel() {
 
         models.groupBy { it.headerId }.forEach { (headerIndex, messages) ->
             list.add(HeaderModel(headerIndex, "Section " + (headerIndex + 1)))
-            list.addAll(messages)
+            list.addAll(messages.sortedBy { it.id })
         }
 
         return list

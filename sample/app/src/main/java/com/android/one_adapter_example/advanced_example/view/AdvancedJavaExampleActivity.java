@@ -16,7 +16,6 @@ import io.reactivex.disposables.CompositeDisposable;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -70,8 +69,7 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
                 .attachItemSelectionModule(itemSelectionModule())
                 .attachTo(recyclerView);
 
-        Button optionsButton = findViewById(R.id.show_options_button);
-        optionsButton.setOnClickListener(v -> AdvancedActionsDialog.getInstance().show(getSupportFragmentManager(), AdvancedActionsDialog.class.getSimpleName()));
+        findViewById(R.id.show_options_button).setOnClickListener(v -> AdvancedActionsDialog.newInstance().show(getSupportFragmentManager(), AdvancedActionsDialog.class.getSimpleName()));
 
         compositeDisposable.add(
                 viewModel.getItemsSubject()
@@ -146,11 +144,13 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
 
             @Override
             public void onBind(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
+                TextView id = viewBinder.findViewById(R.id.id);
                 TextView title = viewBinder.findViewById(R.id.title);
                 TextView body  = viewBinder.findViewById(R.id.body);
                 ImageView avatarImage = viewBinder.findViewById(R.id.avatarImage);
                 ImageView selectedLayer = viewBinder.findViewById(R.id.selected_layer);
 
+                id.setText(String.format(getString(R.string.message_model_id), model.id));
                 title.setText(model.title);
                 body.setText(model.body);
                 Glide.with(AdvancedJavaExampleActivity.this).load(model.avatarImageId).into(avatarImage);
@@ -230,7 +230,7 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
 
             @Override
             public void onLoadMore(int currentPage) {
-                viewModel.loadMore();
+                viewModel.onLoadMore();
             }
         };
     }

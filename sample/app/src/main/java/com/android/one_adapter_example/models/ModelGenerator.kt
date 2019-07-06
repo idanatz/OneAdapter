@@ -22,14 +22,14 @@ class ModelGenerator {
         return models
     }
 
-    fun generateMessage(): MessageModel {
-        val messageModel = MessageModel(modelNumber, 0, R.drawable.person_six, "Person Added", "This Message is added!")
+    fun generateMessage(id: Int): MessageModel {
+        val messageModel = MessageModel(id, 2, R.drawable.person_six, "Person Added", "This Message is added!")
         modelNumber++
         return messageModel
     }
 
-    fun generateUpdatedMessage(): MessageModel {
-        return MessageModel(2,0 , R.drawable.person_two, "Person Updated", "This Message is updated!")
+    fun generateUpdatedMessage(id: Int, headerId: Int): MessageModel {
+        return MessageModel(id, headerId, R.drawable.person_two, "Person Updated", "This Message is updated!")
     }
 
     fun generateLoadMoreItems(): List<MessageModel> {
@@ -51,6 +51,6 @@ class ModelGenerator {
 
     private fun addModel(models: MutableList<MessageModel>, model: MessageModel) {
         models.add(model)
-        modelNumber++
+        modelNumber += 11
     }
 }
