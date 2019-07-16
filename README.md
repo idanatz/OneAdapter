@@ -20,6 +20,7 @@ LINK HERE
 - Event Hooks:
   - Click Event Hook
 
+<br/><br/>
 # Include in your project
 ```groovy
 dependencies {
@@ -27,15 +28,17 @@ dependencies {
 }
 ```
 
+<br/><br/>
 # Preview
 ## Example
 ## Screenshots
 
+<br/><br/>
 # Usage
 ## Basic Usage
 ### 1. Implement Item Module
 Item Modules are used for the creation and binding of all ViewHolders for you. In the onBind method, you will receive as a parameter the model associated with this view and a ViewBinder class that lets you find (and cache) the views defined in the associated layout file.
-#### Java
+##### Java
 ```java
 class MessageModule extends ItemModule<MessageModel> {
       @NotNull @Override
@@ -54,11 +57,11 @@ class MessageModule extends ItemModule<MessageModel> {
     
      @Override
       public void onUnbind(@NotNull ViewBinder viewBinder) {
-          // unbind logic like stop animation, release webview resources, etc...
+          // unbind logic like stop animation, release webview resources, etc.
       }
 }
 ```
-#### Kotlin
+##### Kotlin
 ```kotlin
 class MessageModule : ItemModule<MessageModel>() {
     override fun provideModuleConfig() = object : ItemModuleConfig() {
@@ -71,13 +74,13 @@ class MessageModule : ItemModule<MessageModel>() {
     }
 
     override fun onUnbind(viewBinder: ViewBinder) {
-        // unbind logic like stop animation, release webview resources, etc...
+        // unbind logic like stop animation, release webview resources, etc.
     }
 }
 ```
 ### 2. Implement Diffable
 The Adapter is calculating the difference between its current data and the modified data on a background thread and posting the result to the main thread. In order for this magic to work without writing tons of DiffUtil.Callback, your models need to implement one simple interface:
-#### Java
+##### Java
 ```java
 public class MessageModel implements Diffable {
     private int id;
@@ -94,7 +97,7 @@ public class MessageModel implements Diffable {
     }
 }
 ```
-#### Kotlin
+##### Kotlin
 ```kotlin
 class MessageModel : Diffable {
     private val id: Int = 0
@@ -105,7 +108,7 @@ class MessageModel : Diffable {
 }
 ```
 ### 3. Attach To OneAdapter & Use
-#### Java
+##### Java
 ```java
 OneAdapter oneAdapter = new OneAdapter()
     .attachItemModule(new MessageModule())
@@ -113,7 +116,7 @@ OneAdapter oneAdapter = new OneAdapter()
     
 oneAdapter.setItems(...)  
 ```
-#### Kotlin
+##### Kotlin
 ```kotlin
 val oneAdapter = OneAdapter()
     .attachItemModule(MessageModule())
@@ -121,6 +124,8 @@ val oneAdapter = OneAdapter()
     
 oneAdapter.setItems(...) 
 ```
+
+<br/><br/>
 ## Advanced Usage
 ### Multiple Types
 Have more than one view type? not a problem, just create another ItemModule and attach it to OneAdapter in the same way.
@@ -136,30 +141,32 @@ OneAdapter oneAdapter = new OneAdapter()
     .attachItemModule(new StoryModule())
     ...
 ```
+
+<br/><br/>
 ### Paging Module
 Paging Module is used for creating and binding a specific ViewHolder at the end of the list when the Adapter reaches a load more state. The visible threshold configuration is used to indicate how many items before the end of the list the onLoadMore callback should be invoked.
 #### 1. Implement Paging Modules
-#### Java
+##### Java
 ```java
 class PagingModuleImpl extends PagingModule {
     @NotNull @Override
     public PagingModuleConfig provideModuleConfig() {
         return new PagingModuleConfig() {
             @Override
-            public int withLayoutResource() { return R.layout.load_more; } // can be some spinner animation
+            public int withLayoutResource() { return R.layout.load_more; } // can be some spinner animation.
 
             @Override
-            public int withVisibleThreshold() { return 3; } // invoke onLoadMore 3 items before the end
+            public int withVisibleThreshold() { return 3; } // invoke onLoadMore 3 items before the end.
         };
     }
 
     @Override
     public void onLoadMore(int currentPage) {
-        // place your load more logic here... like asking the ViewModel to load the next page of data
+        // place your load more logic here, like asking the ViewModel to load the next page of data.
     }
 }
 ```
-#### Kotlin
+##### Kotlin
 ```kotlin
 class PagingModuleImpl : PagingModule() {
     override fun provideModuleConfig() = object : PagingModuleConfig() {
@@ -168,34 +175,186 @@ class PagingModuleImpl : PagingModule() {
     }
 
     override fun onLoadMore(currentPage: Int) {
-        // place your load more logic here... like asking the ViewModel to load the next page of data
+        // place your load more logic here, like asking the ViewModel to load the next page of data.
     }
 }
 ```
 #### 2. Attach To OneAdapter
-#### Java
+##### Java
 ```java
 OneAdapter oneAdapter = new OneAdapter()
     .attachPagingModule(new PagingModuleImpl())
     ...
-    
 ```
-#### Kotlin
+##### Kotlin
 ```kotlin
 val oneAdapter = OneAdapter()
     .attachPagingModule(PagingModuleImpl())
     ...
 ```
-### Selection Module
-#### 1. Implement Selection Modules
-#### 2. Attach To OneAdapter
-### Emptiness Module
-#### 1. Implement Emptiness Modules
-#### 2. Attach To OneAdapter
-### Click Event Hook
-#### 1. Implement Click Event Hook
-#### 2. Attach To ItemModule
 
+<br/><br/>
+### Emptiness Module
+Emptiness Module is used for creating and binding a specific ViewHolder when the Adapter has no data to render.
+#### 1. Implement Emptiness Modules
+##### Java
+```java
+class EmptinessModuleImpl extends EmptinessModule {
+    @NotNull @Override
+    public EmptinessModuleConfig provideModuleConfig() {
+        return new EmptinessModuleConfig() {
+            @Override
+            public int withLayoutResource() { return R.layout.empty_state; }
+        };
+    }
+
+    @Override
+    public void onBind(@NotNull ViewBinder viewBinder) { ... }
+
+    @Override
+    public void onUnbind(@NotNull ViewBinder viewBinder) { ... }
+}
+```
+##### Kotlin
+```kotlin
+class EmptinessModuleImpl : EmptinessModule() {
+    override fun provideModuleConfig(): EmptinessModuleConfig = object : EmptinessModuleConfig() {
+        override fun withLayoutResource() = R.layout.empty_state
+    }
+
+    override fun onBind(viewBinder: ViewBinder) { ... }
+
+    override fun onUnbind(viewBinder: ViewBinder) { ... }
+}
+```
+#### 2. Attach To OneAdapter
+##### Java
+```java
+OneAdapter oneAdapter = new OneAdapter()
+    .attachEmptinessModule(new EmptinessModuleImpl())
+    ...
+```
+##### Kotlin
+```kotlin
+val oneAdapter = OneAdapter()
+    .attachEmptinessModule(EmptinessModuleImpl())
+    ...
+```
+
+<br/><br/>
+### Selection Module
+Selection Module is used for enabling single or multiple selection on Items.
+#### 1. Implement Selection Modules
+##### Java
+```java
+class ItemSelectionModuleImpl extends ItemSelectionModule {
+    @NotNull @Override
+    public ItemSelectionModuleConfig provideModuleConfig() {
+        return new ItemSelectionModuleConfig() {
+            @NotNull @Override
+            public SelectionType withSelectionType() { return SelectionType.Multiple; } // Or SelectionType.Single.
+        };
+    }
+
+    @Override
+    public void onSelectionUpdated(int selectedCount) {
+       // place your general selection logic here, like changing the toolbar text to indicate the selected count.
+    }
+}
+```
+##### Kotlin
+```kotlin
+class ItemSelectionModuleImpl : ItemSelectionModule() {
+    override fun provideModuleConfig(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig() {
+        override fun withSelectionType() = SelectionType.Multiple // Or SelectionType.Single
+    }
+
+    override fun onSelectionUpdated(selectedCount: Int) {
+        // place your general selection logic here, like changing the toolbar text to indicate the selected count.
+    }
+}
+```
+#### 2. Implement Selection State
+##### Java
+```java
+class SelectionStateImpl extends SelectionState<MessageModel> {
+    @Override
+    public boolean selectionEnabled(@NonNull MessageModel model) {
+        return true;
+    }
+
+    @Override
+    public void onSelected(@NonNull MessageModel model, boolean selected) {
+        // update your model here. 
+        // right after this call you will receive an onBind call in order to reflect your changes on the relevant Item Module.
+        model.isSelected = selected;
+    }
+}
+```
+##### Kotlin
+```kotlin
+class SelectionStateImpl : SelectionState<MessageModel>() {
+    override fun selectionEnabled(model: MessageModel) = true
+
+    override fun onSelected(model: MessageModel, selected: Boolean) {
+        // update your model here. 
+        // right after this call you will receive an onBind call in order to reflect your changes on the relevant Item Module.
+        model.isSelected = selected;
+    }
+}
+```
+#### 3. Attach To ItemModule & OneAdapter
+##### Java
+```java
+OneAdapter oneAdapter = new OneAdapter()
+    .attachItemModule(new MessageModule()).addState(new SelectionStateImpl())
+    .attachItemSelectionModule(new ItemSelectionModuleImpl())
+    ...
+```
+##### Kotlin
+```kotlin
+val oneAdapter = OneAdapter()
+    .attachItemModule(MessageModule()).addState(SelectionStateImpl())
+    .attachItemSelectionModule(ItemSelectionModuleImpl())
+    ...
+```
+
+<br/><br/>
+### Click Event Hook
+Item Modules can easily be enhanced with event hooks, for instance, ClickEventHook which let you bind a click listener for the entire view.
+#### 1. Implement Click Event Hook
+##### Java
+```java
+class MessageClickEvent extends ClickEventHook<MessageModel> {
+    @Override
+    public void onClick(@NonNull MessageModel model, @NonNull ViewBinder viewBinder) { 
+        // place your on click logic here.
+    }
+}
+```
+##### Kotlin
+```kotlin
+class MessageClickEvent : ClickEventHook<MessageModel>() {
+    override fun onClick(model: MessageModel, viewBinder: ViewBinder) {
+        // place your on click logic here.
+    }
+}
+```
+#### 2. Attach To ItemModule
+##### Java
+```java
+OneAdapter oneAdapter = new OneAdapter()
+    .attachItemModule(new MessageModule()).addEventHook(new MessageClickEvent())
+    ...
+```
+##### Kotlin
+```kotlin
+val oneAdapter = OneAdapter()
+    .attachItemModule(MessageModule()).addEventHook(MessageClickEvent())
+    ...
+```
+
+<br/><br/>
 # License
 Copyright (c) 2019 Idan Atsmon
 
