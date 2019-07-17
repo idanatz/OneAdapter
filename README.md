@@ -9,18 +9,17 @@ LINK HERE
 
 ## Features:
 - Modular approach for more reusable and testable code
-- Built-in support for DiffUtil (using Diffable)
+- Built-in support for DiffUtil (using [Diffable](#2-implement-diffable))
 - Optimized performance - internal processing done on a background thread
 - 100% written in Kotlin
 - Modules:
-  - Item Module
-  - Paging Module
-  - Selection Module
-  - Emptiness Module
+  - [Item Module](#basic-usage)
+  - [Paging Module](#paging-module)
+  - [Emptiness Module](#emptiness-module)
+  - [Selection Module](#selection-module)
 - Event Hooks:
-  - Click Event Hook
+  - [Click Event Hook](#click-event-hook)
 
-<br/><br/>
 # Include in your project
 ```groovy
 dependencies {
@@ -31,7 +30,9 @@ dependencies {
 <br/><br/>
 # Preview
 ## Example
+You can try out the [example project](https://github.com/idanatz/OneAdapter/tree/develop/sample) that includes basic and advanced usage both in Java and Kotlin.
 ## Screenshots
+<img src="DEV/screenshot_1.jpg" width="210" height="420"> <img src="DEV/screenshot_2.jpg" width="210" height="420"> <img src="DEV/screenshot_3.jpg" width="210" height="420"> <img src="DEV/screenshot_4.jpg" width="210" height="420">
 
 <br/><br/>
 # Usage
