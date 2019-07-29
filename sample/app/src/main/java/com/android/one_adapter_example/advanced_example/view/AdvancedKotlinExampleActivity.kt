@@ -65,7 +65,11 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
     }
     private fun initViews() {
         recyclerView = findViewById<RecyclerView>(R.id.recycler).apply { layoutManager = LinearLayoutManager(this@AdvancedKotlinExampleActivity) }
-        findViewById<Button>(R.id.show_options_button).setOnClickListener { AdvancedActionsDialog.newInstance().show(supportFragmentManager, AdvancedActionsDialog::class.java.simpleName) }
+
+        findViewById<Button>(R.id.show_options_button).run {
+            visibility = View.VISIBLE
+            setOnClickListener { AdvancedActionsDialog.newInstance().show(supportFragmentManager, AdvancedActionsDialog::class.java.simpleName) }
+        }
     }
 
     private fun observeViewModel() {

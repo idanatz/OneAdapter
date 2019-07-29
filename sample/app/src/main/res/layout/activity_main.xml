@@ -6,40 +6,94 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:gravity="center|start"
+        android:text="Simple example with:
+single ItemModule
+written in Java"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@+id/simple_java_activity_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <Button
         android:id="@+id/advanced_java_activity_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:text="Advanced Java Activity"
-        app:layout_constraintBottom_toTopOf="@+id/advanced_kotlin_activity_button"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:text="@string/launch"
+        app:layout_constraintBottom_toBottomOf="@+id/textView3"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/textView3"
+        app:layout_constraintTop_toTopOf="@+id/textView3" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="32dp"
+        android:gravity="center|start"
+        android:text="Advanced example with:
+multiple ItemModules, PagingModule, SelectionModule, EmptinessModule.
+using MVVM with RxJava and Room
+written in Java"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@id/advanced_java_activity_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/simple_java_activity_button" />
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
     <Button
         android:id="@+id/simple_java_activity_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Simple Java Activity"
-        app:layout_constraintBottom_toTopOf="@+id/advanced_java_activity_button"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:text="@string/launch"
+        app:layout_constraintStart_toEndOf="@id/textView2"
+        app:layout_constraintBottom_toBottomOf="@+id/textView2"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintTop_toTopOf="@+id/textView2" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="32dp"
+        android:gravity="center|start"
+        android:text="Advanced example with:
+multiple ItemModules, PagingModule, SelectionModule, EmptinessModule.
+using MVVM with RxJava and Room
+written in Kotlin"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@id/advanced_java_activity_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
     <Button
         android:id="@+id/advanced_kotlin_activity_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Advanced Kotlin Activity"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:text="@string/launch"
+        app:layout_constraintStart_toEndOf="@id/textView4"
+        app:layout_constraintBottom_toBottomOf="@+id/textView4"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/advanced_java_activity_button" />
+        app:layout_constraintTop_toTopOf="@+id/textView4" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

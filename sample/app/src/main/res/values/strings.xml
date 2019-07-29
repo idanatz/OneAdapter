@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">OneAdapter Sample App</string>
     <string name="message_model_id">id: %d</string>
+    <string name="launch">Launch</string>
 </resources>

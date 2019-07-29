@@ -277,7 +277,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
 
     private fun configureItemSelectionModule(recyclerView: RecyclerView) {
         modules.oneItemSelection?.module?.let { selectionModule ->
-            selectionTracker = SelectionTracker.Builder<Long>(
+            selectionTracker = SelectionTracker.Builder(
                     recyclerView.id.toString(),
                     recyclerView,
                     OneItemKeyProvider(recyclerView).also { itemKeyProvider = it },

@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -42,6 +43,8 @@ public class SimpleJavaExampleActivity extends AppCompatActivity implements Simp
         oneAdapter = new OneAdapter()
                 .attachItemModule(messageItem())
                 .attachTo(recyclerView);
+
+        onSetAllClicked();
     }
 
     private void initViews() {
@@ -50,7 +53,9 @@ public class SimpleJavaExampleActivity extends AppCompatActivity implements Simp
 
         SimpleActionsDialog actionsDialog = SimpleActionsDialog.getInstance();
         actionsDialog.setListener(this);
-        findViewById(R.id.show_options_button).setOnClickListener(v -> actionsDialog.show(getSupportFragmentManager(), SimpleActionsDialog.class.getSimpleName()));
+        Button actionButton = findViewById(R.id.show_options_button);
+        actionButton.setVisibility(View.VISIBLE);
+        actionButton.setOnClickListener(v -> actionsDialog.show(getSupportFragmentManager(), SimpleActionsDialog.class.getSimpleName()));
     }
 
     @NotNull

@@ -16,6 +16,7 @@ import io.reactivex.disposables.CompositeDisposable;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,6 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AdvancedJavaExampleActivity extends AppCompatActivity {
 
+    private RecyclerView recyclerView;
     private AdvancedExampleViewModel viewModel;
     private OneAdapter oneAdapter;
     private CompositeDisposable compositeDisposable;
@@ -57,8 +59,7 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
         compositeDisposable = new CompositeDisposable();
         viewModel = ViewModelProviders.of(this).get(AdvancedExampleViewModel.class);
 
-        RecyclerView recyclerView = findViewById(R.id.recycler);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        initViews();
 
         oneAdapter = new OneAdapter()
                 .attachItemModule(storyItem())
@@ -68,8 +69,6 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
                 .attachPagingModule(pagingModule())
                 .attachItemSelectionModule(itemSelectionModule())
                 .attachTo(recyclerView);
-
-        findViewById(R.id.show_options_button).setOnClickListener(v -> AdvancedActionsDialog.newInstance().show(getSupportFragmentManager(), AdvancedActionsDialog.class.getSimpleName()));
 
         compositeDisposable.add(
                 viewModel.getItemsSubject()
@@ -82,6 +81,15 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         compositeDisposable.dispose();
+    }
+
+    private void initViews() {
+        recyclerView = findViewById(R.id.recycler);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        Button actionButton = findViewById(R.id.show_options_button);
+        actionButton.setVisibility(View.VISIBLE);
+        actionButton.setOnClickListener(v -> AdvancedActionsDialog.newInstance().show(getSupportFragmentManager(), AdvancedActionsDialog.class.getSimpleName()));
     }
 
     @NotNull
