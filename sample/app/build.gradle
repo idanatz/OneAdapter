@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
+apply from: '../../versions.gradle'
 
 ext {
     LOTTIE_VERSION = '2.7.0'
@@ -13,7 +14,7 @@ ext {
 android {
     compileSdkVersion COMPILE_SDK_VERSION
     defaultConfig {
-        applicationId "com.android.one_adapter_sample"
+        applicationId "com.idanatz.oneadapter.sample"
         minSdkVersion 16
         targetSdkVersion TARGET_SDK_VERSION
         versionCode VERSION_CODE

@@ -2,4 +2,7 @@
     <string name="app_name">OneAdapter Sample App</string>
     <string name="message_model_id">id: %d</string>
     <string name="launch">Launch</string>
+    <string name="simple_example_description">Simple example with:\nsingle ItemModule\nWritten in Java</string>
+    <string name="advanced_example_java_description">Advanced example with:\nmultiple ItemModules, PagingModule, SelectionModule, EmptinessModule. using MVVM with RxJava and Room\nWritten in Java</string>
+    <string name="advanced_example_kotlin_description">Advanced example with:\nmultiple ItemModules, PagingModule, SelectionModule, EmptinessModule. using MVVM with RxJava and Room\nWritten in Kotlin</string>
 </resources>

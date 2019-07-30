@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.android.oneadapter">
+    package="com.idanatz.oneadapter">
 
     <application
         android:allowBackup="false"

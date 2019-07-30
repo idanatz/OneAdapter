@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context="com.idanatz.sample.MainActivity">
 
     <TextView
         android:id="@+id/textView2"
@@ -16,9 +16,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:gravity="center|start"
-        android:text="Simple example with:
-single ItemModule
-written in Java"
+        android:text="@string/simple_example_description"
         android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@+id/simple_java_activity_button"
         app:layout_constraintStart_toStartOf="parent"
@@ -46,10 +44,7 @@ written in Java"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="32dp"
         android:gravity="center|start"
-        android:text="Advanced example with:
-multiple ItemModules, PagingModule, SelectionModule, EmptinessModule.
-using MVVM with RxJava and Room
-written in Java"
+        android:text="@string/advanced_example_java_description"
         android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@id/advanced_java_activity_button"
         app:layout_constraintStart_toStartOf="parent"
@@ -75,10 +70,7 @@ written in Java"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="32dp"
         android:gravity="center|start"
-        android:text="Advanced example with:
-multiple ItemModules, PagingModule, SelectionModule, EmptinessModule.
-using MVVM with RxJava and Room
-written in Kotlin"
+        android:text="@string/advanced_example_kotlin_description"
         android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@id/advanced_java_activity_button"
         app:layout_constraintStart_toStartOf="parent"
