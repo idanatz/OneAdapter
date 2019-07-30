@@ -5,7 +5,7 @@ OneAdapter is made to simplify and enhance the use of the RecyclerView's Adapter
 With multiple modules and hooks, you don't have to think about writing an adapter anymore, and just focus on what matters. 
 
 For better understanding what drove me to write this library and what use cases it solves best, please refer to my Medium post:
-LINK HERE
+https://medium.com/@idanatsmon/adapting-your-recyclerview-the-2019-approach-e47edf2fc4f3
 
 ## Features:
 - Modular approach for more reusable and testable code
@@ -23,7 +23,7 @@ LINK HERE
 # Include in your project
 ```groovy
 dependencies {
-  implementation 'com.ironsource.aura.oneadapter:oneadapter:${LATEST_VERSION}'
+  implementation "com.ironsource.aura.oneadapter:oneadapter:${LATEST_VERSION}"
 }
 ```
 
