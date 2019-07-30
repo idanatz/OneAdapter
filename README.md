@@ -1,6 +1,6 @@
 ![Logo](DEV/logo.png)
 
-# OneAdapter
+# OneAdapter [ ![Download](https://api.bintray.com/packages/ironsource-aura/OneAdapter/oneadapter/images/download.svg) ](https://bintray.com/ironsource-aura/OneAdapter/oneadapter/_latestVersion)
 OneAdapter is made to simplify and enhance the use of the RecyclerView's Adapter while preventing common mistakes. 
 With multiple modules and hooks, you don't have to think about writing an adapter anymore, and just focus on what matters. 
 
@@ -23,7 +23,7 @@ LINK HERE
 # Include in your project
 ```groovy
 dependencies {
-
+  implementation 'com.ironsource.aura.oneadapter:oneadapter:${LATEST_VERSION}'
 }
 ```
 
