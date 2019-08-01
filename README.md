@@ -154,7 +154,7 @@ class PagingModuleImpl extends PagingModule {
     public PagingModuleConfig provideModuleConfig() {
         return new PagingModuleConfig() {
             @Override
-            public int withLayoutResource() { return R.layout.load_more; } // can be some spinner animation.
+            public int withLayoutResource() { return R.layout.load_more; } // can be some loading animation.
 
             @Override
             public int withVisibleThreshold() { return 3; } // invoke onLoadMore 3 items before the end.
