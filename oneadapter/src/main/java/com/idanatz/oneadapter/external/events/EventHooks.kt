@@ -1,7 +1,7 @@
 package com.idanatz.oneadapter.external.events
 
-import androidx.annotation.NonNull
 import com.idanatz.oneadapter.internal.holders.ViewBinder
+import org.jetbrains.annotations.NotNull
 
 sealed class EventHook<M>
 
@@ -10,5 +10,5 @@ abstract class ClickEventHook<M> : EventHook<M>() {
         val TAG: String = ClickEventHook::class.java.simpleName
     }
 
-    abstract fun onClick(@NonNull model: M, @NonNull viewBinder: ViewBinder)
+    abstract fun onClick(@NotNull model: M, @NotNull viewBinder: ViewBinder)
 }

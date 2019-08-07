@@ -1,6 +1,6 @@
 package com.idanatz.sample.models;
 
-import androidx.annotation.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import com.idanatz.oneadapter.external.interfaces.Diffable;
 
@@ -22,7 +22,7 @@ public class HeaderModel implements Diffable {
     }
 
     @Override
-    public boolean areContentTheSame(@NonNull Object other) {
+    public boolean areContentTheSame(@NotNull Object other) {
         return (other instanceof HeaderModel) && name.equals(((HeaderModel) other).name);
     }
 }

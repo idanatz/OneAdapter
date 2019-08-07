@@ -1,6 +1,6 @@
 package com.idanatz.sample.advanced_example.view;
 
-import androidx.annotation.NonNull;
+import org.jetbrains.annotations.NotNull;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.appcompat.app.AppCompatActivity;
@@ -175,12 +175,12 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
     private SelectionState<MessageModel> selectionState() {
         return new SelectionState<MessageModel>() {
             @Override
-            public boolean selectionEnabled(@NonNull MessageModel model) {
+            public boolean selectionEnabled(@NotNull MessageModel model) {
                 return true;
             }
 
             @Override
-            public void onSelected(@NonNull MessageModel model, boolean selected) {
+            public void onSelected(@NotNull MessageModel model, boolean selected) {
                 model.isSelected = selected;
             }
         };
@@ -190,7 +190,7 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
     private ClickEventHook<MessageModel> clickEventHook() {
         return new ClickEventHook<MessageModel>() {
             @Override
-            public void onClick(@NonNull MessageModel model, @NonNull ViewBinder viewBinder) {
+            public void onClick(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
                 Toast.makeText(AdvancedJavaExampleActivity.this, model.title + " clicked", Toast.LENGTH_SHORT).show();
             }
         };

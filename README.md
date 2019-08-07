@@ -93,7 +93,7 @@ public class MessageModel implements Diffable {
     }
 
     @Override
-    public boolean areContentTheSame(@NonNull Object other) {
+    public boolean areContentTheSame(@NotNull Object other) {
         return other instanceof MessageModel && title.equals(((MessageModel) other).title);
     }
 }
@@ -280,12 +280,12 @@ class ItemSelectionModuleImpl : ItemSelectionModule() {
 ```java
 class SelectionStateImpl extends SelectionState<MessageModel> {
     @Override
-    public boolean selectionEnabled(@NonNull MessageModel model) {
+    public boolean selectionEnabled(@NotNull MessageModel model) {
         return true;
     }
 
     @Override
-    public void onSelected(@NonNull MessageModel model, boolean selected) {
+    public void onSelected(@NotNull MessageModel model, boolean selected) {
         // update your model here. 
         // right after this call you will receive an onBind call in order to reflect your changes on the relevant Item Module.
         model.isSelected = selected;
@@ -328,7 +328,7 @@ Item Modules can easily be enhanced with event hooks, for instance, ClickEventHo
 ```java
 class MessageClickEvent extends ClickEventHook<MessageModel> {
     @Override
-    public void onClick(@NonNull MessageModel model, @NonNull ViewBinder viewBinder) { 
+    public void onClick(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
         // place your on click logic here.
     }
 }

@@ -1,6 +1,6 @@
 package com.idanatz.sample.models;
 
-import androidx.annotation.NonNull;
+import org.jetbrains.annotations.NotNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -31,7 +31,7 @@ public class MessageModel implements Diffable {
     }
 
     @Override
-    public boolean areContentTheSame(@NonNull Object other) {
+    public boolean areContentTheSame(@NotNull Object other) {
         return other instanceof MessageModel &&
                 headerId == (((MessageModel) other).headerId) &&
                 avatarImageId ==(((MessageModel) other).avatarImageId) &&
