@@ -2,7 +2,6 @@ package com.idanatz.oneadapter.external.states
 
 import org.jetbrains.annotations.NotNull
 
-
 sealed class State<M>
 
 abstract class SelectionState<M> : State<M>() {

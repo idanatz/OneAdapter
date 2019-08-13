@@ -1,4 +1,4 @@
-package com.idanatz.sample.advanced_example.view_model
+package com.idanatz.sample.examples.advanced_example.view_model
 
 import androidx.lifecycle.ViewModel
 import android.os.Handler
@@ -26,7 +26,7 @@ class AdvancedExampleViewModel : ViewModel() {
                         .map {
                             when (it.size) {
                                 0 -> it
-                                else -> createHeaders(it).apply { add(0, modelProvider.generateStories()) }
+                                else -> modelProvider.addHeadersFromMessages(it, true).apply { add(0, modelProvider.generateStories()) }
                             }
                         }
                         .subscribeOn(Schedulers.io())
@@ -70,7 +70,7 @@ class AdvancedExampleViewModel : ViewModel() {
     private fun findClosestHeaderForId(id: Int): Int {
         var closestHeaderId = -1
         var minVal = -1
-        itemsSubject.value?.filter { it is MessageModel }?.map { it as MessageModel }?.forEach {
+        itemsSubject.value?.filterIsInstance<MessageModel>()?.forEach {
             val newVal = (it.id - id).absoluteValue
             if (minVal == -1 || minVal > newVal) {
                 minVal = newVal
@@ -168,17 +168,6 @@ class AdvancedExampleViewModel : ViewModel() {
 
             itemsSubject.onNext(items)
         }
-    }
-
-    private fun createHeaders(models: List<MessageModel>): MutableList<Any> {
-        val list = mutableListOf<Any>()
-
-        models.groupBy { it.headerId }.forEach { (headerIndex, messages) ->
-            list.add(HeaderModel(headerIndex, "Section " + (headerIndex + 1)))
-            list.addAll(messages.sortedBy { it.id })
-        }
-
-        return list
     }
 
     private inline fun <T> List<T>.indexOfFirstAsNullable(predicate: (T) -> Boolean) = indexOfFirst(predicate).takeIf { it != -1 }

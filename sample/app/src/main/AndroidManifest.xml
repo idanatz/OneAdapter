@@ -22,9 +22,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.idanatz.sample.simple_example.SimpleJavaExampleActivity"/>
-        <activity android:name="com.idanatz.sample.advanced_example.view.AdvancedJavaExampleActivity" />
-        <activity android:name="com.idanatz.sample.advanced_example.view.AdvancedKotlinExampleActivity" />
+        <activity android:name="com.idanatz.sample.examples.features.SingleItemModuleActivity"/>
+        <activity android:name="com.idanatz.sample.examples.features.MultipleItemModuleActivity"/>
+        <activity android:name="com.idanatz.sample.examples.features.EmptinessModuleActivity"/>
+        <activity android:name="com.idanatz.sample.examples.features.PagingModuleActivity"/>
+        <activity android:name="com.idanatz.sample.examples.features.ItemSelectionModuleActivity"/>
+        <activity android:name="com.idanatz.sample.examples.features.ClickEventHookActivity"/>
+        <activity android:name="com.idanatz.sample.examples.features.SwipeEventHookActivity"/>
+        <activity android:name="com.idanatz.sample.examples.simple_example.SimpleJavaExampleActivity"/>
+        <activity android:name="com.idanatz.sample.examples.advanced_example.view.AdvancedJavaExampleActivity" />
+        <activity android:name="com.idanatz.sample.examples.advanced_example.view.AdvancedKotlinExampleActivity" />
     </application>
 
 </manifest>

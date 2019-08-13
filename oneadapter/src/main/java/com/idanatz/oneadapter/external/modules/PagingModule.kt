@@ -1,8 +1,8 @@
 package com.idanatz.oneadapter.external.modules
 
+import org.jetbrains.annotations.NotNull
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.internal.interfaces.InternalModuleConfig
-import org.jetbrains.annotations.NotNull
 
 abstract class PagingModule {
 

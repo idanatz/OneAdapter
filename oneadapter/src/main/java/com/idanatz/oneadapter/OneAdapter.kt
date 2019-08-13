@@ -1,9 +1,10 @@
 package com.idanatz.oneadapter
 
 import androidx.recyclerview.widget.RecyclerView
-import com.idanatz.oneadapter.external.interfaces.*
 import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.oneadapter.internal.InternalAdapter
+import com.idanatz.oneadapter.internal.utils.getIndexOfItem
+import com.idanatz.oneadapter.internal.utils.removeAllItems
 import java.util.*
 
 class OneAdapter {
@@ -44,51 +45,47 @@ class OneAdapter {
     }
 
     fun remove(item: Any) {
-        val indexToRemove = getIndexOfItem(item)
+        val indexToRemove = getIndexOfItem(internalItems, item)
         if (indexToRemove != -1) {
             remove(indexToRemove)
         }
     }
 
+    fun remove(items: List<Any>) {
+        val modifiedList = LinkedList(internalItems).apply { removeAllItems(this, items) }
+        internalAdapter.updateData(modifiedList)
+    }
+
     fun update(item: Any) {
-        val indexToSet = getIndexOfItem(item)
+        val indexToSet = getIndexOfItem(internalItems, item)
         if (indexToSet != -1) {
             val modifiedList = LinkedList(internalItems).apply { set(indexToSet, item) }
             internalAdapter.updateData(modifiedList)
         }
     }
 
-    fun <M : Any> attachItemModule(itemModule: ItemModule<M>): com.idanatz.oneadapter.OneAdapter {
+    fun <M : Any> attachItemModule(itemModule: ItemModule<M>): OneAdapter {
         internalAdapter.register(itemModule)
         return this
     }
 
-    fun attachPagingModule(pagingModule: PagingModule): com.idanatz.oneadapter.OneAdapter {
+    fun attachPagingModule(pagingModule: PagingModule): OneAdapter {
         internalAdapter.enablePaging(pagingModule)
         return this
     }
 
-    fun attachEmptinessModule(emptinessModule: EmptinessModule): com.idanatz.oneadapter.OneAdapter {
+    fun attachEmptinessModule(emptinessModule: EmptinessModule): OneAdapter {
         internalAdapter.enableEmptiness(emptinessModule)
         return this
     }
 
-    fun attachItemSelectionModule(itemSelectionModule: ItemSelectionModule): com.idanatz.oneadapter.OneAdapter {
+    fun attachItemSelectionModule(itemSelectionModule: ItemSelectionModule): OneAdapter {
         internalAdapter.enableSelection(itemSelectionModule)
         return this
     }
 
-    fun attachTo(recyclerView: RecyclerView): com.idanatz.oneadapter.OneAdapter {
+    fun attachTo(recyclerView: RecyclerView): OneAdapter {
         internalAdapter.attachTo(recyclerView)
         return this
-    }
-
-    private fun getIndexOfItem(itemToFind: Any): Int {
-        return internalItems.indexOfFirst { item ->
-            when {
-                item is Diffable && itemToFind is Diffable -> item.getUniqueIdentifier() == itemToFind.getUniqueIdentifier()
-                else -> item == itemToFind
-            }
-        }
     }
 }

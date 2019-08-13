@@ -17,5 +17,4 @@ abstract class ItemSelectionModuleConfig {
     }
 }
 
-class ItemSelectionActions internal constructor(provider: ItemSelectionActionsProvider)
-    : ItemSelectionActionsProvider by provider
+class ItemSelectionActions internal constructor(provider: ItemSelectionActionsProvider) : ItemSelectionActionsProvider by provider

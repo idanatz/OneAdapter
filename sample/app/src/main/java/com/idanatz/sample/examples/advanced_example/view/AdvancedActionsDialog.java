@@ -1,4 +1,4 @@
-package com.idanatz.sample.advanced_example.view;
+package com.idanatz.sample.examples.advanced_example.view;
 
 import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
-import com.idanatz.sample.advanced_example.view_model.AdvancedExampleViewModel;
+import com.idanatz.sample.examples.advanced_example.view_model.AdvancedExampleViewModel;
 import com.idanatz.oneadapter.sample.R;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 

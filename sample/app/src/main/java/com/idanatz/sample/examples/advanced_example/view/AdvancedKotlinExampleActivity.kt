@@ -1,4 +1,4 @@
-package com.idanatz.sample.advanced_example.view
+package com.idanatz.sample.examples.advanced_example.view
 
 import android.graphics.Color
 import android.os.Bundle
@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.lottie.LottieAnimationView
 import com.idanatz.sample.models.HeaderModel
 import com.idanatz.sample.models.MessageModel
-import com.idanatz.sample.advanced_example.view_model.AdvancedExampleViewModel
+import com.idanatz.sample.examples.advanced_example.view_model.AdvancedExampleViewModel
 import com.idanatz.sample.models.StoriesModel
 import com.idanatz.oneadapter.OneAdapter
 import com.idanatz.oneadapter.external.events.ClickEventHook
@@ -106,6 +106,7 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
             val headerSwitch = viewBinder.findViewById<SwitchCompat>(R.id.header_switch)
 
             headerTitle.text = model.name
+            headerSwitch.visibility = if (model.checkable) View.VISIBLE else View.GONE
             headerSwitch.isChecked = model.checked
             headerSwitch.setOnCheckedChangeListener { _, isChecked -> viewModel.headerCheckedChanged(model, isChecked) }
         }

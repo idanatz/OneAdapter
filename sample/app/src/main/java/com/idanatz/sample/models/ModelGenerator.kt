@@ -49,6 +49,17 @@ class ModelGenerator {
         return StoriesModel(0, R.drawable.story_one, R.drawable.story_two, R.drawable.story_three)
     }
 
+    fun addHeadersFromMessages(messages: List<MessageModel>, checkable: Boolean): MutableList<Any> {
+        val list = mutableListOf<Any>()
+
+        messages.groupBy { it.headerId }.forEach { (headerIndex, messages) ->
+            list.add(HeaderModel(headerIndex, "Section " + (headerIndex + 1), checkable))
+            list.addAll(messages.sortedBy { it.id })
+        }
+
+        return list
+    }
+
     private fun addModel(models: MutableList<MessageModel>, model: MessageModel) {
         models.add(model)
         modelNumber += 11

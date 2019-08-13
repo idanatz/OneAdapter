@@ -1,4 +1,4 @@
-package com.idanatz.sample.simple_example;
+package com.idanatz.sample.examples.simple_example;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,50 +8,67 @@ import android.widget.EditText;
 
 import com.idanatz.oneadapter.sample.R;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import androidx.annotation.Nullable;
 
 public class SimpleActionsDialog extends BottomSheetDialogFragment {
 
+    private Set<Action> actions = new HashSet<>();
     private ActionsListener listener;
 
     public static SimpleActionsDialog getInstance() {
         return new SimpleActionsDialog();
     }
 
-    public void setListener(ActionsListener listener) {
-        this.listener = listener;
+    public void setActions(Action... actions) {
+        this.actions.addAll(Arrays.asList(actions));
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void setListener(ActionsListener listener) {
+        this.listener = listener;
     }
 
     @Nullable @Override
     public View onCreateView(@NotNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.bottom_dialog_fragment, container, false);
 
-        rootView.findViewById(R.id.add_item).setOnClickListener(view -> {
-            String id = ((EditText)rootView.findViewById(R.id.add_item_edit_text)).getText().toString();
-            if (!id.isEmpty()) {
-                listener.onAddItemClicked(Integer.parseInt(id));
-            }
-            dismiss();
-        });
+        if (actions.contains(Action.AddItem)) {
+            View addView = rootView.findViewById(R.id.add_item);
+            addView.setOnClickListener(view -> {
+                String id = ((EditText)rootView.findViewById(R.id.add_item_edit_text)).getText().toString();
+                if (!id.isEmpty()) {
+                    listener.onAddItemClicked(Integer.parseInt(id));
+                }
+                dismiss();
+            });
+            addView.setVisibility(View.VISIBLE);
+        }
 
-        rootView.findViewById(R.id.clear).setOnClickListener(view -> {
-            listener.onClearAllClicked();
-            dismiss();
-        });
+        if (actions.contains(Action.ClearAll)) {
+            View clearView = rootView.findViewById(R.id.clear);
+            clearView.setOnClickListener(view -> {
+                listener.onClearAllClicked();
+                dismiss();
+            });
+            clearView.setVisibility(View.VISIBLE);
+        }
 
-        rootView.findViewById(R.id.set_all).setOnClickListener(view -> {
-            listener.onSetAllClicked();
-            dismiss();
-        });
+        if (actions.contains(Action.SetAll)) {
+            View setView = rootView.findViewById(R.id.set_all);
+            setView.setOnClickListener(view -> {
+                listener.onSetAllClicked();
+                dismiss();
+            });
+            setView.setVisibility(View.VISIBLE);
+        }
 
+
+        //
         rootView.findViewById(R.id.update_item).setOnClickListener(view -> {
             String id = ((EditText)rootView.findViewById(R.id.update_item_edit_text)).getText().toString();
             if (!id.isEmpty()) {
@@ -99,5 +116,9 @@ public class SimpleActionsDialog extends BottomSheetDialogFragment {
         void onDeleteIndexClicked(int index);
 
         void largeDiff();
+    }
+
+    public enum Action {
+        AddItem, ClearAll, SetAll, UpdateItem, DeleteItem, DeleteIndex, LargeDiff
     }
 }

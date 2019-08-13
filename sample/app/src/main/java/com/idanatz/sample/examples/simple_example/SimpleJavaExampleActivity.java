@@ -1,4 +1,4 @@
-package com.idanatz.sample.simple_example;
+package com.idanatz.sample.examples.simple_example;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,7 +15,6 @@ import com.idanatz.oneadapter.external.modules.ItemModule;
 import com.idanatz.sample.models.MessageModel;
 import com.idanatz.sample.models.ModelGenerator;
 import com.idanatz.oneadapter.OneAdapter;
-import com.idanatz.oneadapter.external.modules.ItemModule;
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig;
 import com.idanatz.oneadapter.internal.holders.ViewBinder;
 import com.idanatz.oneadapter.sample.R;

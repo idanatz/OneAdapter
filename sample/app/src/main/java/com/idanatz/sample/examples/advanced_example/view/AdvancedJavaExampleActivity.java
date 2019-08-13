@@ -1,11 +1,14 @@
-package com.idanatz.sample.advanced_example.view;
+package com.idanatz.sample.examples.advanced_example.view;
 
 import org.jetbrains.annotations.NotNull;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,9 +25,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.idanatz.oneadapter.external.events.SwipeEventHook;
 import com.idanatz.sample.models.HeaderModel;
 import com.idanatz.sample.models.MessageModel;
-import com.idanatz.sample.advanced_example.view_model.AdvancedExampleViewModel;
+import com.idanatz.sample.examples.advanced_example.view_model.AdvancedExampleViewModel;
 import com.idanatz.sample.models.StoriesModel;
 import com.idanatz.oneadapter.OneAdapter;
 import com.idanatz.oneadapter.external.events.ClickEventHook;
@@ -41,8 +45,6 @@ import com.idanatz.oneadapter.external.modules.ItemSelectionModule;
 import com.idanatz.oneadapter.external.states.SelectionState;
 import com.idanatz.oneadapter.sample.R;
 import com.bumptech.glide.Glide;
-
-import org.jetbrains.annotations.NotNull;
 
 public class AdvancedJavaExampleActivity extends AppCompatActivity {
 
@@ -64,7 +66,7 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
         oneAdapter = new OneAdapter()
                 .attachItemModule(storyItem())
                 .attachItemModule(headerItem())
-                .attachItemModule(messageItem().addState(selectionState()).addEventHook(clickEventHook()))
+                .attachItemModule(messageItem().addState(selectionState()).addEventHook(clickEventHook()).addEventHook(swipeEventHook()))
                 .attachEmptinessModule(emptinessModule())
                 .attachPagingModule(pagingModule())
                 .attachItemSelectionModule(itemSelectionModule())
@@ -133,6 +135,7 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
                 SwitchCompat headerSwitch = viewBinder.findViewById(R.id.header_switch);
 
                 headerTitle.setText(model.name);
+                headerSwitch.setVisibility(model.checkable ? View.VISIBLE : View.GONE);
                 headerSwitch.setChecked(model.checked);
                 headerSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.headerCheckedChanged(model , isChecked));
             }
@@ -166,7 +169,7 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
                 // selected UI
                 avatarImage.setAlpha(model.isSelected ? 0.5f : 1f);
                 selectedLayer.setVisibility(model.isSelected? View.VISIBLE : View.GONE);
-                viewBinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(AdvancedJavaExampleActivity.this, R.color.light_gray) : Color.TRANSPARENT);
+                viewBinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(AdvancedJavaExampleActivity.this, R.color.light_gray) : Color.WHITE);
             }
         };
     }
@@ -192,6 +195,42 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
             @Override
             public void onClick(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
                 Toast.makeText(AdvancedJavaExampleActivity.this, model.title + " clicked", Toast.LENGTH_SHORT).show();
+            }
+        };
+    }
+
+    private SwipeEventHook<MessageModel> swipeEventHook() {
+        return new SwipeEventHook<MessageModel>(SwipeEventHook.SwipeDirection.Left) {
+            Drawable deleteIcon = ContextCompat.getDrawable(AdvancedJavaExampleActivity.this, R.drawable.ic_delete_white_24dp);
+            ColorDrawable redColorDrawable = new ColorDrawable(Color.RED);
+
+            @Override
+            public void onSwipe(@NotNull Canvas canvas, float xAxisOffset, @NotNull ViewBinder viewBinder) {
+                if (xAxisOffset < 0) { // Swiping to the left
+                    View rootView = viewBinder.getRootView();
+                    int margin = 50;
+                    int middle = rootView.getBottom() - rootView.getTop();
+                    int top = rootView.getTop();
+                    int bottom = rootView.getBottom();
+                    int right = rootView.getRight();
+                    int left = rootView.getRight() + ((int) xAxisOffset);
+                    redColorDrawable.setBounds(left, top, right, bottom);
+                    redColorDrawable.draw(canvas);
+
+                    top = rootView.getTop() + (middle / 2) - (deleteIcon.getIntrinsicHeight() / 2);
+                    bottom = top + deleteIcon.getIntrinsicHeight();
+                    right = rootView.getRight() - margin;
+                    left = right - deleteIcon.getIntrinsicWidth();
+                    deleteIcon.setBounds(left, top, right, bottom);
+                    deleteIcon.draw(canvas);
+                }
+            }
+
+            @Override
+            public void onSwipeComplete(@NotNull MessageModel model, @NotNull SwipeDirection direction, @NotNull ViewBinder viewBinder) {
+                if (direction == SwipeDirection.Left) {
+                    viewModel.onDeleteItemClicked(model.id);
+                }
             }
         };
     }

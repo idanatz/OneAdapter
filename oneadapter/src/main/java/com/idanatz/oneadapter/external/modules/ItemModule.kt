@@ -1,14 +1,15 @@
 package com.idanatz.oneadapter.external.modules
 
+import org.jetbrains.annotations.NotNull
 import com.idanatz.oneadapter.external.events.ClickEventHook
 import com.idanatz.oneadapter.external.events.EventHook
 import com.idanatz.oneadapter.external.events.EventHooksMap
+import com.idanatz.oneadapter.external.events.SwipeEventHook
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.internal.interfaces.InternalModuleConfig
 import com.idanatz.oneadapter.external.states.SelectionState
 import com.idanatz.oneadapter.external.states.State
 import com.idanatz.oneadapter.external.states.StatesMap
-import org.jetbrains.annotations.NotNull
 
 abstract class ItemModule<M> {
 
@@ -30,6 +31,7 @@ abstract class ItemModule<M> {
     fun addEventHook(eventHook: EventHook<M>): ItemModule<M> {
         when (eventHook) {
             is ClickEventHook -> eventHooksMap.putClickEventHook(eventHook)
+            is SwipeEventHook -> eventHooksMap.putSwipeEventHook(eventHook)
         }
         return this
     }

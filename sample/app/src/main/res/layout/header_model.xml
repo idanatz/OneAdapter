@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@android:color/white"
     xmlns:tools="http://schemas.android.com/tools"
     android:padding="5dp">
 
@@ -26,6 +27,8 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:checked="false"
+        android:visibility="gone"
+        tools:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginRight="8dp" />
