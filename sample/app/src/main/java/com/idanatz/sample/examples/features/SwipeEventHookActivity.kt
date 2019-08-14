@@ -3,8 +3,8 @@ package com.idanatz.sample.examples.features
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -12,17 +12,19 @@ import androidx.core.content.ContextCompat
 
 import com.bumptech.glide.Glide
 import com.idanatz.oneadapter.OneAdapter
-import com.idanatz.oneadapter.external.events.ClickEventHook
 import com.idanatz.oneadapter.external.events.SwipeEventHook
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.models.MessageModel
-import com.idanatz.sample.models.ModelGenerator
 import com.idanatz.sample.examples.BaseExampleActivity
 
 class SwipeEventHookActivity : BaseExampleActivity() {
+
+    companion object {
+        const val ICON_MARGIN = 50
+    }
 
     private lateinit var oneAdapter: OneAdapter
 
@@ -33,7 +35,7 @@ class SwipeEventHookActivity : BaseExampleActivity() {
                 .attachItemModule(messageItem().addEventHook(swipeEventHook()))
                 .attachTo(recyclerView)
 
-        oneAdapter.setItems(modelGenerator.generateFirstModels())
+        oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }
 
     private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
@@ -53,47 +55,67 @@ class SwipeEventHookActivity : BaseExampleActivity() {
     }
 
     private fun swipeEventHook(): SwipeEventHook<MessageModel> {
-        return object : SwipeEventHook<MessageModel>(SwipeDirection.Left) {
-
+        return object : SwipeEventHook<MessageModel>() {
             override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
-                var deleteIcon: Drawable?
-                var redColorDrawable: ColorDrawable
-
-                when  {
-                    xAxisOffset < 0 -> {
-                        deleteIcon = ContextCompat.getDrawable(this@SwipeEventHookActivity, R.drawable.ic_delete_white_24dp)
-                        redColorDrawable = ColorDrawable(Color.RED)
-
-                        deleteIcon?.let {
-                            val rootView = viewBinder.getRootView()
-                            val margin = 50
-                            val middle = rootView.bottom - rootView.top
-                            var top = rootView.top
-                            var bottom = rootView.bottom
-                            var right = rootView.right
-                            var left = rootView.right + xAxisOffset.toInt()
-                            redColorDrawable.setBounds(left, top, right, bottom)
-                            redColorDrawable.draw(canvas)
-
-                            top = rootView.top + middle / 2 - deleteIcon.intrinsicHeight / 2
-                            bottom = top + deleteIcon.intrinsicHeight
-                            right = rootView.right - margin
-                            left = right - deleteIcon.intrinsicWidth
-                            deleteIcon.setBounds(left, top, right, bottom)
-                            deleteIcon.draw(canvas)
-                        }
-                    }
-                    xAxisOffset > 0 -> {
-
-                    }
+                when {
+                    xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView())
+                    xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView())
                 }
             }
 
             override fun onSwipeComplete(model: MessageModel, direction: SwipeDirection, viewBinder: ViewBinder) {
-                if (direction === SwipeDirection.Left) {
-                    oneAdapter.remove(model)
+                when (direction) {
+                    SwipeDirection.Left -> oneAdapter.remove(model)
+                    SwipeDirection.Right -> {
+                        Toast.makeText(this@SwipeEventHookActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
+                        oneAdapter.update(model)
+                    }
                 }
             }
+        }
+    }
+
+    private fun paintSwipeRight(canvas: Canvas, xAxisOffset: Float, rootView: View) {
+        val icon = ContextCompat.getDrawable(this@SwipeEventHookActivity, R.drawable.ic_snooze_white_24dp)
+        val colorDrawable = ColorDrawable(Color.DKGRAY)
+
+        icon?.let {
+            val middle = rootView.bottom - rootView.top
+            var top = rootView.top
+            var bottom = rootView.bottom
+            var right = rootView.left + xAxisOffset.toInt()
+            var left = rootView.left
+            colorDrawable.setBounds(left, top, right, bottom)
+            colorDrawable.draw(canvas)
+
+            top = rootView.top + (middle / 2) - (it.intrinsicHeight / 2)
+            bottom = top + it.intrinsicHeight
+            left = rootView.left + ICON_MARGIN
+            right = left + it.intrinsicWidth
+            it.setBounds(left, top, right, bottom)
+            it.draw(canvas)
+        }
+    }
+
+    private fun paintSwipeLeft(canvas: Canvas, xAxisOffset: Float, rootView: View) {
+        val icon = ContextCompat.getDrawable(this@SwipeEventHookActivity, R.drawable.ic_delete_white_24dp)
+        val colorDrawable = ColorDrawable(Color.RED)
+
+        icon?.let {
+            val middle = rootView.bottom - rootView.top
+            var top = rootView.top
+            var bottom = rootView.bottom
+            var right = rootView.right
+            var left = rootView.right + xAxisOffset.toInt()
+            colorDrawable.setBounds(left, top, right, bottom)
+            colorDrawable.draw(canvas)
+
+            top = rootView.top + (middle / 2) - (it.intrinsicHeight / 2)
+            bottom = top + it.intrinsicHeight
+            right = rootView.right - ICON_MARGIN
+            left = right - it.intrinsicWidth
+            it.setBounds(left, top, right, bottom)
+            it.draw(canvas)
         }
     }
 }

@@ -20,7 +20,6 @@ import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.models.MessageModel
 import com.idanatz.sample.examples.BaseExampleActivity
-import java.util.*
 
 class ItemSelectionModuleActivity : BaseExampleActivity() {
 
@@ -35,7 +34,7 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
                 .attachItemSelectionModule(itemSelectionModule())
                 .attachTo(recyclerView)
 
-        oneAdapter.setItems(modelGenerator.generateFirstModels())
+        oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }
 
     private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {

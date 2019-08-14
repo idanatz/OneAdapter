@@ -1,8 +1,6 @@
 <resources>
     <string name="app_name">OneAdapter Sample App</string>
 
-    <string name="launch">Launch</string>
-
     // modules
     <string name="single_item_module_example">Single Item Module Example</string>
     <string name="multiple_item_modules_example">Multiple Item Modules Example</string>
@@ -14,9 +12,10 @@
     <string name="click_event_hook_example">Click Event Hook Example</string>
     <string name="swipe_event_hook_example">Swipe Event Hook Example</string>
 
-    <string name="simple_example_description">Simple example with:\nsingle ItemModule\nWritten in Java</string>
-    <string name="advanced_example_java_description">Advanced example with:\nmultiple ItemModules, PagingModule, SelectionModule, EmptinessModule. using MVVM with RxJava and Room\nWritten in Java</string>
-    <string name="advanced_example_kotlin_description">Advanced example with:\nmultiple ItemModules, PagingModule, SelectionModule, EmptinessModule. using MVVM with RxJava and Room\nWritten in Kotlin</string>
+    // full examples
+    <string name="complete_java_example">Complete example using MVVM with RxJava and Room\nWritten in Java</string>
+    <string name="complete_kotlin_example">Complete example using MVVM with RxJava and Room\nWritten in Kotlin</string>
 
+    <string name="launch">Launch</string>
     <string name="message_model_id">id: %d</string>
 </resources>

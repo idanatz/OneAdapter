@@ -14,7 +14,7 @@ abstract class ClickEventHook<M> : EventHook<M>() {
     abstract fun onClick(@NotNull model: M, @NotNull viewBinder: ViewBinder)
 }
 
-abstract class SwipeEventHook<M>(vararg supportedSwipeDirections: SwipeDirection) : EventHook<M>() {
+abstract class SwipeEventHook<M>(vararg supportedSwipeDirections: SwipeDirection = SwipeDirection.values()) : EventHook<M>() {
 
     internal val directions: List<SwipeDirection> = supportedSwipeDirections.toList()
 

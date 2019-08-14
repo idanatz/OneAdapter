@@ -10,9 +10,10 @@ import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.examples.BaseExampleActivity
+import com.idanatz.sample.examples.complete.view.CompleteJavaExampleActivity
+import com.idanatz.sample.examples.complete.view.CompleteKotlinExampleActivity
 import com.idanatz.sample.examples.features.*
 import com.idanatz.sample.models.ActivityModel
-import com.idanatz.sample.models.HeaderModel
 
 class MainActivity : BaseExampleActivity() {
 
@@ -30,7 +31,9 @@ class MainActivity : BaseExampleActivity() {
                 ActivityModel(getString(R.string.paging_module_example), Intent(this@MainActivity, PagingModuleActivity::class.java)),
                 ActivityModel(getString(R.string.item_selection_module_example), Intent(this@MainActivity, ItemSelectionModuleActivity::class.java)),
                 ActivityModel(getString(R.string.click_event_hook_example), Intent(this@MainActivity, ClickEventHookActivity::class.java)),
-                ActivityModel(getString(R.string.swipe_event_hook_example), Intent(this@MainActivity, SwipeEventHookActivity::class.java))
+                ActivityModel(getString(R.string.swipe_event_hook_example), Intent(this@MainActivity, SwipeEventHookActivity::class.java)),
+                ActivityModel(getString(R.string.complete_kotlin_example), Intent(this@MainActivity, CompleteKotlinExampleActivity::class.java)),
+                ActivityModel(getString(R.string.complete_java_example), Intent(this@MainActivity, CompleteJavaExampleActivity::class.java))
         ))
     }
 

@@ -7,7 +7,7 @@ class ModelGenerator {
 
     private var modelNumber = 0
 
-    fun generateFirstModels(): MutableList<MessageModel> {
+    fun generateFirstMessages(): MutableList<MessageModel> {
         val models: MutableList<MessageModel> = mutableListOf()
         addModel(models, MessageModel(modelNumber, 0, R.drawable.person_one, "Oscar Wilde", "Be yourself; everyone else is already taken."))
         addModel(models, MessageModel(modelNumber, 0, R.drawable.person_two, "Alfred A. Montapert", "Expect problems and eat them for breakfast."))
@@ -32,7 +32,7 @@ class ModelGenerator {
         return MessageModel(id, headerId, R.drawable.person_two, "Person Updated", "This Message is updated!")
     }
 
-    fun generateLoadMoreItems(): List<MessageModel> {
+    fun generateLoadMoreMessages(): List<MessageModel> {
         val moreModels: MutableList<MessageModel> = LinkedList()
         addModel(moreModels, MessageModel(modelNumber, 2, R.drawable.person_two, "Samuel Beckett", "Ever tried. Ever failed. No matter. Try Again. Fail again. Fail better."))
         addModel(moreModels, MessageModel(modelNumber, 2, R.drawable.person_three, "Theodore Roosevelt", "Believe you can and you're halfway there."))

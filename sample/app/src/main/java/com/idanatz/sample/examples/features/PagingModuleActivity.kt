@@ -13,7 +13,6 @@ import com.idanatz.oneadapter.external.modules.PagingModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.models.MessageModel
-import com.idanatz.sample.models.ModelGenerator
 import com.idanatz.sample.examples.BaseExampleActivity
 
 class PagingModuleActivity : BaseExampleActivity() {
@@ -28,7 +27,7 @@ class PagingModuleActivity : BaseExampleActivity() {
                 .attachPagingModule(pagingModule())
                 .attachTo(recyclerView)
 
-        oneAdapter.setItems(modelGenerator.generateFirstModels())
+        oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }
 
     private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
@@ -55,7 +54,7 @@ class PagingModuleActivity : BaseExampleActivity() {
 
         override fun onLoadMore(currentPage: Int) {
             handler.postDelayed({
-                oneAdapter.add(modelGenerator.generateLoadMoreItems())
+                oneAdapter.add(modelGenerator.generateLoadMoreMessages())
             }, 2500)
         }
     }

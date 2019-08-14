@@ -9,13 +9,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.idanatz.oneadapter.sample.R
-import com.idanatz.sample.examples.simple_example.SimpleActionsDialog
 import com.idanatz.sample.models.ModelGenerator
 
 @SuppressLint("Registered")
-open class BaseExampleActivity : AppCompatActivity(), SimpleActionsDialog.ActionsListener {
-
-    private val actionsDialog = SimpleActionsDialog.getInstance()
+open class BaseExampleActivity : AppCompatActivity(), ActionsDialog.ActionsListener {
 
     protected lateinit var recyclerView: RecyclerView
     protected val modelGenerator = ModelGenerator()
@@ -29,13 +26,15 @@ open class BaseExampleActivity : AppCompatActivity(), SimpleActionsDialog.Action
         recyclerView.layoutManager = LinearLayoutManager(this)
     }
 
-    protected fun initActionsDialog(vararg actions: SimpleActionsDialog.Action) {
-        actionsDialog.setListener(this)
+    protected fun initActionsDialog(vararg actions: ActionsDialog.Action): ActionsDialog {
+        val actionsDialog = ActionsDialog.getInstance()
         actionsDialog.setActions(*actions)
 
         val actionButton = findViewById<Button>(R.id.show_options_button)
         actionButton.visibility = View.VISIBLE
-        actionButton.setOnClickListener { actionsDialog.show(supportFragmentManager, SimpleActionsDialog::class.java.simpleName) }
+        actionButton.setOnClickListener { actionsDialog.show(supportFragmentManager, ActionsDialog::class.java.simpleName) }
+
+        return actionsDialog
     }
 
     override fun onAddItemClicked(id: Int) {}
@@ -44,5 +43,5 @@ open class BaseExampleActivity : AppCompatActivity(), SimpleActionsDialog.Action
     override fun onUpdatedItemClicked(id: Int) {}
     override fun onDeleteItemClicked(id: Int) {}
     override fun onDeleteIndexClicked(index: Int) {}
-    override fun largeDiff() {}
+    override fun onLargeDiffClicked() {}
 }

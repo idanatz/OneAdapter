@@ -11,12 +11,11 @@ import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.models.MessageModel
-import com.idanatz.sample.models.ModelGenerator
 import com.airbnb.lottie.LottieAnimationView
 import com.idanatz.oneadapter.external.modules.EmptinessModule
 import com.idanatz.oneadapter.external.modules.EmptinessModuleConfig
 import com.idanatz.sample.examples.BaseExampleActivity
-import com.idanatz.sample.examples.simple_example.SimpleActionsDialog.*
+import com.idanatz.sample.examples.ActionsDialog.*
 
 class EmptinessModuleActivity : BaseExampleActivity(), ActionsListener {
 
@@ -30,7 +29,7 @@ class EmptinessModuleActivity : BaseExampleActivity(), ActionsListener {
                 .attachEmptinessModule(emptinessModule())
                 .attachTo(recyclerView)
 
-        initActionsDialog(Action.SetAll, Action.ClearAll)
+        initActionsDialog(Action.SetAll, Action.ClearAll).setListener(this)
     }
 
     private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
@@ -67,7 +66,7 @@ class EmptinessModuleActivity : BaseExampleActivity(), ActionsListener {
     }
 
     override fun onSetAllClicked() {
-        oneAdapter.setItems(modelGenerator.generateFirstModels())
+        oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }
 
     override fun onClearAllClicked() {

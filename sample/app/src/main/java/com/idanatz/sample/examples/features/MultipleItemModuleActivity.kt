@@ -11,7 +11,6 @@ import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.models.MessageModel
-import com.idanatz.sample.models.ModelGenerator
 import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.models.HeaderModel
 
@@ -25,7 +24,8 @@ class MultipleItemModuleActivity : BaseExampleActivity() {
                 .attachItemModule(headerItem())
                 .attachTo(recyclerView)
 
-        oneAdapter.setItems(modelGenerator.generateFirstModels())
+        val items = modelGenerator.addHeadersFromMessages(modelGenerator.generateFirstMessages(), false)
+        oneAdapter.setItems(items)
     }
 
     private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {

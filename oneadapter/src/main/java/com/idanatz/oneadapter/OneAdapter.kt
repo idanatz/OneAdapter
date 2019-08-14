@@ -59,8 +59,7 @@ class OneAdapter {
     fun update(item: Any) {
         val indexToSet = getIndexOfItem(internalItems, item)
         if (indexToSet != -1) {
-            val modifiedList = LinkedList(internalItems).apply { set(indexToSet, item) }
-            internalAdapter.updateData(modifiedList)
+            internalAdapter.notifyItemChanged(indexToSet)
         }
     }
 

@@ -1,7 +1,8 @@
-package com.idanatz.sample.examples.advanced_example.view_model
+package com.idanatz.sample.examples.complete.view_model
 
 import androidx.lifecycle.ViewModel
 import android.os.Handler
+import com.idanatz.sample.examples.ActionsDialog
 import com.idanatz.sample.models.HeaderModel
 import com.idanatz.sample.models.MessageModel
 import com.idanatz.sample.models.ModelGenerator
@@ -13,7 +14,7 @@ import io.reactivex.subjects.BehaviorSubject
 import kotlin.math.absoluteValue
 
 @Suppress("UNCHECKED_CAST")
-class AdvancedExampleViewModel : ViewModel() {
+class CompleteExampleViewModel : ViewModel(), ActionsDialog.ActionsListener {
 
     private val modelProvider = ModelGenerator()
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
@@ -39,15 +40,15 @@ class AdvancedExampleViewModel : ViewModel() {
         compositeDisposable.dispose()
     }
 
-    fun onSetAllClicked() {
+    override fun onSetAllClicked() {
         compositeDisposable.add(
-                Single.fromCallable { RoomDB.instance.messageDao().insert(modelProvider.generateFirstModels()) }
+                Single.fromCallable { RoomDB.instance.messageDao().insert(modelProvider.generateFirstMessages()) }
                         .subscribeOn(Schedulers.io())
                         .subscribe()
         )
     }
 
-    fun onClearAllClicked() {
+    override fun onClearAllClicked() {
         compositeDisposable.add(
                 Single.fromCallable { RoomDB.instance.messageDao().deleteAll() }
                         .subscribeOn(Schedulers.io())
@@ -55,7 +56,7 @@ class AdvancedExampleViewModel : ViewModel() {
         )
     }
 
-    fun onAddItemClicked(id: Int) {
+    override fun onAddItemClicked(id: Int) {
         compositeDisposable.add(
                 Single.fromCallable {
                     val newItem = modelProvider.generateMessage(id)
@@ -80,7 +81,7 @@ class AdvancedExampleViewModel : ViewModel() {
         return closestHeaderId
     }
 
-    fun onUpdatedItemClicked(id: Int) {
+    override fun onUpdatedItemClicked(id: Int) {
         compositeDisposable.add(
                 RoomDB.instance.messageDao().getMessageWithId(id)
                         .flatMap {
@@ -101,7 +102,7 @@ class AdvancedExampleViewModel : ViewModel() {
         )
     }
 
-    fun onDeleteIndexClicked(index: Int) {
+    override fun onDeleteIndexClicked(index: Int) {
         val item = itemsSubject.value?.get(index) as? MessageModel
 
         compositeDisposable.add(
@@ -115,7 +116,7 @@ class AdvancedExampleViewModel : ViewModel() {
         )
     }
 
-    fun onDeleteItemClicked(id: Int) {
+    override fun onDeleteItemClicked(id: Int) {
         compositeDisposable.add(
                 RoomDB.instance.messageDao().getMessageWithId(id)
                         .flatMap {
@@ -128,7 +129,7 @@ class AdvancedExampleViewModel : ViewModel() {
         )
     }
 
-    fun onLargeDiffClicked() {
+    override fun onLargeDiffClicked() {
         compositeDisposable.add(
                 Single.fromCallable { RoomDB.instance.messageDao().deleteEvenIds() }
                         .subscribeOn(Schedulers.io())
@@ -138,7 +139,7 @@ class AdvancedExampleViewModel : ViewModel() {
 
     fun onLoadMore() {
         Handler().postDelayed({
-            val loadMoreItems = modelProvider.generateLoadMoreItems()
+            val loadMoreItems = modelProvider.generateLoadMoreMessages()
             compositeDisposable.add(
                     Single.fromCallable { RoomDB.instance.messageDao().insert(loadMoreItems) }
                             .subscribeOn(Schedulers.io())
@@ -168,6 +169,10 @@ class AdvancedExampleViewModel : ViewModel() {
 
             itemsSubject.onNext(items)
         }
+    }
+
+    fun onSwipeToDeleteItem(item: MessageModel) {
+        onDeleteItemClicked(item.id)
     }
 
     private inline fun <T> List<T>.indexOfFirstAsNullable(predicate: (T) -> Boolean) = indexOfFirst(predicate).takeIf { it != -1 }

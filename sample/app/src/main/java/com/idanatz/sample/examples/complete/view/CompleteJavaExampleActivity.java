@@ -1,9 +1,8 @@
-package com.idanatz.sample.examples.advanced_example.view;
+package com.idanatz.sample.examples.complete.view;
 
 import org.jetbrains.annotations.NotNull;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProviders;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -11,24 +10,22 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.idanatz.oneadapter.external.events.SwipeEventHook;
+import com.idanatz.sample.examples.BaseExampleActivity;
 import com.idanatz.sample.models.HeaderModel;
 import com.idanatz.sample.models.MessageModel;
-import com.idanatz.sample.examples.advanced_example.view_model.AdvancedExampleViewModel;
+import com.idanatz.sample.examples.complete.view_model.CompleteExampleViewModel;
 import com.idanatz.sample.models.StoriesModel;
 import com.idanatz.oneadapter.OneAdapter;
 import com.idanatz.oneadapter.external.events.ClickEventHook;
@@ -46,10 +43,13 @@ import com.idanatz.oneadapter.external.states.SelectionState;
 import com.idanatz.oneadapter.sample.R;
 import com.bumptech.glide.Glide;
 
-public class AdvancedJavaExampleActivity extends AppCompatActivity {
+import static com.idanatz.sample.examples.ActionsDialog.*;
 
-    private RecyclerView recyclerView;
-    private AdvancedExampleViewModel viewModel;
+public class CompleteJavaExampleActivity extends BaseExampleActivity {
+
+    private static final int ICON_MARGIN = 50;
+
+    private CompleteExampleViewModel viewModel;
     private OneAdapter oneAdapter;
     private CompositeDisposable compositeDisposable;
     private Menu toolbarMenu;
@@ -57,26 +57,25 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_example);
         compositeDisposable = new CompositeDisposable();
-        viewModel = ViewModelProviders.of(this).get(AdvancedExampleViewModel.class);
-
-        initViews();
+        viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel.class);
 
         oneAdapter = new OneAdapter()
                 .attachItemModule(storyItem())
                 .attachItemModule(headerItem())
-                .attachItemModule(messageItem().addState(selectionState()).addEventHook(clickEventHook()).addEventHook(swipeEventHook()))
+                .attachItemModule(messageItem()
+                        .addState(selectionState())
+                        .addEventHook(clickEventHook())
+                        .addEventHook(swipeEventHook())
+                )
                 .attachEmptinessModule(emptinessModule())
                 .attachPagingModule(pagingModule())
                 .attachItemSelectionModule(itemSelectionModule())
                 .attachTo(recyclerView);
 
-        compositeDisposable.add(
-                viewModel.getItemsSubject()
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(items -> oneAdapter.setItems(items))
-        );
+        initActionsDialog(Action.values()).setListener(viewModel);
+
+        observeViewModel();
     }
 
     @Override
@@ -85,13 +84,12 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
         compositeDisposable.dispose();
     }
 
-    private void initViews() {
-        recyclerView = findViewById(R.id.recycler);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        Button actionButton = findViewById(R.id.show_options_button);
-        actionButton.setVisibility(View.VISIBLE);
-        actionButton.setOnClickListener(v -> AdvancedActionsDialog.newInstance().show(getSupportFragmentManager(), AdvancedActionsDialog.class.getSimpleName()));
+    private void observeViewModel() {
+        compositeDisposable.add(
+                viewModel.getItemsSubject()
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(items -> oneAdapter.setItems(items))
+        );
     }
 
     @NotNull
@@ -111,9 +109,9 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
                 ImageView story2 = viewBinder.findViewById(R.id.story2);
                 ImageView story3 = viewBinder.findViewById(R.id.story3);
 
-                Glide.with(AdvancedJavaExampleActivity.this).load(model.storyImageId1).into(story1);
-                Glide.with(AdvancedJavaExampleActivity.this).load(model.storyImageId2).into(story2);
-                Glide.with(AdvancedJavaExampleActivity.this).load(model.storyImageId3).into(story3);
+                Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId1).into(story1);
+                Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId2).into(story2);
+                Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId3).into(story3);
             }
         };
     }
@@ -164,12 +162,12 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
                 id.setText(String.format(getString(R.string.message_model_id), model.id));
                 title.setText(model.title);
                 body.setText(model.body);
-                Glide.with(AdvancedJavaExampleActivity.this).load(model.avatarImageId).into(avatarImage);
+                Glide.with(CompleteJavaExampleActivity.this).load(model.avatarImageId).into(avatarImage);
 
                 // selected UI
                 avatarImage.setAlpha(model.isSelected ? 0.5f : 1f);
                 selectedLayer.setVisibility(model.isSelected? View.VISIBLE : View.GONE);
-                viewBinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(AdvancedJavaExampleActivity.this, R.color.light_gray) : Color.WHITE);
+                viewBinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(CompleteJavaExampleActivity.this, R.color.light_gray) : Color.WHITE);
             }
         };
     }
@@ -194,43 +192,7 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
         return new ClickEventHook<MessageModel>() {
             @Override
             public void onClick(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
-                Toast.makeText(AdvancedJavaExampleActivity.this, model.title + " clicked", Toast.LENGTH_SHORT).show();
-            }
-        };
-    }
-
-    private SwipeEventHook<MessageModel> swipeEventHook() {
-        return new SwipeEventHook<MessageModel>(SwipeEventHook.SwipeDirection.Left) {
-            Drawable deleteIcon = ContextCompat.getDrawable(AdvancedJavaExampleActivity.this, R.drawable.ic_delete_white_24dp);
-            ColorDrawable redColorDrawable = new ColorDrawable(Color.RED);
-
-            @Override
-            public void onSwipe(@NotNull Canvas canvas, float xAxisOffset, @NotNull ViewBinder viewBinder) {
-                if (xAxisOffset < 0) { // Swiping to the left
-                    View rootView = viewBinder.getRootView();
-                    int margin = 50;
-                    int middle = rootView.getBottom() - rootView.getTop();
-                    int top = rootView.getTop();
-                    int bottom = rootView.getBottom();
-                    int right = rootView.getRight();
-                    int left = rootView.getRight() + ((int) xAxisOffset);
-                    redColorDrawable.setBounds(left, top, right, bottom);
-                    redColorDrawable.draw(canvas);
-
-                    top = rootView.getTop() + (middle / 2) - (deleteIcon.getIntrinsicHeight() / 2);
-                    bottom = top + deleteIcon.getIntrinsicHeight();
-                    right = rootView.getRight() - margin;
-                    left = right - deleteIcon.getIntrinsicWidth();
-                    deleteIcon.setBounds(left, top, right, bottom);
-                    deleteIcon.draw(canvas);
-                }
-            }
-
-            @Override
-            public void onSwipeComplete(@NotNull MessageModel model, @NotNull SwipeDirection direction, @NotNull ViewBinder viewBinder) {
-                if (direction == SwipeDirection.Left) {
-                    viewModel.onDeleteItemClicked(model.id);
-                }
+                Toast.makeText(CompleteJavaExampleActivity.this, model.title + " clicked", Toast.LENGTH_SHORT).show();
             }
         };
     }
@@ -331,5 +293,75 @@ public class AdvancedJavaExampleActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private SwipeEventHook<MessageModel> swipeEventHook()  {
+        return new SwipeEventHook<MessageModel>() {
+            @Override
+            public void onSwipe(@NotNull Canvas canvas, float xAxisOffset, @NotNull ViewBinder viewBinder) {
+                if (xAxisOffset < 0) {
+                    paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView());
+                } else if (xAxisOffset > 0) {
+                    paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView());
+                }
+            }
+
+            @Override
+            public void onSwipeComplete(@NotNull MessageModel model, @NotNull SwipeDirection direction, @NotNull ViewBinder viewBinder) {
+                switch (direction) {
+                    case Right:
+                        Toast.makeText(CompleteJavaExampleActivity.this, model.title + " snoozed", Toast.LENGTH_SHORT).show();
+                        oneAdapter.update(model);
+                        break;
+                    case Left:
+                        viewModel.onSwipeToDeleteItem(model);
+                        break;
+                }
+            }
+        };
+    }
+
+    private void paintSwipeRight(Canvas canvas, float xAxisOffset, View rootView) {
+        Drawable icon = ContextCompat.getDrawable(this, R.drawable.ic_snooze_white_24dp);
+        ColorDrawable colorDrawable = new ColorDrawable(Color.DKGRAY);
+
+        if (icon != null) {
+            int middle = rootView.getBottom() - rootView.getTop();
+            int top = rootView.getTop();
+            int bottom = rootView.getBottom();
+            int right = rootView.getLeft() + (int)xAxisOffset;
+            int left = rootView.getLeft();
+            colorDrawable.setBounds(left, top, right, bottom);
+            colorDrawable.draw(canvas);
+
+            top = rootView.getTop() + (middle / 2) - (icon.getIntrinsicHeight() / 2);
+            bottom = top + icon.getIntrinsicHeight();
+            left = rootView.getLeft() + ICON_MARGIN;
+            right = left + icon.getIntrinsicWidth();
+            icon.setBounds(left, top, right, bottom);
+            icon.draw(canvas);
+        }
+    }
+
+    private void paintSwipeLeft(Canvas canvas, float xAxisOffset, View rootView) {
+        Drawable icon = ContextCompat.getDrawable(this, R.drawable.ic_delete_white_24dp);
+        ColorDrawable colorDrawable = new ColorDrawable(Color.RED);
+
+        if (icon != null) {
+            int middle = rootView.getBottom() - rootView.getTop();
+            int top = rootView.getTop();
+            int bottom = rootView.getBottom();
+            int right = rootView.getRight();
+            int left = rootView.getRight() + (int)xAxisOffset;
+            colorDrawable.setBounds(left, top, right, bottom);
+            colorDrawable.draw(canvas);
+
+            top = rootView.getTop() + (middle / 2) - (icon.getIntrinsicHeight() / 2);
+            bottom = top + icon.getIntrinsicHeight();
+            right = rootView.getRight() - ICON_MARGIN;
+            left = right - icon.getIntrinsicWidth();
+            icon.setBounds(left, top, right, bottom);
+            icon.draw(canvas);
+        }
     }
 }
