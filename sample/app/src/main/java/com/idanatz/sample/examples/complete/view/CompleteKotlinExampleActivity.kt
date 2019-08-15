@@ -214,22 +214,20 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun swipeEventHook(): SwipeEventHook<MessageModel> {
-        return object : SwipeEventHook<MessageModel>() {
-            override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
-                when {
-                    xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView())
-                    xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView())
-                }
+    private fun swipeEventHook(): SwipeEventHook<MessageModel> = object : SwipeEventHook<MessageModel>() {
+        override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
+            when {
+                xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView())
+                xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView())
             }
+        }
 
-            override fun onSwipeComplete(model: MessageModel, direction: SwipeDirection, viewBinder: ViewBinder) {
-                when (direction) {
-                    SwipeDirection.Left -> viewModel.onSwipeToDeleteItem(model)
-                    SwipeDirection.Right -> {
-                        Toast.makeText(this@CompleteKotlinExampleActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
-                        oneAdapter.update(model)
-                    }
+        override fun onSwipeComplete(model: MessageModel, direction: SwipeDirection, viewBinder: ViewBinder) {
+            when (direction) {
+                SwipeDirection.Left -> viewModel.onSwipeToDeleteItem(model)
+                SwipeDirection.Right -> {
+                    Toast.makeText(this@CompleteKotlinExampleActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
+                    oneAdapter.update(model)
                 }
             }
         }

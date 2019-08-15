@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+Version 1.1.1
+----------------------------
+* Removed the res folder to prevent conflicts
+
 Version 1.1.0
 ----------------------------
 * Event Hooks:

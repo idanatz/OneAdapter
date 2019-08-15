@@ -1,6 +1,9 @@
 ![Logo](DEV/logo.png)
 
-# OneAdapter [ ![Download](https://api.bintray.com/packages/ironsource-aura/OneAdapter/oneadapter/images/download.svg) ](https://bintray.com/ironsource-aura/OneAdapter/oneadapter/_latestVersion)
+# OneAdapter 
+[ ![Download](https://api.bintray.com/packages/ironsource-aura/OneAdapter/oneadapter/images/download.svg) ](https://bintray.com/ironsource-aura/OneAdapter/oneadapter/_latestVersion)
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-OneAdapter-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/7824)
+
 OneAdapter is made to simplify and enhance the use of the RecyclerView's Adapter while preventing common mistakes. 
 With multiple modules and hooks, you don't have to think about writing an adapter anymore, and just focus on what matters. 
 
@@ -12,12 +15,12 @@ https://medium.com/@idanatsmon/adapting-your-recyclerview-the-2019-approach-e47e
 - Built-in support for DiffUtil (using [Diffable](#2-implement-diffable))
 - Optimized performance - internal processing done on a background thread
 - 100% written in Kotlin
-- Modules:
+- [Modules:](#modules)
   - [Item Module](#basic-usage)
   - [Paging Module](#paging-module)
   - [Emptiness Module](#emptiness-module)
   - [Selection Module](#selection-module)
-- Event Hooks:
+- [Event Hooks:](#event-hooks)
   - [Click Event Hook](#click-event-hook)
   - [Swipe Event Hook](#swipe-event-hook)
 
