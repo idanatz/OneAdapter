@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.selection.StorageStrategy
+import androidx.recyclerview.widget.ListUpdateCallback
 import com.idanatz.oneadapter.external.interfaces.*
 import com.idanatz.oneadapter.internal.diffing.OneDiffUtil
 import com.idanatz.oneadapter.internal.holders.EmptyIndicator
@@ -24,15 +25,20 @@ import com.idanatz.oneadapter.internal.selection.OneItemDetailLookup
 import com.idanatz.oneadapter.internal.selection.OneItemKeyProvider
 import com.idanatz.oneadapter.internal.selection.SelectionTrackerObserver
 import com.idanatz.oneadapter.internal.selection.SelectionObserver
+import com.idanatz.oneadapter.internal.swiping.OneItemTouchHelper
 import com.idanatz.oneadapter.internal.utils.*
 import com.idanatz.oneadapter.internal.utils.MissingBuilderArgumentException
 import com.idanatz.oneadapter.internal.utils.MultipleHolderConflictException
 import com.idanatz.oneadapter.internal.utils.let2
 import com.idanatz.oneadapter.internal.utils.removeClassIfExist
-import java.util.HashMap
+import java.util.*
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), LoadMoreObserver, SelectionObserver, ItemSelectionActionsProvider {
+
+    companion object {
+        const val UPDATE_DATA_DELAY_MILLIS = 100L
+    }
 
     private var recyclerView: RecyclerView? = null
     internal val modules = Modules()
@@ -141,7 +147,26 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
             // handle the diffing
             val diffResult = DiffUtil.calculateDiff(OneDiffUtil(this.data, data, diffCallback))
             this.data = data
-            uiHandler?.post { diffResult.dispatchUpdatesTo(this) }
+            uiHandler?.post {
+                diffResult.dispatchUpdatesTo(object : ListUpdateCallback {
+                    override fun onInserted(position: Int, count: Int) {
+                        Logger.logd { "onInserted -> position: $position, count: $count" }
+                        notifyItemRangeInserted(position, count)
+                    }
+                    override fun onRemoved(position: Int, count: Int) {
+                        Logger.logd { "onRemoved -> position: $position, count: $count" }
+                        notifyItemRangeRemoved(position, count)
+                    }
+                    override fun onMoved(fromPosition: Int, toPosition: Int) {
+                        Logger.logd { "onRemoved -> fromPosition: $fromPosition, toPosition: $toPosition" }
+                        notifyItemMoved(fromPosition, toPosition)
+                    }
+                    override fun onChanged(position: Int, count: Int, payload: Any?) {
+                        Logger.logd { "onChanged -> position: $position, count: $count, payload: $payload" }
+                        notifyItemRangeChanged(position, count, payload)
+                    }
+                })
+            }
         }
     }
 
@@ -238,6 +263,15 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
         } ?: emptyList()
     }
 
+    override fun removeSelectedItems() {
+        val dataCopy = LinkedList(data).apply { removeAllItems(this, getSelectedItems()) }
+        updateData(dataCopy)
+
+        uiHandler?.postDelayed({
+            clearSelection()
+        }, UPDATE_DATA_DELAY_MILLIS)
+    }
+
     override fun clearSelection() = selectionTracker?.clearSelection()
     //endregion
 
@@ -245,6 +279,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Any>>(), Loa
     fun attachTo(recyclerView: RecyclerView) {
         this.recyclerView = recyclerView.apply {
             adapter = this@InternalAdapter
+            OneItemTouchHelper().attachToRecyclerView(this)
             configureEmptinessModule()
             configurePagingModule(this)
             configureItemSelectionModule(this)

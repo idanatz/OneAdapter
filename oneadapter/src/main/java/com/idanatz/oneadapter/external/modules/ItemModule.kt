@@ -1,9 +1,10 @@
 package com.idanatz.oneadapter.external.modules
 
-import androidx.annotation.NonNull
+import org.jetbrains.annotations.NotNull
 import com.idanatz.oneadapter.external.events.ClickEventHook
 import com.idanatz.oneadapter.external.events.EventHook
 import com.idanatz.oneadapter.external.events.EventHooksMap
+import com.idanatz.oneadapter.external.events.SwipeEventHook
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.internal.interfaces.InternalModuleConfig
 import com.idanatz.oneadapter.external.states.SelectionState
@@ -16,9 +17,9 @@ abstract class ItemModule<M> {
     internal val eventHooksMap = EventHooksMap<M>()
 
     abstract fun provideModuleConfig(): ItemModuleConfig
-    abstract fun onBind(@NonNull model: M, @NonNull viewBinder: ViewBinder)
+    abstract fun onBind(@NotNull model: M, @NotNull viewBinder: ViewBinder)
 
-    open fun onUnbind(@NonNull viewBinder: ViewBinder) {}
+    open fun onUnbind(@NotNull viewBinder: ViewBinder) {}
 
     fun addState(state: State<M>): ItemModule<M> {
         when (state) {
@@ -30,6 +31,7 @@ abstract class ItemModule<M> {
     fun addEventHook(eventHook: EventHook<M>): ItemModule<M> {
         when (eventHook) {
             is ClickEventHook -> eventHooksMap.putClickEventHook(eventHook)
+            is SwipeEventHook -> eventHooksMap.putSwipeEventHook(eventHook)
         }
         return this
     }

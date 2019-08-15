@@ -2,7 +2,7 @@ package com.idanatz.sample.models;
 
 import com.idanatz.oneadapter.external.interfaces.Diffable;
 
-import androidx.annotation.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 public class StoriesModel implements Diffable {
 
@@ -24,7 +24,7 @@ public class StoriesModel implements Diffable {
     }
 
     @Override
-    public boolean areContentTheSame(@NonNull Object other) {
+    public boolean areContentTheSame(@NotNull Object other) {
         return other instanceof StoriesModel &&
                 storyImageId1 == (((StoriesModel) other).storyImageId1) &&
                 storyImageId2 == (((StoriesModel) other).storyImageId2) &&

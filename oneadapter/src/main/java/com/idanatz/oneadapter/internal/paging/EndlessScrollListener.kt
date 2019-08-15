@@ -58,8 +58,3 @@ internal class EndlessScrollListener (
 
     private fun isLoadingFinished(totalItemCount: Int) = loading && totalItemCount > (previousTotalItemCount + 1) // + 1 for the loading holder
 }
-
-interface LoadMoreObserver {
-    fun onLoadingStateChanged(loading: Boolean)
-    fun onLoadMore(currentPage: Int)
-}

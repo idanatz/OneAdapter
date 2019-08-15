@@ -1,4 +1,4 @@
-package com.idanatz.oneadapter.internal
+package com.idanatz.oneadapter.internal.utils
 
 import android.util.Log
 import com.idanatz.oneadapter.BuildConfig

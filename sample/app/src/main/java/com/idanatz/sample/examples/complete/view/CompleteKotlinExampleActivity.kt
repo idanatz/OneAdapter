@@ -1,24 +1,22 @@
-package com.idanatz.sample.advanced_example.view
+package com.idanatz.sample.examples.complete.view
 
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProviders
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.lottie.LottieAnimationView
 import com.idanatz.sample.models.HeaderModel
 import com.idanatz.sample.models.MessageModel
-import com.idanatz.sample.advanced_example.view_model.AdvancedExampleViewModel
+import com.idanatz.sample.examples.complete.view_model.CompleteExampleViewModel
 import com.idanatz.sample.models.StoriesModel
 import com.idanatz.oneadapter.OneAdapter
 import com.idanatz.oneadapter.external.events.ClickEventHook
@@ -26,35 +24,45 @@ import com.idanatz.oneadapter.external.states.SelectionState
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.bumptech.glide.Glide
+import com.idanatz.oneadapter.external.events.SwipeEventHook
 import com.idanatz.oneadapter.external.modules.*
+import com.idanatz.sample.examples.BaseExampleActivity
+import com.idanatz.sample.examples.ActionsDialog.*
+import com.idanatz.sample.examples.features.SwipeEventHookActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 
-class AdvancedKotlinExampleActivity : AppCompatActivity() {
+class CompleteKotlinExampleActivity : BaseExampleActivity() {
 
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var viewModel: AdvancedExampleViewModel
+    companion object {
+        const val ICON_MARGIN = 50
+    }
+
+    private lateinit var viewModel: CompleteExampleViewModel
     private lateinit var oneAdapter: OneAdapter
     private lateinit var compositeDisposable: CompositeDisposable
     private var toolbarMenu: Menu? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_example)
 
         compositeDisposable = CompositeDisposable()
-        viewModel = ViewModelProviders.of(this).get(AdvancedExampleViewModel::class.java)
-
-        initViews()
+        viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel::class.java)
 
         oneAdapter = OneAdapter()
                 .attachItemModule(storyItem())
                 .attachItemModule(headerItem())
-                .attachItemModule(messageItem().addState(selectionState()).addEventHook(clickEventHook()))
+                .attachItemModule(messageItem()
+                        .addState(selectionState())
+                        .addEventHook(clickEventHook())
+                        .addEventHook(swipeEventHook())
+                )
                 .attachEmptinessModule(emptinessModule())
                 .attachPagingModule(pagingModule())
                 .attachItemSelectionModule(itemSelectionModule())
                 .attachTo(recyclerView)
+
+        initActionsDialog(*Action.values()).setListener(viewModel)
 
         observeViewModel()
     }
@@ -62,14 +70,6 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         compositeDisposable.dispose()
-    }
-    private fun initViews() {
-        recyclerView = findViewById<RecyclerView>(R.id.recycler).apply { layoutManager = LinearLayoutManager(this@AdvancedKotlinExampleActivity) }
-
-        findViewById<Button>(R.id.show_options_button).run {
-            visibility = View.VISIBLE
-            setOnClickListener { AdvancedActionsDialog.newInstance().show(supportFragmentManager, AdvancedActionsDialog::class.java.simpleName) }
-        }
     }
 
     private fun observeViewModel() {
@@ -90,9 +90,9 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
             val story2 = viewBinder.findViewById<ImageView>(R.id.story2)
             val story3 = viewBinder.findViewById<ImageView>(R.id.story3)
 
-            Glide.with(this@AdvancedKotlinExampleActivity).load(model.storyImageId1).into(story1)
-            Glide.with(this@AdvancedKotlinExampleActivity).load(model.storyImageId2).into(story2)
-            Glide.with(this@AdvancedKotlinExampleActivity).load(model.storyImageId3).into(story3)
+            Glide.with(this@CompleteKotlinExampleActivity).load(model.storyImageId1).into(story1)
+            Glide.with(this@CompleteKotlinExampleActivity).load(model.storyImageId2).into(story2)
+            Glide.with(this@CompleteKotlinExampleActivity).load(model.storyImageId3).into(story3)
         }
     }
 
@@ -106,6 +106,7 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
             val headerSwitch = viewBinder.findViewById<SwitchCompat>(R.id.header_switch)
 
             headerTitle.text = model.name
+            headerSwitch.visibility = if (model.checkable) View.VISIBLE else View.GONE
             headerSwitch.isChecked = model.checked
             headerSwitch.setOnCheckedChangeListener { _, isChecked -> viewModel.headerCheckedChanged(model, isChecked) }
         }
@@ -126,12 +127,12 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
             id.text = getString(R.string.message_model_id).format(model.id)
             title.text = model.title
             body.text = model.body
-            Glide.with(this@AdvancedKotlinExampleActivity).load(model.avatarImageId).into(avatarImage)
+            Glide.with(this@CompleteKotlinExampleActivity).load(model.avatarImageId).into(avatarImage)
 
             // selected UI
             avatarImage.alpha = if (model.isSelected) 0.5f else 1f
             selectedLayer.visibility = if (model.isSelected) View.VISIBLE else View.GONE
-            viewBinder.getRootView().setBackgroundColor(if (model.isSelected) ContextCompat.getColor(this@AdvancedKotlinExampleActivity, R.color.light_gray) else Color.TRANSPARENT)
+            viewBinder.getRootView().setBackgroundColor(if (model.isSelected) ContextCompat.getColor(this@CompleteKotlinExampleActivity, R.color.light_gray) else Color.WHITE)
         }
     }
 
@@ -144,7 +145,7 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
     }
 
     private fun clickEventHook(): ClickEventHook<MessageModel> = object : ClickEventHook<MessageModel>() {
-        override fun onClick(model: MessageModel, viewBinder: ViewBinder) = Toast.makeText(this@AdvancedKotlinExampleActivity, "${model.title} clicked", Toast.LENGTH_SHORT).show()
+        override fun onClick(model: MessageModel, viewBinder: ViewBinder) = Toast.makeText(this@CompleteKotlinExampleActivity, "${model.title} clicked", Toast.LENGTH_SHORT).show()
     }
 
     private fun emptinessModule(): EmptinessModule = object : EmptinessModule() {
@@ -211,5 +212,70 @@ class AdvancedKotlinExampleActivity : AppCompatActivity() {
             return true
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun swipeEventHook(): SwipeEventHook<MessageModel> {
+        return object : SwipeEventHook<MessageModel>() {
+            override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
+                when {
+                    xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView())
+                    xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView())
+                }
+            }
+
+            override fun onSwipeComplete(model: MessageModel, direction: SwipeDirection, viewBinder: ViewBinder) {
+                when (direction) {
+                    SwipeDirection.Left -> viewModel.onSwipeToDeleteItem(model)
+                    SwipeDirection.Right -> {
+                        Toast.makeText(this@CompleteKotlinExampleActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
+                        oneAdapter.update(model)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun paintSwipeRight(canvas: Canvas, xAxisOffset: Float, rootView: View) {
+        val icon = ContextCompat.getDrawable(this@CompleteKotlinExampleActivity, R.drawable.ic_snooze_white_24dp)
+        val colorDrawable = ColorDrawable(Color.DKGRAY)
+
+        icon?.let {
+            val middle = rootView.bottom - rootView.top
+            var top = rootView.top
+            var bottom = rootView.bottom
+            var right = rootView.left + xAxisOffset.toInt()
+            var left = rootView.left
+            colorDrawable.setBounds(left, top, right, bottom)
+            colorDrawable.draw(canvas)
+
+            top = rootView.top + (middle / 2) - (it.intrinsicHeight / 2)
+            bottom = top + it.intrinsicHeight
+            left = rootView.left + ICON_MARGIN
+            right = left + it.intrinsicWidth
+            it.setBounds(left, top, right, bottom)
+            it.draw(canvas)
+        }
+    }
+
+    private fun paintSwipeLeft(canvas: Canvas, xAxisOffset: Float, rootView: View) {
+        val icon = ContextCompat.getDrawable(this@CompleteKotlinExampleActivity, R.drawable.ic_delete_white_24dp)
+        val colorDrawable = ColorDrawable(Color.RED)
+
+        icon?.let {
+            val middle = rootView.bottom - rootView.top
+            var top = rootView.top
+            var bottom = rootView.bottom
+            var right = rootView.right
+            var left = rootView.right + xAxisOffset.toInt()
+            colorDrawable.setBounds(left, top, right, bottom)
+            colorDrawable.draw(canvas)
+
+            top = rootView.top + (middle / 2) - (it.intrinsicHeight / 2)
+            bottom = top + it.intrinsicHeight
+            right = rootView.right - ICON_MARGIN
+            left = right - it.intrinsicWidth
+            it.setBounds(left, top, right, bottom)
+            it.draw(canvas)
+        }
     }
 }
