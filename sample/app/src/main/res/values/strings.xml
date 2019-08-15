@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">OneAdapter Sample App</string>
+    <string name="one_app_name">OneAdapter Sample App</string>
 
     // modules
     <string name="single_item_module_example">Single Item Module Example</string>

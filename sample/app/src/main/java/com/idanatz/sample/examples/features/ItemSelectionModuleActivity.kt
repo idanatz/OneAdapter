@@ -72,7 +72,7 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
 
         override fun onSelectionUpdated(selectedCount: Int) {
             if (selectedCount == 0) {
-                setToolbarText(getString(R.string.app_name))
+                setToolbarText(getString(R.string.one_app_name))
                 toolbarMenu?.findItem(R.id.action_delete)?.isVisible = false
             } else {
                 setToolbarText("$selectedCount selected")

@@ -258,7 +258,7 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
             @Override
             public void onSelectionUpdated(int selectedCount) {
                 if (selectedCount == 0) {
-                    setToolbarText(getString(R.string.app_name));
+                    setToolbarText(getString(R.string.one_app_name));
                     toolbarMenu.findItem(R.id.action_delete).setVisible(false);
                 } else {
                     setToolbarText(selectedCount + " selected");

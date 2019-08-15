@@ -28,7 +28,6 @@ import com.idanatz.oneadapter.external.events.SwipeEventHook
 import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.examples.ActionsDialog.*
-import com.idanatz.sample.examples.features.SwipeEventHookActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 
@@ -183,7 +182,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
 
         override fun onSelectionUpdated(selectedCount: Int) {
             if (selectedCount == 0) {
-                setToolbarText(getString(R.string.app_name))
+                setToolbarText(getString(R.string.one_app_name))
                 toolbarMenu?.findItem(R.id.action_delete)?.isVisible = false
             } else {
                 setToolbarText("$selectedCount selected")

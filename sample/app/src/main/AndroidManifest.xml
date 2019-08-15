@@ -8,11 +8,11 @@
 
     <application
         android:name="com.idanatz.sample.ExampleApp"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:icon="@mipmap/ic_one_launcher"
+        android:label="@string/one_app_name"
+        android:roundIcon="@mipmap/ic_one_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
+        android:theme="@style/OneAppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity android:name="com.idanatz.sample.MainActivity">
             <intent-filter>
