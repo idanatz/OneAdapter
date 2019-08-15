@@ -19,6 +19,7 @@ https://medium.com/@idanatsmon/adapting-your-recyclerview-the-2019-approach-e47e
   - [Selection Module](#selection-module)
 - Event Hooks:
   - [Click Event Hook](#click-event-hook)
+  - [Swipe Event Hook](#swipe-event-hook)
 
 # Include in your project
 ```groovy
@@ -35,8 +36,7 @@ You can try out the [example project](https://github.com/idanatz/OneAdapter/tree
 <img src="DEV/screenshot_1.jpg" width="210" height="420"> <img src="DEV/screenshot_2.jpg" width="210" height="420"> <img src="DEV/screenshot_3.jpg" width="210" height="420"> <img src="DEV/screenshot_4.jpg" width="210" height="420">
 
 <br/><br/>
-# Usage
-## Basic Usage
+# Basic Usage
 ### 1. Implement Item Module
 Item Modules are used for the creation and binding of all ViewHolders for you. In the onBind method, you will receive as a parameter the model associated with this view and a ViewBinder class that lets you find (and cache) the views defined in the associated layout file.
 ##### Java
@@ -127,7 +127,8 @@ oneAdapter.setItems(...)
 ```
 
 <br/><br/>
-## Advanced Usage
+# Advanced Usage
+## Modules
 ### Multiple Types
 Have more than one view type? not a problem, just create another ItemModule and attach it to OneAdapter in the same way.
 #### 1. Implement Multiple Item Modules
@@ -320,9 +321,11 @@ val oneAdapter = OneAdapter()
     ...
 ```
 
-<br/><br/>
-### Click Event Hook
+<br/><br/><br/>
+## Event Hooks
 Item Modules can easily be enhanced with event hooks, for instance, ClickEventHook which let you bind a click listener for the entire view.
+
+### Click Event Hook
 #### 1. Implement Click Event Hook
 ##### Java
 ```java
@@ -352,6 +355,52 @@ OneAdapter oneAdapter = new OneAdapter()
 ```kotlin
 val oneAdapter = OneAdapter()
     .attachItemModule(MessageModule()).addEventHook(MessageClickEvent())
+    ...
+```
+
+<br/><br/>
+### Swipe Event Hook
+#### 1. Implement Swipe Event Hook
+##### Java
+```java
+class MessageSwipeEvent extends SwipeEventHook<MessageModel> {
+    @Override
+    public void onSwipe(@NotNull Canvas canvas, float xAxisOffset, @NotNull ViewBinder viewBinder) {
+        // draw your swipe UI here.
+        // like painting the canvas red with a delete icon.
+    }
+    @Override
+    public void onSwipeComplete(@NotNull MessageModel model, @NotNull SwipeDirection direction, @NotNull ViewBinder viewBinder) {
+        // place your swipe logic here.
+        // like removing an item after it was swiped right.
+    }
+}
+```
+##### Kotlin
+```kotlin
+class MessageSwipeEvent : SwipeEventHook<MessageModel>() {
+    override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
+        // draw your swipe UI here.
+        // like painting the canvas red with a delete icon.
+    }
+
+    override fun onSwipeComplete(model: MessageModel, direction: SwipeDirection, viewBinder: ViewBinder) {
+        // place your swipe logic here.
+        // like removing an item after it was swiped right.
+    }
+}
+```
+#### 2. Attach To ItemModule
+##### Java
+```java
+OneAdapter oneAdapter = new OneAdapter()
+    .attachItemModule(new MessageModule()).addEventHook(new MessageSwipeEvent())
+    ...
+```
+##### Kotlin
+```kotlin
+val oneAdapter = OneAdapter()
+    .attachItemModule(MessageModule()).addEventHook(MessageSwipeEvent())
     ...
 ```
 
