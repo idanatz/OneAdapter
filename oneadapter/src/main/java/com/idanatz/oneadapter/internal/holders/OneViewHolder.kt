@@ -8,8 +8,8 @@ import com.idanatz.oneadapter.external.events.SwipeEventHook
 import com.idanatz.oneadapter.internal.selection.OneItemDetail
 import com.idanatz.oneadapter.internal.interfaces.InternalModuleConfig
 import com.idanatz.oneadapter.external.states.StatesMap
-import com.idanatz.oneadapter.internal.utils.inflateLayout
-import com.idanatz.oneadapter.internal.utils.let2
+import com.idanatz.oneadapter.internal.utils.extensions.inflateLayout
+import com.idanatz.oneadapter.internal.utils.extensions.let2
 
 @Suppress("NAME_SHADOWING")
 internal abstract class OneViewHolder<M> (
@@ -48,8 +48,7 @@ internal abstract class OneViewHolder<M> (
         return let2(statesHooksMap?.getSelectionState(), model) { selectionState, model ->
             return if (selectionState.selectionEnabled(model)) {
                 OneItemDetail(adapterPosition, itemId)
-            }
-            else
+            } else
                 null
         }
     }

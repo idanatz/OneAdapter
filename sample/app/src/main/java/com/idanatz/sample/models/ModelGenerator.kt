@@ -1,5 +1,6 @@
 package com.idanatz.sample.models
 
+import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.sample.R
 import java.util.*
 
@@ -49,8 +50,8 @@ class ModelGenerator {
         return StoriesModel(0, R.drawable.story_one, R.drawable.story_two, R.drawable.story_three)
     }
 
-    fun addHeadersFromMessages(messages: List<MessageModel>, checkable: Boolean): MutableList<Any> {
-        val list = mutableListOf<Any>()
+    fun addHeadersFromMessages(messages: List<MessageModel>, checkable: Boolean): MutableList<Diffable> {
+        val list = mutableListOf<Diffable>()
 
         messages.groupBy { it.headerId }.forEach { (headerIndex, messages) ->
             list.add(HeaderModel(headerIndex, "Section " + (headerIndex + 1), checkable))

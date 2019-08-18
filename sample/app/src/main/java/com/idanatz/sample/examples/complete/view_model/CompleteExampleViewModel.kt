@@ -2,6 +2,7 @@ package com.idanatz.sample.examples.complete.view_model
 
 import androidx.lifecycle.ViewModel
 import android.os.Handler
+import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.sample.examples.ActionsDialog
 import com.idanatz.sample.models.HeaderModel
 import com.idanatz.sample.models.MessageModel
@@ -18,7 +19,7 @@ class CompleteExampleViewModel : ViewModel(), ActionsDialog.ActionsListener {
 
     private val modelProvider = ModelGenerator()
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
-    var itemsSubject: BehaviorSubject<List<Any>> = BehaviorSubject.createDefault(listOf())
+    var itemsSubject: BehaviorSubject<List<Diffable>> = BehaviorSubject.createDefault(listOf())
 
     init {
         compositeDisposable.add(
@@ -145,7 +146,7 @@ class CompleteExampleViewModel : ViewModel(), ActionsDialog.ActionsListener {
                             .subscribeOn(Schedulers.io())
                             .subscribe()
             )
-        }, 2500)
+        }, 1000)
     }
 
     fun headerCheckedChanged(model: HeaderModel, checked: Boolean) {

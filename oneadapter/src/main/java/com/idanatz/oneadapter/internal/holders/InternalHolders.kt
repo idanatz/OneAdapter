@@ -1,11 +1,20 @@
 package com.idanatz.oneadapter.internal.holders
 
-internal object LoadingIndicator {
+import com.idanatz.oneadapter.external.interfaces.Diffable
+import java.util.*
 
-    fun getType() = hashCode()
+internal object LoadingIndicator : Diffable {
+
+    private val uniqueId = UUID.randomUUID().mostSignificantBits
+
+    override fun getUniqueIdentifier() = uniqueId
+    override fun areContentTheSame(other: Any) = true
 }
 
-internal object EmptyIndicator {
+internal object EmptyIndicator : Diffable {
 
-    fun getType() = hashCode()
+    private val uniqueId = UUID.randomUUID().mostSignificantBits
+
+    override fun getUniqueIdentifier() = uniqueId
+    override fun areContentTheSame(other: Any) = true
 }
