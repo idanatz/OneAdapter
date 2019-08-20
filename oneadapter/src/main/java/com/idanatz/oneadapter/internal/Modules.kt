@@ -1,5 +1,7 @@
-package com.idanatz.oneadapter.external.modules
+package com.idanatz.oneadapter.internal
 
+import com.idanatz.oneadapter.external.modules.EmptinessModule
+import com.idanatz.oneadapter.external.modules.PagingModule
 import com.idanatz.oneadapter.internal.selection.OneItemSelection
 
 internal class Modules(

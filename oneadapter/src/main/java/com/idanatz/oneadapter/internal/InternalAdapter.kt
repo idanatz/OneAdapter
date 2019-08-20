@@ -126,8 +126,8 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
         }
     }
 
-    override fun onViewDetachedFromWindow(holder: OneViewHolder<Diffable>) {
-        super.onViewDetachedFromWindow(holder)
+    override fun onViewRecycled(holder: OneViewHolder<Diffable>) {
+        super.onViewRecycled(holder)
         holder.onUnbind()
     }
     //endregion
