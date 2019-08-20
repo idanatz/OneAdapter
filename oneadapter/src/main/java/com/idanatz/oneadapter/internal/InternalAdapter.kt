@@ -19,7 +19,6 @@ import com.idanatz.oneadapter.internal.interfaces.ViewHolderCreator
 import com.idanatz.oneadapter.internal.paging.LoadMoreObserver
 import com.idanatz.oneadapter.internal.paging.EndlessScrollListener
 import com.idanatz.oneadapter.external.modules.*
-import com.idanatz.oneadapter.internal.selection.OneItemSelection
 import com.idanatz.oneadapter.internal.selection.ItemSelectionActionsProvider
 import com.idanatz.oneadapter.internal.selection.OneItemDetailLookup
 import com.idanatz.oneadapter.internal.selection.OneItemKeyProvider
@@ -239,7 +238,8 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
 
     //region Selection Module
     fun enableSelection(itemSelectionModule: ItemSelectionModule) {
-        modules.oneItemSelection = OneItemSelection(itemSelectionModule, ItemSelectionActions(this))
+        modules.itemSelectionModule = itemSelectionModule
+        modules.actions.itemSelectionActions = ItemSelectionActions(this)
     }
 
     override fun onItemStateChanged(key: Long, selected: Boolean) {
@@ -252,7 +252,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
 
     override fun onSelectionStateChanged() {
         selectionTracker?.let {
-            modules.oneItemSelection?.module?.onSelectionUpdated(it.selection.size())
+            modules.itemSelectionModule?.onSelectionUpdated(it.selection.size())
         }
     }
 
@@ -310,7 +310,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
     }
 
     private fun configureItemSelectionModule(recyclerView: RecyclerView) {
-        modules.oneItemSelection?.module?.let { selectionModule ->
+        modules.itemSelectionModule?.let { selectionModule ->
             selectionTracker = SelectionTracker.Builder(
                     recyclerView.id.toString(),
                     recyclerView,

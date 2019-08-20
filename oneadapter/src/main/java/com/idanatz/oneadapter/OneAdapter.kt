@@ -4,6 +4,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.oneadapter.internal.InternalAdapter
+import com.idanatz.oneadapter.external.modules.Modules
 import com.idanatz.oneadapter.internal.utils.extensions.getIndexOfItem
 import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
 import java.util.*
@@ -15,8 +16,8 @@ class OneAdapter {
     private val internalItems: List<Diffable>
         get() = internalAdapter.data
 
-    val itemSelectionActions: ItemSelectionActions?
-        get() = internalAdapter.modules.oneItemSelection?.actions
+    val modulesActions: Modules.Actions
+        get() = internalAdapter.modules.actions
 
     fun setItems(items: List<Diffable>) {
         internalAdapter.updateData(LinkedList(items))
