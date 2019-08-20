@@ -3,7 +3,7 @@ Changelog
 
 Version 1.2.0
 ----------------------------
-* Diffable is now a mandatory when working with OneAdapter
+* Diffable is now mandatory when working with OneAdapter
 * Bug Fixes:
     * Paging Module not working properly with some layout manager
     * onUnbind call now called when the view is recycled instead of detached from window
