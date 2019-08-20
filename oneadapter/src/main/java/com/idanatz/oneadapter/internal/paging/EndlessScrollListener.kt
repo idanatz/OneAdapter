@@ -3,7 +3,8 @@ package com.idanatz.oneadapter.internal.paging
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.idanatz.oneadapter.internal.utils.findLastVisibleItemPosition
+import com.idanatz.oneadapter.internal.utils.Logger
+import com.idanatz.oneadapter.internal.utils.extensions.findLastVisibleItemPosition
 
 internal class EndlessScrollListener (
         private val layoutManager: RecyclerView.LayoutManager,
@@ -27,34 +28,55 @@ internal class EndlessScrollListener (
 
     // This happens many times a second during a scroll, so be wary of the code you place here.
     override fun onScrolled(view: RecyclerView, dx: Int, dy: Int) {
-        val totalItemCount = layoutManager.itemCount
-
-        if (isUserScrolled(view)) {
-            val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-
-            if (isLoadingFinished(totalItemCount)) {
-                loading = false
-                loadMoreObserver.onLoadingStateChanged(loading)
-            } else if (shouldStartLoading(lastVisibleItemPosition, totalItemCount)) {
-                currentPage++
-                loadMoreObserver.onLoadMore(currentPage)
-                loading = true
-                loadMoreObserver.onLoadingStateChanged(loading)
-            }
+        if (!isUserScrolled(view)) {
+            return
         }
 
-        this.previousTotalItemCount = totalItemCount
+        when (evaluateLoadingState()) {
+            LoadingState.FinishLoading -> {
+                loading = false
+                loadMoreObserver.onLoadingStateChanged(loading)
+            }
+            LoadingState.LoadingStarted -> {
+                loading = true
+                loadMoreObserver.onLoadingStateChanged(loading)
+                currentPage++
+                loadMoreObserver.onLoadMore(currentPage)
+            }
+            else -> {}
+        }
+
+        // update the previous item count to the current item count
+        this.previousTotalItemCount = layoutManager.itemCount
     }
 
     fun resetState() {
-        currentPage = this.startingPageIndex
+        currentPage = startingPageIndex
         loading = false
         previousTotalItemCount = if (includeEmptyState) 1 else 0
     }
 
     private fun isUserScrolled(view: RecyclerView) = view.scrollState != RecyclerView.SCROLL_STATE_IDLE
 
-    private fun shouldStartLoading(lastVisibleItemPosition: Int, totalItemCount: Int) = !loading && lastVisibleItemPosition + visibleThreshold > totalItemCount
+    private fun evaluateLoadingState(): LoadingState {
+        // inner functions
+        fun shouldStartLoading(lastVisibleItemPosition: Int, totalItemCount: Int) = !loading && lastVisibleItemPosition + visibleThreshold > totalItemCount
+        fun isLoadingFinished(totalItemCount: Int) = loading && totalItemCount > (previousTotalItemCount + 1) // + 1 for the loading holder
 
-    private fun isLoadingFinished(totalItemCount: Int) = loading && totalItemCount > (previousTotalItemCount + 1) // + 1 for the loading holder
+        val totalItemCount = layoutManager.itemCount
+        val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+
+        return when {
+            isLoadingFinished(totalItemCount) -> LoadingState.FinishLoading
+            shouldStartLoading(lastVisibleItemPosition, totalItemCount) -> LoadingState.LoadingStarted
+            loading -> LoadingState.MidLoading
+            else -> LoadingState.Normal
+        }.also {
+            if (it != LoadingState.Normal) Logger.logd { "onScrolled -> loading state: $it" }
+        }
+    }
+
+    enum class LoadingState {
+        Normal, LoadingStarted, MidLoading, FinishLoading
+    }
 }

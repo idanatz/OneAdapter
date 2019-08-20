@@ -4,7 +4,7 @@ import android.graphics.Canvas
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.idanatz.oneadapter.external.events.SwipeEventHook
-import com.idanatz.oneadapter.internal.utils.toOneViewHolder
+import com.idanatz.oneadapter.internal.utils.extensions.toOneViewHolder
 
 internal class OneItemTouchHelper : ItemTouchHelper(OneItemTouchHelperCallback()) {
 

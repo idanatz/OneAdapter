@@ -285,7 +285,7 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_delete) {
-            ItemSelectionActions itemSelectionActions = oneAdapter.getItemSelectionActions();
+            ItemSelectionActions itemSelectionActions = oneAdapter.getModulesActions().getItemSelectionActions();
             if (itemSelectionActions != null) {
                 viewModel.onDeleteItemsClicked(itemSelectionActions.getSelectedItems());
                 itemSelectionActions.clearSelection();

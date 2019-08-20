@@ -1,9 +1,13 @@
 package com.idanatz.oneadapter.external.modules
 
-import com.idanatz.oneadapter.internal.selection.OneItemSelection
+class Modules {
 
-internal class Modules(
-        var emptinessModule: EmptinessModule? = null,
-        var pagingModule: PagingModule? = null,
-        var oneItemSelection: OneItemSelection? = null
-)
+    var emptinessModule: EmptinessModule? = null
+    var pagingModule: PagingModule? = null
+    var itemSelectionModule: ItemSelectionModule? = null
+    val actions: Actions = Actions()
+
+    inner class Actions {
+        var itemSelectionActions: ItemSelectionActions? = null
+    }
+}

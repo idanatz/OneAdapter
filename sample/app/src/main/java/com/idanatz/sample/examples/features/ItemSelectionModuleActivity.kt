@@ -94,7 +94,7 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == R.id.action_delete) {
-            oneAdapter.itemSelectionActions?.removeSelectedItems()
+            oneAdapter.modulesActions.itemSelectionActions?.removeSelectedItems()
             return true
         }
         return super.onOptionsItemSelected(item)

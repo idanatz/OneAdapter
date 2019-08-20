@@ -205,7 +205,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == R.id.action_delete) {
-            oneAdapter.itemSelectionActions?.let { itemSelectionActions ->
+            oneAdapter.modulesActions.itemSelectionActions?.let { itemSelectionActions ->
                 viewModel.onDeleteItemsClicked(itemSelectionActions.getSelectedItems())
                 itemSelectionActions.clearSelection()
             }

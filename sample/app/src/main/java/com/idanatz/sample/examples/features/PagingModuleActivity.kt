@@ -55,7 +55,7 @@ class PagingModuleActivity : BaseExampleActivity() {
         override fun onLoadMore(currentPage: Int) {
             handler.postDelayed({
                 oneAdapter.add(modelGenerator.generateLoadMoreMessages())
-            }, 2500)
+            }, 1000)
         }
     }
 }

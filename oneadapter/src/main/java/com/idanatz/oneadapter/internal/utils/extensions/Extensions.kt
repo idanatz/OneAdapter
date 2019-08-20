@@ -1,6 +1,7 @@
-package com.idanatz.oneadapter.internal.utils
+package com.idanatz.oneadapter.internal.utils.extensions
 
 import android.content.Context
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
@@ -17,10 +18,6 @@ internal inline fun <A : Any?, B : Any?, R> let2(v1: A?, v2: B?, callback: (A, B
             callback(v1Verified, v2Verified)
         }
     }
-}
-
-internal fun <T, M> MutableList<T>.removeClassIfExist(classToRemove: Class<M>) {
-    indexOfFirst { classToRemove.isInstance(it) }.takeIf { it != -1 }?.let { foundIndex -> removeAt(foundIndex) }
 }
 
 internal fun RecyclerView.LayoutManager.findLastVisibleItemPosition(): Int {
@@ -51,4 +48,4 @@ internal fun RecyclerView.ViewHolder.toOneViewHolder() = this as OneViewHolder<*
  * Extension method to inflate layoutId from a given context
  */
 internal fun Context.inflateLayout(@LayoutRes layoutId: Int, parent: ViewGroup? = null, attachToRoot: Boolean = false): View
-        = android.view.LayoutInflater.from(this).inflate(layoutId, parent, attachToRoot)
+        = LayoutInflater.from(this).inflate(layoutId, parent, attachToRoot)
