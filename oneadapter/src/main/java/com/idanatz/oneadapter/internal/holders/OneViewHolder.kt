@@ -19,12 +19,12 @@ internal abstract class OneViewHolder<M> (
         private val eventsHooksMap: EventHooksMap<M>? = null // Not all ViewHolders will have events configured
 ) : RecyclerView.ViewHolder(parent.context.inflateLayout(moduleConfig.withLayoutResource(), parent, false)) {
 
-    private var model: M? = null
     lateinit var viewBinder: ViewBinder
+    var model: M? = null
     var isSwiping = false
 
     abstract fun onBind(model: M?)
-    abstract fun onUnbind()
+    abstract fun onUnbind(model: M?)
 
     fun onBindViewHolder(model: M?) {
         this.model = model

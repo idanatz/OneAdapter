@@ -31,9 +31,8 @@ class SwipeEventHookActivity : BaseExampleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        oneAdapter = OneAdapter()
+        oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(messageItem().addEventHook(swipeEventHook()))
-                .attachTo(recyclerView)
 
         oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }

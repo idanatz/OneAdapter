@@ -18,9 +18,8 @@ class SingleItemModuleActivity : BaseExampleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val oneAdapter = OneAdapter()
+        val oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(messageItem())
-                .attachTo(recyclerView)
 
         oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }

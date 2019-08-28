@@ -29,10 +29,9 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        oneAdapter = OneAdapter()
+        oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(messageItem())
                 .attachItemSelectionModule(itemSelectionModule())
-                .attachTo(recyclerView)
 
         oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }

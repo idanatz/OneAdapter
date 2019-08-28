@@ -49,7 +49,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         compositeDisposable = CompositeDisposable()
         viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel::class.java)
 
-        oneAdapter = OneAdapter()
+        oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(storyItem())
                 .attachItemModule(headerItem())
                 .attachItemModule(messageItem()
@@ -60,7 +60,6 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
                 .attachEmptinessModule(emptinessModule())
                 .attachPagingModule(pagingModule())
                 .attachItemSelectionModule(itemSelectionModule())
-                .attachTo(recyclerView)
 
         initActionsDialog(*Action.values()).setListener(viewModel)
 

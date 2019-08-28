@@ -20,9 +20,8 @@ class ClickEventHookActivity : BaseExampleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val oneAdapter = OneAdapter()
+        val oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(messageItem().addEventHook(clickEventHook()))
-                .attachTo(recyclerView)
 
         oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }

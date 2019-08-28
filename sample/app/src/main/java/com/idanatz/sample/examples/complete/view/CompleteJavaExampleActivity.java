@@ -60,7 +60,7 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         compositeDisposable = new CompositeDisposable();
         viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel.class);
 
-        oneAdapter = new OneAdapter()
+        oneAdapter = new OneAdapter(recyclerView)
                 .attachItemModule(storyItem())
                 .attachItemModule(headerItem())
                 .attachItemModule(messageItem()
@@ -70,8 +70,7 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
                 )
                 .attachEmptinessModule(emptinessModule())
                 .attachPagingModule(pagingModule())
-                .attachItemSelectionModule(itemSelectionModule())
-                .attachTo(recyclerView);
+                .attachItemSelectionModule(itemSelectionModule());
 
         initActionsDialog(Action.values()).setListener(viewModel);
 

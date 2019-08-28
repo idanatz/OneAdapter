@@ -1,5 +1,7 @@
 package com.idanatz.oneadapter.internal.interfaces
 
+import androidx.annotation.LayoutRes
+
 abstract class InternalModuleConfig {
-    abstract fun withLayoutResource(): Int
+    @LayoutRes abstract fun withLayoutResource(): Int
 }

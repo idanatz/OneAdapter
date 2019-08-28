@@ -26,36 +26,31 @@ import com.idanatz.oneadapter.internal.selection.SelectionTrackerObserver
 import com.idanatz.oneadapter.internal.selection.SelectionObserver
 import com.idanatz.oneadapter.internal.swiping.OneItemTouchHelper
 import com.idanatz.oneadapter.internal.utils.*
-import com.idanatz.oneadapter.internal.utils.MissingBuilderArgumentException
-import com.idanatz.oneadapter.internal.utils.MultipleHolderConflictException
+import com.idanatz.oneadapter.internal.validator.MissingConfigArgumentException
 import com.idanatz.oneadapter.internal.utils.extensions.isClassExists
 import com.idanatz.oneadapter.internal.utils.extensions.let2
 import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
 import com.idanatz.oneadapter.internal.utils.extensions.removeClassIfExist
+import com.idanatz.oneadapter.internal.validator.Validator
 import java.util.*
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
-internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>(), LoadMoreObserver, SelectionObserver, ItemSelectionActionsProvider {
+internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Adapter<OneViewHolder<Diffable>>(), LoadMoreObserver, SelectionObserver, ItemSelectionActionsProvider {
 
     companion object {
         const val UPDATE_DATA_DELAY_MILLIS = 100L
     }
 
-    private var recyclerView: RecyclerView? = null
+    private val context
+        get() = recyclerView.context
+
     internal val modules = Modules()
     internal var data: MutableList<Diffable> = mutableListOf()
-        private set
 
-    // Items
-    private val dataTypes = mutableListOf<Class<*>>() // maps T.class to unique indexes for adapter's getItemViewType
-    private val holderCreators = HashMap<Class<*>, ViewHolderCreator<Diffable>>() // maps T.class -> ViewHolderCreator<T>
+    private val viewHolderCreatorsStore = ViewHolderCreatorsStore()
 
     // Paging
-    private var pagingCreator: ViewHolderCreator<Diffable>? = null
     private var endlessScrollListener: EndlessScrollListener? = null
-
-    // Emptiness
-    private var emptinessCreator: ViewHolderCreator<Diffable>? = null
 
     // Item Selection
     private var selectionTracker: SelectionTracker<Long>? = null
@@ -64,7 +59,7 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
     // Handlers
     private val backgroundHandler = Handler(HandlerThread("OneAdapterBackgroundHandler").apply { start() }.looper)
     private val uiHandler
-        get() = recyclerView?.handler
+        get() = recyclerView.handler
 
     private val diffCallback = object : DiffUtilCallback {
         override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.getUniqueIdentifier() == newItem.getUniqueIdentifier()
@@ -73,18 +68,18 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
 
     init {
         setHasStableIds(true)
+
+        recyclerView.apply {
+            adapter = this@InternalAdapter
+            OneItemTouchHelper().attachToRecyclerView(this)
+        }
     }
 
     //region Traditional Adapter Overrides
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-        when (viewType) {
-            EmptyIndicator.getUniqueIdentifier().toInt() -> emptinessCreator?.create(parent) ?: throw IllegalArgumentException("Empty state has no associated Module attached")
-            LoadingIndicator.getUniqueIdentifier().toInt() -> pagingCreator?.create(parent) ?: throw IllegalArgumentException("Loading state has no associated Module attached")
-            else -> {
-                val dataType = dataTypes[viewType]
-                holderCreators[dataType]?.create(parent) ?: throw IllegalArgumentException("$dataType has no associated Module attached")
-            }
-        }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OneViewHolder<Diffable> {
+        val oneViewHolder = viewHolderCreatorsStore.getCreator(viewType)?.create(parent)
+        return oneViewHolder ?: throw RuntimeException("OneViewHolder creation failed")
+    }
 
     override fun onBindViewHolder(holder: OneViewHolder<Diffable>, position: Int) {
         val model = data[position]
@@ -114,28 +109,21 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
         return item.javaClass.simpleName.hashCode() + item.getUniqueIdentifier()
     }
 
-    override fun getItemViewType(position: Int): Int = when (val item = data[position]) {
-        is EmptyIndicator -> EmptyIndicator.getUniqueIdentifier().toInt()
-        is LoadingIndicator -> LoadingIndicator.getUniqueIdentifier().toInt()
-        else -> {
-            if (dataTypes.indexOf(item.javaClass) == -1) {
-                dataTypes.add(item.javaClass)
-            }
-            dataTypes.indexOf(item.javaClass)
-        }
-    }
+    override fun getItemViewType(position: Int) = viewHolderCreatorsStore.getCreatorUniqueIndex(data[position].javaClass)
 
     override fun onViewRecycled(holder: OneViewHolder<Diffable>) {
         super.onViewRecycled(holder)
-        holder.onUnbind()
+        holder.onUnbind(holder.model)
     }
     //endregion
 
     fun updateData(data: MutableList<Diffable>) {
         backgroundHandler.post {
+            Validator.validateItemsAgainstRegisteredModules(viewHolderCreatorsStore, data)
+
             // modify the incoming data if needed
             if (data.isEmpty()) {
-                if (emptinessCreator != null) {
+                if (modules.emptinessModule != null) {
                     data.add(0, EmptyIndicator)
                 }
                 endlessScrollListener?.resetState()
@@ -173,33 +161,40 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
     //region Item Module
     fun <M : Diffable> register(itemModule: ItemModule<M>) {
         val holderModuleConfig = itemModule.provideModuleConfig()
-        val dataClass = extractGenericClass(itemModule.javaClass) ?: throw MissingBuilderArgumentException("ItemModuleConfig missing model class")
+        val dataClass = extractGenericClass(itemModule.javaClass) ?: throw MissingConfigArgumentException("ItemModuleConfig missing model class")
 
-        if (holderCreators.containsKey(dataClass)) {
-            throw MultipleHolderConflictException("ItemModule with model class ${dataClass.simpleName} already attached")
-        }
+        Validator.validateItemModuleAgainstRegisteredModules(viewHolderCreatorsStore, dataClass)
+        Validator.validateLayoutExists(context, holderModuleConfig.withLayoutResource())
 
-        holderCreators[dataClass] = object : ViewHolderCreator<M> {
+        viewHolderCreatorsStore.addCreator(dataClass, object : ViewHolderCreator<M> {
             override fun create(parent: ViewGroup): OneViewHolder<M> {
                 return object : OneViewHolder<M>(parent, holderModuleConfig, itemModule.statesMap, itemModule.eventHooksMap) {
                     override fun onBind(model: M?) { model?.let { itemModule.onBind(it, viewBinder) } }
-                    override fun onUnbind() = itemModule.onUnbind(viewBinder)
+                    override fun onUnbind(model: M?) { model?.let { itemModule.onUnbind(it, viewBinder) } }
                 }
             }
-        } as ViewHolderCreator<Diffable>
+        } as ViewHolderCreator<Diffable>)
     }
     //endregion
 
     //region Emptiness Module
     fun enableEmptiness(emptinessModule: EmptinessModule) {
         modules.emptinessModule = emptinessModule
-        emptinessCreator = object : ViewHolderCreator<Diffable> {
+        viewHolderCreatorsStore.addCreator(EmptyIndicator.javaClass, object : ViewHolderCreator<Diffable> {
             override fun create(parent: ViewGroup): OneViewHolder<Diffable> {
                 return object : OneViewHolder<Diffable>(parent, emptinessModule.provideModuleConfig()) {
                     override fun onBind(model: Diffable?) = emptinessModule.onBind(viewBinder)
-                    override fun onUnbind() = emptinessModule.onUnbind(viewBinder)
+                    override fun onUnbind(model: Diffable?) = emptinessModule.onUnbind(viewBinder)
                 }
             }
+        })
+        configureEmptinessModule()
+    }
+
+    private fun configureEmptinessModule() {
+        // in case emptiness module is configured, add empty indicator item
+        if (data.isEmpty() && modules.emptinessModule != null) {
+            data.add(0, EmptyIndicator)
         }
     }
     //endregion
@@ -210,13 +205,25 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
         pagingModule.pagingModuleConfig = pagingModule.provideModuleConfig()
         modules.pagingModule = pagingModule
 
-        pagingCreator = object : ViewHolderCreator<Diffable> {
+        viewHolderCreatorsStore.addCreator(LoadingIndicator.javaClass, object : ViewHolderCreator<Diffable> {
             override fun create(parent: ViewGroup): OneViewHolder<Diffable> {
                 return object : OneViewHolder<Diffable>(parent, pagingModule.pagingModuleConfig) {
                     override fun onBind(model: Diffable?) = pagingModule.onBind(viewBinder)
-                    override fun onUnbind() = pagingModule.onUnbind(viewBinder)
+                    override fun onUnbind(model: Diffable?) = pagingModule.onUnbind(viewBinder)
                 }
             }
+        })
+        configurePagingModule()
+    }
+
+    private fun configurePagingModule() {
+        let2(recyclerView.layoutManager, modules.pagingModule) { layoutManager, loadMoreModule ->
+            endlessScrollListener = EndlessScrollListener(
+                    layoutManager = layoutManager,
+                    visibleThreshold = loadMoreModule.pagingModuleConfig.withVisibleThreshold(),
+                    includeEmptyState = modules.emptinessModule != null,
+                    loadMoreObserver = this@InternalAdapter
+            ).also { recyclerView.addOnScrollListener(it) }
         }
     }
 
@@ -240,6 +247,25 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
     fun enableSelection(itemSelectionModule: ItemSelectionModule) {
         modules.itemSelectionModule = itemSelectionModule
         modules.actions.itemSelectionActions = ItemSelectionActions(this)
+        configureItemSelectionModule()
+    }
+
+    private fun configureItemSelectionModule() {
+        modules.itemSelectionModule?.let { selectionModule ->
+            selectionTracker = SelectionTracker.Builder(
+                    recyclerView.id.toString(),
+                    recyclerView,
+                    OneItemKeyProvider(recyclerView).also { itemKeyProvider = it },
+                    OneItemDetailLookup(recyclerView),
+                    StorageStrategy.createLongStorage()
+            )
+                    .withSelectionPredicate(when (selectionModule.provideModuleConfig().withSelectionType()) {
+                        ItemSelectionModuleConfig.SelectionType.Single -> SelectionPredicates.createSelectSingleAnything()
+                        ItemSelectionModuleConfig.SelectionType.Multiple -> SelectionPredicates.createSelectAnything()
+                    })
+                    .build()
+                    .also { it.addObserver(SelectionTrackerObserver(this@InternalAdapter)) }
+        }
     }
 
     override fun onItemStateChanged(key: Long, selected: Boolean) {
@@ -275,56 +301,8 @@ internal class InternalAdapter : RecyclerView.Adapter<OneViewHolder<Diffable>>()
     //endregion
 
     //region RecyclerView
-    fun attachTo(recyclerView: RecyclerView) {
-        this.recyclerView = recyclerView.apply {
-            adapter = this@InternalAdapter
-            OneItemTouchHelper().attachToRecyclerView(this)
-            configureEmptinessModule()
-            configurePagingModule(this)
-            configureItemSelectionModule(this)
-        }
-    }
-
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
         endlessScrollListener?.let { recyclerView.removeOnScrollListener(it) }
-    }
-    //endregion
-
-    //region Internal Configurations
-    private fun configureEmptinessModule() {
-        // in case emptiness module is configured, add empty indicator item
-        if (data.isEmpty() && emptinessCreator != null) {
-            data.add(0, EmptyIndicator)
-        }
-    }
-
-    private fun configurePagingModule(recyclerView: RecyclerView) {
-        let2(recyclerView.layoutManager, modules.pagingModule) { layoutManager, loadMoreModule ->
-            endlessScrollListener = EndlessScrollListener(
-                    layoutManager = layoutManager,
-                    visibleThreshold = loadMoreModule.pagingModuleConfig.withVisibleThreshold(),
-                    includeEmptyState = emptinessCreator != null,
-                    loadMoreObserver = this@InternalAdapter
-            ).also { recyclerView.addOnScrollListener(it) }
-        }
-    }
-
-    private fun configureItemSelectionModule(recyclerView: RecyclerView) {
-        modules.itemSelectionModule?.let { selectionModule ->
-            selectionTracker = SelectionTracker.Builder(
-                    recyclerView.id.toString(),
-                    recyclerView,
-                    OneItemKeyProvider(recyclerView).also { itemKeyProvider = it },
-                    OneItemDetailLookup(recyclerView),
-                    StorageStrategy.createLongStorage()
-            )
-            .withSelectionPredicate(when (selectionModule.provideModuleConfig().withSelectionType()) {
-                ItemSelectionModuleConfig.SelectionType.Single -> SelectionPredicates.createSelectSingleAnything()
-                ItemSelectionModuleConfig.SelectionType.Multiple -> SelectionPredicates.createSelectAnything()
-            })
-            .build()
-            .also { it.addObserver(SelectionTrackerObserver(this@InternalAdapter)) }
-        }
     }
     //endregion
 }

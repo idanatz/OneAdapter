@@ -20,9 +20,8 @@ class MainActivity : BaseExampleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val oneAdapter = OneAdapter()
+        val oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(activityItemModule())
-                .attachTo(recyclerView)
 
         oneAdapter.setItems(listOf(
                 ActivityModel(getString(R.string.single_item_module_example), Intent(this@MainActivity, SingleItemModuleActivity::class.java)),

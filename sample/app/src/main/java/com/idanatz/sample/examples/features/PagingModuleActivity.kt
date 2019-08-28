@@ -22,10 +22,9 @@ class PagingModuleActivity : BaseExampleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        oneAdapter = OneAdapter()
+        oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(messageItem())
                 .attachPagingModule(pagingModule())
-                .attachTo(recyclerView)
 
         oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }
