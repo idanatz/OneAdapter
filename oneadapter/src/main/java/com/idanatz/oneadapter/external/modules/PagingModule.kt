@@ -6,8 +6,6 @@ import com.idanatz.oneadapter.internal.interfaces.InternalModuleConfig
 
 abstract class PagingModule {
 
-    internal lateinit var pagingModuleConfig: PagingModuleConfig
-
     abstract fun provideModuleConfig(): PagingModuleConfig
     abstract fun onLoadMore(currentPage: Int)
     open fun onBind(@NotNull viewBinder: ViewBinder) {}

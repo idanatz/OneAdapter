@@ -24,6 +24,8 @@ https://medium.com/@idanatsmon/adapting-your-recyclerview-the-2019-approach-e47e
 - [Event Hooks:](#event-hooks)
   - [Click Event Hook](#click-event-hook)
   - [Swipe Event Hook](#swipe-event-hook)
+- [Others:](#others)
+  - [First Bind Animation](#first-bind-animation)
 
 # Include in your project
 ```groovy
@@ -115,17 +117,15 @@ class MessageModel : Diffable {
 ### 3. Attach To OneAdapter & Use
 ##### Java
 ```java
-OneAdapter oneAdapter = new OneAdapter()
-    .attachItemModule(new MessageModule())
-    .attachTo(recyclerView);
+OneAdapter oneAdapter = new OneAdapter(recyclerView)
+    .attachItemModule(new MessageModule());
     
 oneAdapter.setItems(...)  
 ```
 ##### Kotlin
 ```kotlin
-val oneAdapter = OneAdapter()
-    .attachItemModule(MessageModule())
-    .attachTo(recyclerView);
+val oneAdapter = OneAdapter(recyclerView)
+    .attachItemModule(MessageModule());
     
 oneAdapter.setItems(...) 
 ```
@@ -142,7 +142,7 @@ class StoryModule extends ItemModule<StoryModel> { ... }
 ```
 #### 2. Attach To OneAdapter
 ```java
-OneAdapter oneAdapter = new OneAdapter()
+OneAdapter oneAdapter = new OneAdapter(recyclerView)
     .attachItemModule(new MessageModule())
     .attachItemModule(new StoryModule())
     ...
@@ -188,13 +188,13 @@ class PagingModuleImpl : PagingModule() {
 #### 2. Attach To OneAdapter
 ##### Java
 ```java
-OneAdapter oneAdapter = new OneAdapter()
+OneAdapter oneAdapter = new OneAdapter(recyclerView)
     .attachPagingModule(new PagingModuleImpl())
     ...
 ```
 ##### Kotlin
 ```kotlin
-val oneAdapter = OneAdapter()
+val oneAdapter = OneAdapter(recyclerView)
     .attachPagingModule(PagingModuleImpl())
     ...
 ```
@@ -236,13 +236,13 @@ class EmptinessModuleImpl : EmptinessModule() {
 #### 2. Attach To OneAdapter
 ##### Java
 ```java
-OneAdapter oneAdapter = new OneAdapter()
+OneAdapter oneAdapter = new OneAdapter(recyclerView)
     .attachEmptinessModule(new EmptinessModuleImpl())
     ...
 ```
 ##### Kotlin
 ```kotlin
-val oneAdapter = OneAdapter()
+val oneAdapter = OneAdapter(recyclerView)
     .attachEmptinessModule(EmptinessModuleImpl())
     ...
 ```
@@ -285,7 +285,7 @@ class ItemSelectionModuleImpl : ItemSelectionModule() {
 ```java
 class SelectionStateImpl extends SelectionState<MessageModel> {
     @Override
-    public boolean selectionEnabled(@NotNull MessageModel model) {
+    public boolean isSelectionEnabled(@NotNull MessageModel model) {
         return true;
     }
 
@@ -300,7 +300,7 @@ class SelectionStateImpl extends SelectionState<MessageModel> {
 ##### Kotlin
 ```kotlin
 class SelectionStateImpl : SelectionState<MessageModel>() {
-    override fun selectionEnabled(model: MessageModel) = true
+    override fun isSelectionEnabled(model: MessageModel) = true
 
     override fun onSelected(model: MessageModel, selected: Boolean) {
         // update your model here. 
@@ -312,14 +312,14 @@ class SelectionStateImpl : SelectionState<MessageModel>() {
 #### 3. Attach To ItemModule & OneAdapter
 ##### Java
 ```java
-OneAdapter oneAdapter = new OneAdapter()
+OneAdapter oneAdapter = new OneAdapter(recyclerView)
     .attachItemModule(new MessageModule()).addState(new SelectionStateImpl())
     .attachItemSelectionModule(new ItemSelectionModuleImpl())
     ...
 ```
 ##### Kotlin
 ```kotlin
-val oneAdapter = OneAdapter()
+val oneAdapter = OneAdapter(recyclerView)
     .attachItemModule(MessageModule()).addState(SelectionStateImpl())
     .attachItemSelectionModule(ItemSelectionModuleImpl())
     ...
@@ -351,13 +351,13 @@ class MessageClickEvent : ClickEventHook<MessageModel>() {
 #### 2. Attach To ItemModule
 ##### Java
 ```java
-OneAdapter oneAdapter = new OneAdapter()
+OneAdapter oneAdapter = new OneAdapter(recyclerView)
     .attachItemModule(new MessageModule()).addEventHook(new MessageClickEvent())
     ...
 ```
 ##### Kotlin
 ```kotlin
-val oneAdapter = OneAdapter()
+val oneAdapter = OneAdapter(recyclerView)
     .attachItemModule(MessageModule()).addEventHook(MessageClickEvent())
     ...
 ```
@@ -397,15 +397,60 @@ class MessageSwipeEvent : SwipeEventHook<MessageModel>() {
 #### 2. Attach To ItemModule
 ##### Java
 ```java
-OneAdapter oneAdapter = new OneAdapter()
+OneAdapter oneAdapter = new OneAdapter(recyclerView)
     .attachItemModule(new MessageModule()).addEventHook(new MessageSwipeEvent())
     ...
 ```
 ##### Kotlin
 ```kotlin
-val oneAdapter = OneAdapter()
+val oneAdapter = OneAdapter(recyclerView)
     .attachItemModule(MessageModule()).addEventHook(MessageSwipeEvent())
     ...
+```
+
+<br/><br/><br/>
+## Others
+
+### First Bind Animation
+##### Java
+```java
+class MessageModule extends ItemModule<MessageModel> {
+      @NotNull @Override
+      public ItemModuleConfig provideModuleConfig() {
+          return new ItemModuleConfig() {
+              @Override
+              public int withLayoutResource() { return R.layout.message_model; }
+          };
+          
+          @Nullable @Override
+          public Animator withFirstBindAnimation() {
+               // can be implemented by inflating Animator Xml
+               return AnimatorInflater.loadAnimator(context, R.animator.item_animation_example);
+          }
+      }
+
+      @Override
+      public void onBind(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) { ... }
+}
+```
+##### Kotlin
+```kotlin
+class MessageModule : ItemModule<MessageModel>() {
+    override fun provideModuleConfig() = object : ItemModuleConfig() {
+        override fun withLayoutResource() = R.layout.message_model
+        
+        override fun withFirstBindAnimation(): Animator {
+            // or can be implemented by constructing ObjectAnimator
+            return ObjectAnimator().apply {
+                 propertyName = "translationX"
+                 setFloatValues(-1080f, 0f)
+                 duration = 750
+            }
+        }
+    }
+
+    override fun onBind(model: MessageModel, viewBinder: ViewBinder) { ... }
+}
 ```
 
 <br/><br/>

@@ -24,10 +24,9 @@ class EmptinessModuleActivity : BaseExampleActivity(), ActionsListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        oneAdapter = OneAdapter()
+        oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(messageItem())
                 .attachEmptinessModule(emptinessModule())
-                .attachTo(recyclerView)
 
         initActionsDialog(Action.SetAll, Action.ClearAll).setListener(this)
     }

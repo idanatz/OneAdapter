@@ -20,9 +20,8 @@ class MainActivity : BaseExampleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val oneAdapter = OneAdapter()
+        val oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(activityItemModule())
-                .attachTo(recyclerView)
 
         oneAdapter.setItems(listOf(
                 ActivityModel(getString(R.string.single_item_module_example), Intent(this@MainActivity, SingleItemModuleActivity::class.java)),
@@ -32,6 +31,7 @@ class MainActivity : BaseExampleActivity() {
                 ActivityModel(getString(R.string.item_selection_module_example), Intent(this@MainActivity, ItemSelectionModuleActivity::class.java)),
                 ActivityModel(getString(R.string.click_event_hook_example), Intent(this@MainActivity, ClickEventHookActivity::class.java)),
                 ActivityModel(getString(R.string.swipe_event_hook_example), Intent(this@MainActivity, SwipeEventHookActivity::class.java)),
+                ActivityModel(getString(R.string.first_bind_animation_example), Intent(this@MainActivity, FirstBindAnimationActivity::class.java)),
                 ActivityModel(getString(R.string.complete_kotlin_example), Intent(this@MainActivity, CompleteKotlinExampleActivity::class.java)),
                 ActivityModel(getString(R.string.complete_java_example), Intent(this@MainActivity, CompleteJavaExampleActivity::class.java))
         ))

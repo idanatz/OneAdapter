@@ -7,11 +7,13 @@ import com.idanatz.oneadapter.internal.InternalAdapter
 import com.idanatz.oneadapter.external.modules.Modules
 import com.idanatz.oneadapter.internal.utils.extensions.getIndexOfItem
 import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
+import com.idanatz.oneadapter.internal.validator.MissingModuleDefinitionException
+import com.idanatz.oneadapter.internal.validator.MultipleModuleConflictException
 import java.util.*
 
-class OneAdapter {
+class OneAdapter(recyclerView: RecyclerView) {
 
-    private val internalAdapter = InternalAdapter()
+    internal val internalAdapter = InternalAdapter(recyclerView)
 
     private val internalItems: List<Diffable>
         get() = internalAdapter.data
@@ -19,6 +21,13 @@ class OneAdapter {
     val modulesActions: Modules.Actions
         get() = internalAdapter.modules.actions
 
+    val itemCount: Int
+        get() = internalAdapter.itemCount
+
+    /**
+     * Sets the adapter's item list to the given list.
+     * @throws MissingModuleDefinitionException if any of the given items are missing an ItemModule.
+     */
     fun setItems(items: List<Diffable>) {
         internalAdapter.updateData(LinkedList(items))
     }
@@ -65,6 +74,11 @@ class OneAdapter {
         }
     }
 
+    /**
+     * Attach the given ItemModule to the adapter.
+     * This will add the ability to process items of the ItemModule type.
+     * @throws MultipleModuleConflictException if an ItemModule of the same type already exists.
+     */
     fun <M : Diffable> attachItemModule(itemModule: ItemModule<M>): OneAdapter {
         internalAdapter.register(itemModule)
         return this
@@ -82,11 +96,6 @@ class OneAdapter {
 
     fun attachItemSelectionModule(itemSelectionModule: ItemSelectionModule): OneAdapter {
         internalAdapter.enableSelection(itemSelectionModule)
-        return this
-    }
-
-    fun attachTo(recyclerView: RecyclerView): OneAdapter {
-        internalAdapter.attachTo(recyclerView)
         return this
     }
 }

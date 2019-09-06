@@ -1,16 +1,28 @@
 Changelog
 ==========
 
+
+Version 1.3.0
+----------------------------
+* Added First Bind Animation Config
+* Improved threading mechanism
+* Added common UI tests
+* Change: RecyclerView is now a constructor parameter instead of an attachment function
+* Change: OnUnbind functions now includes the model as a parameter
+
+
 Version 1.2.0
 ----------------------------
-* Diffable is now mandatory when working with OneAdapter
+* Change: Diffable is now mandatory when working with OneAdapter
 * Bug Fixes:
     * Paging Module not working properly with some layout manager
     * onUnbind call now called when the view is recycled instead of detached from window
 
+
 Version 1.1.1
 ----------------------------
 * Removed the res folder to prevent conflicts
+
 
 Version 1.1.0
 ----------------------------
@@ -19,9 +31,9 @@ Version 1.1.0
 * Bug fixes related to the diffing mechanism
 * Removed unnecessary lines from manifest
 
+
 Version 1.0.0
 ----------------------------
-
 First Release Includes:
 * Modules:
 	* Item Module

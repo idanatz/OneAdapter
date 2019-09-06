@@ -19,12 +19,14 @@ class MultipleItemModuleActivity : BaseExampleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val oneAdapter = OneAdapter()
+        val oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(messageItem())
                 .attachItemModule(headerItem())
-                .attachTo(recyclerView)
 
-        val items = modelGenerator.addHeadersFromMessages(modelGenerator.generateFirstMessages(), false)
+        val items = modelGenerator.addHeadersFromMessages(
+                messages = modelGenerator.generateFirstMessages(),
+                checkable = false
+        )
         oneAdapter.setItems(items)
     }
 

@@ -1,5 +1,8 @@
 package com.idanatz.sample.examples.complete.view
 
+import android.animation.Animator
+import android.animation.AnimatorInflater
+import android.animation.ObjectAnimator
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -17,7 +20,6 @@ import com.airbnb.lottie.LottieAnimationView
 import com.idanatz.sample.models.HeaderModel
 import com.idanatz.sample.models.MessageModel
 import com.idanatz.sample.examples.complete.view_model.CompleteExampleViewModel
-import com.idanatz.sample.models.StoriesModel
 import com.idanatz.oneadapter.OneAdapter
 import com.idanatz.oneadapter.external.events.ClickEventHook
 import com.idanatz.oneadapter.external.states.SelectionState
@@ -28,7 +30,7 @@ import com.idanatz.oneadapter.external.events.SwipeEventHook
 import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.examples.ActionsDialog.*
-import com.idanatz.sample.examples.features.SwipeEventHookActivity
+import com.idanatz.sample.models.StoriesModel
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 
@@ -49,7 +51,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         compositeDisposable = CompositeDisposable()
         viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel::class.java)
 
-        oneAdapter = OneAdapter()
+        oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(storyItem())
                 .attachItemModule(headerItem())
                 .attachItemModule(messageItem()
@@ -60,7 +62,6 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
                 .attachEmptinessModule(emptinessModule())
                 .attachPagingModule(pagingModule())
                 .attachItemSelectionModule(itemSelectionModule())
-                .attachTo(recyclerView)
 
         initActionsDialog(*Action.values()).setListener(viewModel)
 
@@ -99,6 +100,14 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     private fun headerItem(): ItemModule<HeaderModel> = object : ItemModule<HeaderModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource() = R.layout.header_model
+            override fun withFirstBindAnimation(): Animator {
+                // can be implemented by constructing ObjectAnimator
+                return ObjectAnimator().apply {
+                    propertyName = "translationX"
+                    setFloatValues(-1080f, 0f)
+                    duration = 750
+                }
+            }
         }
 
         override fun onBind(model: HeaderModel, viewBinder: ViewBinder) {
@@ -115,6 +124,10 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource() = R.layout.message_model
+            override fun withFirstBindAnimation(): Animator {
+                // can be implemented by inflating Animator Xml
+                return AnimatorInflater.loadAnimator(this@CompleteKotlinExampleActivity, R.animator.item_animation_example)
+            }
         }
 
         override fun onBind(model: MessageModel, viewBinder: ViewBinder) {
@@ -137,7 +150,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     }
 
     private fun selectionState(): SelectionState<MessageModel> = object : SelectionState<MessageModel>() {
-        override fun selectionEnabled(model: MessageModel): Boolean = true
+        override fun isSelectionEnabled(model: MessageModel): Boolean = true
 
         override fun onSelected(model: MessageModel, selected: Boolean) {
             model.isSelected = selected

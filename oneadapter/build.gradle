@@ -12,6 +12,18 @@ android {
         versionCode VERSION_CODE
         versionName VERSION_NAME
         buildToolsVersion BUILD_TOOLS_VERSION
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
     }
 
     buildTypes {
@@ -28,4 +40,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KOTLIN_VERSION"
     implementation "androidx.recyclerview:recyclerview:$RECYCLER_VIEW_VERSION"
     implementation "androidx.recyclerview:recyclerview-selection:$RECYCLER_VIEW_VERSION"
+
+    // Testing
+    androidTestImplementation "androidx.test.ext:junit-ktx:$JUNIT_KTX_VERSION"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$ESPRESSO_VERSION"
+    androidTestImplementation "org.amshove.kluent:kluent-android:$KLUENT_VERSION"
+    androidTestImplementation "org.awaitility:awaitility:$AWAITILITY_VERSION"
 }

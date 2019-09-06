@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="small_model_height">10dp</dimen>
+    <dimen name="large_model_height">100dp</dimen>
+</resources>

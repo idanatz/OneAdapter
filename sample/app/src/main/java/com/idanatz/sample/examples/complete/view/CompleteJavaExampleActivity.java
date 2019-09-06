@@ -1,9 +1,14 @@
 package com.idanatz.sample.examples.complete.view;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProviders;
 
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
+import android.animation.ObjectAnimator;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -25,8 +30,8 @@ import com.idanatz.oneadapter.external.events.SwipeEventHook;
 import com.idanatz.sample.examples.BaseExampleActivity;
 import com.idanatz.sample.models.HeaderModel;
 import com.idanatz.sample.models.MessageModel;
-import com.idanatz.sample.examples.complete.view_model.CompleteExampleViewModel;
 import com.idanatz.sample.models.StoriesModel;
+import com.idanatz.sample.examples.complete.view_model.CompleteExampleViewModel;
 import com.idanatz.oneadapter.OneAdapter;
 import com.idanatz.oneadapter.external.events.ClickEventHook;
 import com.idanatz.oneadapter.external.modules.EmptinessModuleConfig;
@@ -60,7 +65,7 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         compositeDisposable = new CompositeDisposable();
         viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel.class);
 
-        oneAdapter = new OneAdapter()
+        oneAdapter = new OneAdapter(recyclerView)
                 .attachItemModule(storyItem())
                 .attachItemModule(headerItem())
                 .attachItemModule(messageItem()
@@ -70,8 +75,7 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
                 )
                 .attachEmptinessModule(emptinessModule())
                 .attachPagingModule(pagingModule())
-                .attachItemSelectionModule(itemSelectionModule())
-                .attachTo(recyclerView);
+                .attachItemSelectionModule(itemSelectionModule());
 
         initActionsDialog(Action.values()).setListener(viewModel);
 
@@ -124,6 +128,16 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
                 return new ItemModuleConfig() {
                     @Override
                     public int withLayoutResource() { return R.layout.header_model; }
+
+                    @Override
+                    public Animator withFirstBindAnimation() {
+                        // can be implemented by constructing ObjectAnimator
+                        ObjectAnimator animator = new ObjectAnimator();
+                        animator.setPropertyName("translationX");
+                        animator.setFloatValues(-1080f, 0f);
+                        animator.setDuration(750);
+                        return animator;
+                    }
                 };
             }
 
@@ -148,6 +162,12 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
                 return new ItemModuleConfig() {
                     @Override
                     public int withLayoutResource() { return R.layout.message_model; }
+
+                    @Nullable @Override
+                    public Animator withFirstBindAnimation() {
+                        // can be implemented by inflating Animator Xml
+                        return AnimatorInflater.loadAnimator(CompleteJavaExampleActivity.this, R.animator.item_animation_example);
+                    }
                 };
             }
 
@@ -176,7 +196,7 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
     private SelectionState<MessageModel> selectionState() {
         return new SelectionState<MessageModel>() {
             @Override
-            public boolean selectionEnabled(@NotNull MessageModel model) {
+            public boolean isSelectionEnabled(@NotNull MessageModel model) {
                 return true;
             }
 

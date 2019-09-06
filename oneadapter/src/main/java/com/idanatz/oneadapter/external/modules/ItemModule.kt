@@ -19,7 +19,7 @@ abstract class ItemModule<M> {
     abstract fun provideModuleConfig(): ItemModuleConfig
     abstract fun onBind(@NotNull model: M, @NotNull viewBinder: ViewBinder)
 
-    open fun onUnbind(@NotNull viewBinder: ViewBinder) {}
+    open fun onUnbind(@NotNull model: M, @NotNull viewBinder: ViewBinder) {}
 
     fun addState(state: State<M>): ItemModule<M> {
         when (state) {
