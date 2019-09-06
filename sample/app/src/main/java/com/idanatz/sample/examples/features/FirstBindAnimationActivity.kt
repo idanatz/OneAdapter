@@ -1,5 +1,8 @@
 package com.idanatz.sample.examples.features
 
+import android.animation.Animator
+import android.animation.AnimatorInflater
+import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
@@ -14,7 +17,7 @@ import com.idanatz.sample.models.MessageModel
 import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.models.HeaderModel
 
-class MultipleItemModuleActivity : BaseExampleActivity() {
+class FirstBindAnimationActivity : BaseExampleActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +27,7 @@ class MultipleItemModuleActivity : BaseExampleActivity() {
                 .attachItemModule(headerItem())
 
         val items = modelGenerator.addHeadersFromMessages(
-                messages = modelGenerator.generateFirstMessages(),
+                messages = modelGenerator.generateFirstMessages() + modelGenerator.generateLoadMoreMessages(),
                 checkable = false
         )
         oneAdapter.setItems(items)
@@ -33,6 +36,11 @@ class MultipleItemModuleActivity : BaseExampleActivity() {
     private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource(): Int = R.layout.message_model
+
+            override fun withFirstBindAnimation(): Animator {
+                // can be implemented by inflating Animator Xml
+                return AnimatorInflater.loadAnimator(this@FirstBindAnimationActivity, R.animator.item_animation_example)
+            }
         }
 
         override fun onBind(model: MessageModel, viewBinder: ViewBinder) {
@@ -42,13 +50,22 @@ class MultipleItemModuleActivity : BaseExampleActivity() {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(this@MultipleItemModuleActivity).load(model.avatarImageId).into(image)
+            Glide.with(this@FirstBindAnimationActivity).load(model.avatarImageId).into(image)
         }
     }
 
     private fun headerItem(): ItemModule<HeaderModel> = object : ItemModule<HeaderModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource() = R.layout.header_model
+
+            override fun withFirstBindAnimation(): Animator {
+                // can be implemented by constructing ObjectAnimator
+                return ObjectAnimator().apply {
+                    propertyName = "translationX"
+                    setFloatValues(-1080f, 0f)
+                    duration = 750
+                }
+            }
         }
 
         override fun onBind(model: HeaderModel, viewBinder: ViewBinder) {

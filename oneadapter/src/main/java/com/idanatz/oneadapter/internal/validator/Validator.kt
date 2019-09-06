@@ -2,7 +2,7 @@ package com.idanatz.oneadapter.internal.validator
 
 import android.content.Context
 import com.idanatz.oneadapter.external.interfaces.Diffable
-import com.idanatz.oneadapter.internal.ViewHolderCreatorsStore
+import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.internal.holders.InternalHolderModel
 import java.lang.NullPointerException
 
@@ -10,8 +10,8 @@ internal class Validator {
 
     companion object {
 
-        fun validateItemsAgainstRegisteredModules(viewHolderCreatorsStore: ViewHolderCreatorsStore, items: List<Diffable>) {
-            items.filterNot { it is InternalHolderModel }.find { viewHolderCreatorsStore.getCreator(it.javaClass) == null }?.let {
+        fun validateItemsAgainstRegisteredModules(itemModulesMap: MutableMap<Class<*>, ItemModule<*>>, items: List<Diffable>) {
+            items.filterNot { it is InternalHolderModel }.find { !itemModulesMap.containsKey(it.javaClass) }?.let {
                 throw MissingModuleDefinitionException("did you forget to attach ItemModule? (model: ${it.javaClass})")
             }
         }
@@ -24,9 +24,9 @@ internal class Validator {
             }
         }
 
-        fun validateItemModuleAgainstRegisteredModules(viewHolderCreatorsStore: ViewHolderCreatorsStore, dataClass: Class<*>) {
-            if (viewHolderCreatorsStore.isCreatorExists(dataClass)) {
-                throw MultipleHolderConflictException("ItemModule with model class ${dataClass.simpleName} already attached")
+        fun validateItemModuleAgainstRegisteredModules(itemModulesMap: MutableMap<Class<*>, ItemModule<*>>, dataClass: Class<*>) {
+            if (itemModulesMap.containsKey(dataClass)) {
+                throw MultipleModuleConflictException("ItemModule with model class ${dataClass.simpleName} already attached")
             }
         }
     }

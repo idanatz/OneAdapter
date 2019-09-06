@@ -1,4 +1,4 @@
-package com.idanatz.oneadapter.tests.modules.item_module
+package com.idanatz.oneadapter.tests.modules.item
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.helpers.BaseTest
@@ -7,7 +7,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class AddingOneItemWithNoModulesShouldThrowException : BaseTest() {
+class WhenAddingItemWithNoModulesShouldThrowException : BaseTest() {
 
     @Test(expected = MissingModuleDefinitionException::class)
     fun test() {

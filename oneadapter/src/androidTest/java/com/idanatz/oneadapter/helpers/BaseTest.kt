@@ -1,5 +1,6 @@
 package com.idanatz.oneadapter.helpers
 
+import android.os.Handler
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,14 +15,15 @@ import com.idanatz.oneadapter.test.R
 import org.junit.After
 import org.junit.Rule
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 open class BaseTest {
 
-    protected lateinit var recyclerView: RecyclerView
     protected lateinit var oneAdapter: OneAdapter
     protected lateinit var modelGenerator: ModelGenerator
     protected lateinit var modulesGenerator: ModulesGenerator
+    private lateinit var handler: Handler
 
     private var screenHeight: Int = 0
     private var smallHolderHeight: Int = 0
@@ -40,11 +42,12 @@ open class BaseTest {
 
         activityScenarioRule.scenario.moveToState(Lifecycle.State.RESUMED)
         runOnActivity {
+            handler = Handler()
             screenHeight = it.resources.displayMetrics.heightPixels
             smallHolderHeight = it.resources.getDimension(R.dimen.small_model_height).toInt()
             largeHolderHeight = it.resources.getDimension(R.dimen.large_model_height).toInt()
 
-            recyclerView = it.findViewById<RecyclerView>(R.id.recycler).apply {
+            it.findViewById<RecyclerView>(R.id.recycler).apply {
                 layoutManager = LinearLayoutManager(it)
                 oneAdapter = OneAdapter(this)
             }
@@ -59,6 +62,10 @@ open class BaseTest {
         activityScenarioRule.scenario.onActivity(block)
     }
 
+    protected fun runWithDelay(block: () -> Unit) {
+        handler.postDelayed(block, 750)
+    }
+
     protected fun catchException(block: () -> Unit): Throwable {
         val countDownLatch = CountDownLatch(1)
         var thrownException: Throwable? = null
@@ -69,8 +76,8 @@ open class BaseTest {
         }
 
         block()
-        countDownLatch.await()
-        return thrownException!!
+        countDownLatch.await(10L, TimeUnit.SECONDS)
+        return thrownException ?: throw IllegalStateException("No exception was caught")
     }
 
     protected fun getNumberOfHoldersCanBeOnScreen(layoutId: Int): Int {

@@ -7,10 +7,9 @@ import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.internal.utils.extensions.inflateLayout
-import com.idanatz.oneadapter.models.TestModel
+import com.idanatz.oneadapter.models.TestModel1
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqual
-import org.awaitility.Awaitility
 import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,11 +23,11 @@ class ValidLayoutResourceShouldInflateSuccessfully : BaseTest() {
         val testedLayoutResource = R.layout.test_model_small
         var rootView: View? = null
         var expectedLayoutId = 0
-        val itemModule = object : ItemModule<TestModel>() {
+        val itemModule = object : ItemModule<TestModel1>() {
             override fun provideModuleConfig() = object : ItemModuleConfig() {
                 override fun withLayoutResource() = testedLayoutResource
             }
-            override fun onBind(model: TestModel, viewBinder: ViewBinder) {
+            override fun onBind(model: TestModel1, viewBinder: ViewBinder) {
                 rootView = viewBinder.getRootView()
             }
         }

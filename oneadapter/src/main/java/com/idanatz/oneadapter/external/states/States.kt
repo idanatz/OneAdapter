@@ -8,6 +8,6 @@ abstract class SelectionState<M> : State<M>() {
     companion object {
         val TAG: String = SelectionState::class.java.simpleName
     }
-    abstract fun selectionEnabled(@NotNull model: M): Boolean
+    abstract fun isSelectionEnabled(@NotNull model: M): Boolean
     abstract fun onSelected(@NotNull model: M, selected: Boolean)
 }

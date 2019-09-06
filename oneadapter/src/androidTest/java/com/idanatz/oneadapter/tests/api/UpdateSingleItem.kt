@@ -4,7 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.internal.holders.ViewBinder
-import com.idanatz.oneadapter.models.TestModel
+import com.idanatz.oneadapter.models.TestModel1
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldEqualTo
@@ -20,10 +20,10 @@ class UpdateSingleItem : BaseTest() {
         // preparation
         val modelToUpdate = modelGenerator.generateModel()
         var oldItemCount = -1
-        val itemModule = object : ItemModule<TestModel>() {
+        val itemModule = object : ItemModule<TestModel1>() {
             override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(R.layout.test_model_large)
-            override fun onBind(model: TestModel, viewBinder: ViewBinder) {
-                model.onBindCalls++
+            override fun onBind(model1: TestModel1, viewBinder: ViewBinder) {
+                model1.onBindCalls++
             }
         }
         runOnActivity {
@@ -43,7 +43,7 @@ class UpdateSingleItem : BaseTest() {
         // assertion
         await().untilAsserted {
             val newItemCount = oneAdapter.itemCount
-            val newContent = (oneAdapter.internalAdapter.data[0] as TestModel).content
+            val newContent = (oneAdapter.internalAdapter.data[0] as TestModel1).content
 
             newContent shouldBeEqualTo "updated"
             modelToUpdate.onBindCalls shouldEqualTo 1

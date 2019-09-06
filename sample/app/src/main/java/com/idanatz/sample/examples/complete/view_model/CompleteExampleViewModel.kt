@@ -28,7 +28,7 @@ class CompleteExampleViewModel : ViewModel(), ActionsDialog.ActionsListener {
                         .map {
                             when (it.size) {
                                 0 -> it
-                                else -> modelProvider.addHeadersFromMessages(it, true).apply { add(0, modelProvider.generateStories()) }
+                                else -> modelProvider.addHeadersFromMessages(messages = it, checkable = true).apply { add(0, modelProvider.generateStories()) }
                             }
                         }
                         .subscribeOn(Schedulers.io())
@@ -146,7 +146,7 @@ class CompleteExampleViewModel : ViewModel(), ActionsDialog.ActionsListener {
                             .subscribeOn(Schedulers.io())
                             .subscribe()
             )
-        }, 1000)
+        }, 1500)
     }
 
     fun headerCheckedChanged(model: HeaderModel, checked: Boolean) {

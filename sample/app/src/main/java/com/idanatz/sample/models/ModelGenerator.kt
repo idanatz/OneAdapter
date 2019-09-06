@@ -39,10 +39,10 @@ class ModelGenerator {
         addModel(moreModels, MessageModel(modelNumber, 2, R.drawable.person_three, "Theodore Roosevelt", "Believe you can and you're halfway there."))
         addModel(moreModels, MessageModel(modelNumber, 2, R.drawable.person_four, "Francis of Assisi", "Start by doing what's necessary; then do what's possible; and suddenly you are doing the impossible."))
         addModel(moreModels, MessageModel(modelNumber, 2, R.drawable.person_five, "Margaret Mead", "Always remember that you are absolutely unique. Just like everyone else."))
-        addModel(moreModels, MessageModel(modelNumber, 2, R.drawable.person_two, "Confucius", "The will to win, the desire to succeed, the urge to reach your full potential... these are the keys that will unlock the door to personal excellence."))
-        addModel(moreModels, MessageModel(modelNumber, 2, R.drawable.person_three, "Sam Levenson", "Don't watch the clock; do what it does. Keep going."))
-        addModel(moreModels, MessageModel(modelNumber, 2, R.drawable.person_four, "Elbert Hubbard", "Do not take life too seriously. You will never get out of it alive."))
-        addModel(moreModels, MessageModel(modelNumber, 2, R.drawable.person_five, "Dalai Lama", "Hapiness is not something ready made. It comes from your own actions."))
+        addModel(moreModels, MessageModel(modelNumber, 3, R.drawable.person_two, "Confucius", "The will to win, the desire to succeed, the urge to reach your full potential... these are the keys that will unlock the door to personal excellence."))
+        addModel(moreModels, MessageModel(modelNumber, 3, R.drawable.person_three, "Sam Levenson", "Don't watch the clock; do what it does. Keep going."))
+        addModel(moreModels, MessageModel(modelNumber, 3, R.drawable.person_four, "Elbert Hubbard", "Do not take life too seriously. You will never get out of it alive."))
+        addModel(moreModels, MessageModel(modelNumber, 3, R.drawable.person_five, "Dalai Lama", "Hapiness is not something ready made. It comes from your own actions."))
         return moreModels
     }
 

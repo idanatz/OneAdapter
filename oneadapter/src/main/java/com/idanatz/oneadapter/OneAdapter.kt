@@ -8,7 +8,7 @@ import com.idanatz.oneadapter.external.modules.Modules
 import com.idanatz.oneadapter.internal.utils.extensions.getIndexOfItem
 import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
 import com.idanatz.oneadapter.internal.validator.MissingModuleDefinitionException
-import com.idanatz.oneadapter.internal.validator.MultipleHolderConflictException
+import com.idanatz.oneadapter.internal.validator.MultipleModuleConflictException
 import java.util.*
 
 class OneAdapter(recyclerView: RecyclerView) {
@@ -77,7 +77,7 @@ class OneAdapter(recyclerView: RecyclerView) {
     /**
      * Attach the given ItemModule to the adapter.
      * This will add the ability to process items of the ItemModule type.
-     * @throws MultipleHolderConflictException if an ItemModule of the same type already exists.
+     * @throws MultipleModuleConflictException if an ItemModule of the same type already exists.
      */
     fun <M : Diffable> attachItemModule(itemModule: ItemModule<M>): OneAdapter {
         internalAdapter.register(itemModule)

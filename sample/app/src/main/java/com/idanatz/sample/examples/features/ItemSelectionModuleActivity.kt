@@ -57,7 +57,7 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
             viewBinder.getRootView().setBackgroundColor(if (model.isSelected) ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.light_gray) else Color.WHITE)
         }
     }.addState(object : SelectionState<MessageModel>() {
-        override fun selectionEnabled(model: MessageModel): Boolean = true
+        override fun isSelectionEnabled(model: MessageModel): Boolean = true
 
         override fun onSelected(model: MessageModel, selected: Boolean) {
             model.isSelected = selected

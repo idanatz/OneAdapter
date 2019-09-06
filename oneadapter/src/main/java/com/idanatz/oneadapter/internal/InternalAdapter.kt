@@ -1,7 +1,5 @@
 package com.idanatz.oneadapter.internal
 
-import android.os.Handler
-import android.os.HandlerThread
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
@@ -15,16 +13,19 @@ import com.idanatz.oneadapter.internal.holders.EmptyIndicator
 import com.idanatz.oneadapter.internal.holders.LoadingIndicator
 import com.idanatz.oneadapter.internal.holders.OneViewHolder
 import com.idanatz.oneadapter.internal.interfaces.DiffUtilCallback
-import com.idanatz.oneadapter.internal.interfaces.ViewHolderCreator
+import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreator
 import com.idanatz.oneadapter.internal.paging.LoadMoreObserver
 import com.idanatz.oneadapter.internal.paging.EndlessScrollListener
 import com.idanatz.oneadapter.external.modules.*
+import com.idanatz.oneadapter.internal.animations.AnimationPositionHandler
+import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreatorsStore
 import com.idanatz.oneadapter.internal.selection.ItemSelectionActionsProvider
 import com.idanatz.oneadapter.internal.selection.OneItemDetailLookup
 import com.idanatz.oneadapter.internal.selection.OneItemKeyProvider
 import com.idanatz.oneadapter.internal.selection.SelectionTrackerObserver
 import com.idanatz.oneadapter.internal.selection.SelectionObserver
 import com.idanatz.oneadapter.internal.swiping.OneItemTouchHelper
+import com.idanatz.oneadapter.internal.threading.OneSingleThreadPoolExecutor
 import com.idanatz.oneadapter.internal.utils.*
 import com.idanatz.oneadapter.internal.validator.MissingConfigArgumentException
 import com.idanatz.oneadapter.internal.utils.extensions.isClassExists
@@ -33,6 +34,7 @@ import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
 import com.idanatz.oneadapter.internal.utils.extensions.removeClassIfExist
 import com.idanatz.oneadapter.internal.validator.Validator
 import java.util.*
+import java.util.concurrent.Future
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Adapter<OneViewHolder<Diffable>>(), LoadMoreObserver, SelectionObserver, ItemSelectionActionsProvider {
@@ -48,6 +50,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     internal var data: MutableList<Diffable> = mutableListOf()
 
     private val viewHolderCreatorsStore = ViewHolderCreatorsStore()
+    private val animationPositionHandler = AnimationPositionHandler()
 
     // Paging
     private var endlessScrollListener: EndlessScrollListener? = null
@@ -56,11 +59,31 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     private var selectionTracker: SelectionTracker<Long>? = null
     private var itemKeyProvider: OneItemKeyProvider? = null
 
-    // Handlers
-    private val backgroundHandler = Handler(HandlerThread("OneAdapterBackgroundHandler").apply { start() }.looper)
+    // Threading
+    private val backgroundExecutor = OneSingleThreadPoolExecutor()
     private val uiHandler
         get() = recyclerView.handler
 
+    // Diffing
+    private var currentSetItemFuture: Future<*>? = null
+    private val listUpdateCallback = object : ListUpdateCallback {
+        override fun onInserted(position: Int, count: Int) {
+            Logger.logd { "onInserted -> position: $position, count: $count" }
+            notifyItemRangeInserted(position, count)
+        }
+        override fun onRemoved(position: Int, count: Int) {
+            Logger.logd { "onRemoved -> position: $position, count: $count" }
+            notifyItemRangeRemoved(position, count)
+        }
+        override fun onMoved(fromPosition: Int, toPosition: Int) {
+            Logger.logd { "onRemoved -> fromPosition: $fromPosition, toPosition: $toPosition" }
+            notifyItemMoved(fromPosition, toPosition)
+        }
+        override fun onChanged(position: Int, count: Int, payload: Any?) {
+            Logger.logd { "onChanged -> position: $position, count: $count, payload: $payload" }
+            notifyItemRangeChanged(position, count, payload)
+        }
+    }
     private val diffCallback = object : DiffUtilCallback {
         override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.getUniqueIdentifier() == newItem.getUniqueIdentifier()
         override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.areContentTheSame(newItem)
@@ -83,11 +106,12 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     override fun onBindViewHolder(holder: OneViewHolder<Diffable>, position: Int) {
         val model = data[position]
-        Logger.logd {"onBindViewHolder -> position: $position, model: $model" }
+        val shouldAnimateBind = animationPositionHandler.shouldAnimateBind(holder.itemViewType, position)
+        Logger.logd {"onBindViewHolder -> position: $position, animation: $shouldAnimateBind, model: $model" }
 
         when (model) {
-            is EmptyIndicator, is LoadingIndicator -> holder.onBindViewHolder(null)
-            else -> holder.onBindViewHolder(model)
+            is EmptyIndicator, is LoadingIndicator -> holder.onBindViewHolder(null, shouldAnimateBind)
+            else -> holder.onBindViewHolder(model, shouldAnimateBind)
         }
     }
 
@@ -117,58 +141,53 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     }
     //endregion
 
-    fun updateData(data: MutableList<Diffable>) {
-        backgroundHandler.post {
-            Validator.validateItemsAgainstRegisteredModules(viewHolderCreatorsStore, data)
+    fun updateData(incomingData: MutableList<Diffable>) {
+        // clear the last (maybe running) update data runnable
+        if (currentSetItemFuture?.isDone == false) currentSetItemFuture?.cancel(true)
 
-            // modify the incoming data if needed
-            if (data.isEmpty()) {
-                if (modules.emptinessModule != null) {
-                    data.add(0, EmptyIndicator)
+        currentSetItemFuture = backgroundExecutor.submit {
+            Validator.validateItemsAgainstRegisteredModules(modules.itemModules, incomingData)
+
+            // modify the incomingData if needed
+            when (incomingData.size) {
+                0 -> {
+                    animationPositionHandler.resetState()
+
+                    if (modules.emptinessModule != null) { incomingData.add(0, EmptyIndicator) }
+                    if (modules.pagingModule != null) { endlessScrollListener?.resetState() }
                 }
-                endlessScrollListener?.resetState()
-            } else {
-                data.removeClassIfExist(EmptyIndicator::class.java)
-                data.removeClassIfExist(LoadingIndicator::class.java)
+                else -> {
+                    if (modules.emptinessModule != null) incomingData.removeClassIfExist(EmptyIndicator::class.java)
+                    if (modules.pagingModule != null) incomingData.removeClassIfExist(LoadingIndicator::class.java)
+                }
             }
 
             // handle the diffing
-            val diffResult = DiffUtil.calculateDiff(OneDiffUtil(this.data, data, diffCallback))
-            this.data = data
-            uiHandler?.post {
-                diffResult.dispatchUpdatesTo(object : ListUpdateCallback {
-                    override fun onInserted(position: Int, count: Int) {
-                        Logger.logd { "onInserted -> position: $position, count: $count" }
-                        notifyItemRangeInserted(position, count)
-                    }
-                    override fun onRemoved(position: Int, count: Int) {
-                        Logger.logd { "onRemoved -> position: $position, count: $count" }
-                        notifyItemRangeRemoved(position, count)
-                    }
-                    override fun onMoved(fromPosition: Int, toPosition: Int) {
-                        Logger.logd { "onRemoved -> fromPosition: $fromPosition, toPosition: $toPosition" }
-                        notifyItemMoved(fromPosition, toPosition)
-                    }
-                    override fun onChanged(position: Int, count: Int, payload: Any?) {
-                        Logger.logd { "onChanged -> position: $position, count: $count, payload: $payload" }
-                        notifyItemRangeChanged(position, count, payload)
-                    }
-                })
-            }
+            val diffResult = DiffUtil.calculateDiff(OneDiffUtil(data, incomingData, diffCallback))
+            data = incomingData
+            uiHandler?.post { diffResult.dispatchUpdatesTo(listUpdateCallback) }
         }
     }
 
     //region Item Module
     fun <M : Diffable> register(itemModule: ItemModule<M>) {
-        val holderModuleConfig = itemModule.provideModuleConfig()
+        val moduleConfig = itemModule.provideModuleConfig()
+        val layoutResourceId = moduleConfig.withLayoutResource()
         val dataClass = extractGenericClass(itemModule.javaClass) ?: throw MissingConfigArgumentException("ItemModuleConfig missing model class")
 
-        Validator.validateItemModuleAgainstRegisteredModules(viewHolderCreatorsStore, dataClass)
-        Validator.validateLayoutExists(context, holderModuleConfig.withLayoutResource())
+        Validator.validateItemModuleAgainstRegisteredModules(modules.itemModules, dataClass)
+        Validator.validateLayoutExists(context, layoutResourceId)
 
+        modules.itemModules[dataClass] = itemModule as ItemModule<*>
         viewHolderCreatorsStore.addCreator(dataClass, object : ViewHolderCreator<M> {
             override fun create(parent: ViewGroup): OneViewHolder<M> {
-                return object : OneViewHolder<M>(parent, holderModuleConfig, itemModule.statesMap, itemModule.eventHooksMap) {
+                return object : OneViewHolder<M>(
+                        parent = parent,
+                        layoutResourceId = layoutResourceId,
+                        firstBindAnimation = moduleConfig.withFirstBindAnimation(),
+                        statesHooksMap = itemModule.statesMap,
+                        eventsHooksMap = itemModule.eventHooksMap
+                ) {
                     override fun onBind(model: M?) { model?.let { itemModule.onBind(it, viewBinder) } }
                     override fun onUnbind(model: M?) { model?.let { itemModule.onUnbind(it, viewBinder) } }
                 }
@@ -179,10 +198,20 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     //region Emptiness Module
     fun enableEmptiness(emptinessModule: EmptinessModule) {
+        val moduleConfig = emptinessModule.provideModuleConfig()
+        val layoutResourceId = moduleConfig.withLayoutResource()
+        val dataClass = EmptyIndicator.javaClass
+
+        Validator.validateLayoutExists(context, layoutResourceId)
+
         modules.emptinessModule = emptinessModule
-        viewHolderCreatorsStore.addCreator(EmptyIndicator.javaClass, object : ViewHolderCreator<Diffable> {
+        viewHolderCreatorsStore.addCreator(dataClass, object : ViewHolderCreator<Diffable> {
             override fun create(parent: ViewGroup): OneViewHolder<Diffable> {
-                return object : OneViewHolder<Diffable>(parent, emptinessModule.provideModuleConfig()) {
+                return object : OneViewHolder<Diffable>(
+                        parent = parent,
+                        layoutResourceId = layoutResourceId,
+                        firstBindAnimation = moduleConfig.withFirstBindAnimation()
+                ) {
                     override fun onBind(model: Diffable?) = emptinessModule.onBind(viewBinder)
                     override fun onUnbind(model: Diffable?) = emptinessModule.onUnbind(viewBinder)
                 }
@@ -201,13 +230,20 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     //region Paging Module
     fun enablePaging(pagingModule: PagingModule) {
-        // save the module and the config for later use, e.g invoking onLoadMore callback
-        pagingModule.pagingModuleConfig = pagingModule.provideModuleConfig()
-        modules.pagingModule = pagingModule
+        val moduleConfig = pagingModule.provideModuleConfig()
+        val layoutResourceId = moduleConfig.withLayoutResource()
+        val dataClass = LoadingIndicator.javaClass
 
-        viewHolderCreatorsStore.addCreator(LoadingIndicator.javaClass, object : ViewHolderCreator<Diffable> {
+        Validator.validateLayoutExists(context, layoutResourceId)
+
+        modules.pagingModule = pagingModule
+        viewHolderCreatorsStore.addCreator(dataClass, object : ViewHolderCreator<Diffable> {
             override fun create(parent: ViewGroup): OneViewHolder<Diffable> {
-                return object : OneViewHolder<Diffable>(parent, pagingModule.pagingModuleConfig) {
+                return object : OneViewHolder<Diffable>(
+                        parent = parent,
+                        layoutResourceId = layoutResourceId,
+                        firstBindAnimation = moduleConfig.withFirstBindAnimation()
+                ) {
                     override fun onBind(model: Diffable?) = pagingModule.onBind(viewBinder)
                     override fun onUnbind(model: Diffable?) = pagingModule.onUnbind(viewBinder)
                 }
@@ -217,10 +253,10 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     }
 
     private fun configurePagingModule() {
-        let2(recyclerView.layoutManager, modules.pagingModule) { layoutManager, loadMoreModule ->
+        let2(recyclerView.layoutManager, modules.pagingModule) { layoutManager, pagingModule ->
             endlessScrollListener = EndlessScrollListener(
                     layoutManager = layoutManager,
-                    visibleThreshold = loadMoreModule.pagingModuleConfig.withVisibleThreshold(),
+                    visibleThreshold = pagingModule.provideModuleConfig().withVisibleThreshold(),
                     includeEmptyState = modules.emptinessModule != null,
                     loadMoreObserver = this@InternalAdapter
             ).also { recyclerView.addOnScrollListener(it) }
