@@ -3,6 +3,7 @@
 # OneAdapter 
 [ ![Download](https://api.bintray.com/packages/ironsource-aura/OneAdapter/oneadapter/images/download.svg) ](https://bintray.com/ironsource-aura/OneAdapter/oneadapter/_latestVersion)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-OneAdapter-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/7824)
+[![Android Weekly CN](https://img.shields.io/badge/Android%20Weekly%20CN-242-orange.svg)](https://androidweekly.cn/android-dev-weekly-issue-242/)
 
 OneAdapter is made to simplify and enhance the use of the RecyclerView's Adapter while preventing common mistakes. 
 With multiple modules and hooks, you don't have to think about writing an adapter anymore, and just focus on what matters. 
