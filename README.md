@@ -420,13 +420,13 @@ class MessageModule extends ItemModule<MessageModel> {
           return new ItemModuleConfig() {
               @Override
               public int withLayoutResource() { return R.layout.message_model; }
+              
+              @Nullable @Override
+              public Animator withFirstBindAnimation() {
+                  // can be implemented by inflating Animator Xml
+                  return AnimatorInflater.loadAnimator(context, R.animator.item_animation_example);
+              }
           };
-          
-          @Nullable @Override
-          public Animator withFirstBindAnimation() {
-               // can be implemented by inflating Animator Xml
-               return AnimatorInflater.loadAnimator(context, R.animator.item_animation_example);
-          }
       }
 
       @Override
