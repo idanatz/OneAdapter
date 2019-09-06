@@ -4,14 +4,16 @@ Changelog
 
 Version 1.3.0
 ----------------------------
-* RecyclerView is now a constructor parameter instead of an attachment function
-* OnUnbind functions now includes the model as a parameter
+* Added First Bind Animation Config
+* Improved threading mechanism
 * Added common UI tests
+* Change: RecyclerView is now a constructor parameter instead of an attachment function
+* Change: OnUnbind functions now includes the model as a parameter
 
 
 Version 1.2.0
 ----------------------------
-* Diffable is now mandatory when working with OneAdapter
+* Change: Diffable is now mandatory when working with OneAdapter
 * Bug Fixes:
     * Paging Module not working properly with some layout manager
     * onUnbind call now called when the view is recycled instead of detached from window
