@@ -1,10 +1,12 @@
 package com.idanatz.oneadapter.internal.validator
 
 import android.content.Context
+import androidx.recyclerview.widget.RecyclerView
 import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.internal.holders.InternalHolderModel
 import java.lang.NullPointerException
+import kotlin.contracts.contract
 
 internal class Validator {
 
@@ -16,9 +18,9 @@ internal class Validator {
             }
         }
 
-        fun validateLayoutExists(context: Context?, layoutId: Int) {
+        fun validateLayoutExists(context: Context, layoutId: Int) {
             try {
-                context?.resources?.getResourceEntryName(layoutId) ?: throw NullPointerException()
+                context.resources?.getResourceEntryName(layoutId) ?: throw NullPointerException()
             } catch (e: Exception) {
                 throw MissingConfigArgumentException("Layout resource id not found")
             }
@@ -28,6 +30,10 @@ internal class Validator {
             if (itemModulesMap.containsKey(dataClass)) {
                 throw MultipleModuleConflictException("ItemModule with model class ${dataClass.simpleName} already attached")
             }
+        }
+
+        fun validateLayoutManagerExists(recyclerView: RecyclerView): RecyclerView.LayoutManager {
+            return recyclerView.layoutManager ?: throw MissingLayoutManagerException("RecyclerView's Layout Manager must be configured")
         }
     }
 }

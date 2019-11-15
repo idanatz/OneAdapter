@@ -32,6 +32,11 @@ class OneAdapter(recyclerView: RecyclerView) {
         internalAdapter.updateData(LinkedList(items))
     }
 
+    /**
+     * Sets the adapter's item list to an empty list.
+     * Will trigger an EmptinessModule's onBind call if configured.
+     * @see EmptinessModule
+     */
     fun clear() {
         internalAdapter.updateData(mutableListOf())
     }
@@ -97,5 +102,17 @@ class OneAdapter(recyclerView: RecyclerView) {
     fun attachItemSelectionModule(itemSelectionModule: ItemSelectionModule): OneAdapter {
         internalAdapter.enableSelection(itemSelectionModule)
         return this
+    }
+
+    fun getVisibleItemIndexes(requiredVisibilityPercentage: Float = 1f): List<Int> {
+        return internalAdapter.holderVisibilityResolver.getIndexes(requiredVisibilityPercentage)
+    }
+
+    fun <M : Diffable> getVisibleItemIndexes(ofClass: Class<M>, requiredVisibilityPercentage: Float = 1f): List<Int> {
+        return internalAdapter.holderVisibilityResolver.getIndexes(ofClass, requiredVisibilityPercentage)
+    }
+
+    fun <M : Diffable> getVisibleItems(ofClass: Class<M>, requiredVisibilityPercentage: Float = 1f): List<M> {
+        return internalAdapter.holderVisibilityResolver.getItems(ofClass, requiredVisibilityPercentage)
     }
 }

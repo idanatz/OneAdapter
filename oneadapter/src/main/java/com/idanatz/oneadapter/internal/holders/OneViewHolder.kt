@@ -27,13 +27,17 @@ internal abstract class OneViewHolder<M> (
 
     var isSwiping = false
 
+    abstract fun onCreated()
     abstract fun onBind(model: M?)
     abstract fun onUnbind(model: M?)
 
+    fun onCreateViewHolder() {
+        this.viewBinder = ViewBinder(itemView)
+        onCreated()
+    }
+
     fun onBindViewHolder(model: M?, shouldAnimate: Boolean) {
         this.model = model
-        this.viewBinder = ViewBinder(itemView)
-
         handleAnimations(shouldAnimate)
         handleEventHooks()
         onBind(model)

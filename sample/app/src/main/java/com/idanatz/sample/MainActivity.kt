@@ -12,8 +12,10 @@ import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.examples.complete.view.CompleteJavaExampleActivity
 import com.idanatz.sample.examples.complete.view.CompleteKotlinExampleActivity
+import com.idanatz.sample.examples.external_libraries.ButterKnifeActivity
 import com.idanatz.sample.examples.features.*
 import com.idanatz.sample.models.ActivityModel
+import com.idanatz.sample.models.HeaderModel
 
 class MainActivity : BaseExampleActivity() {
 
@@ -21,9 +23,11 @@ class MainActivity : BaseExampleActivity() {
         super.onCreate(savedInstanceState)
 
         val oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(activityItemModule())
+                .attachItemModule(HeaderItem())
+                .attachItemModule(ActivityItem().addEventHook(ActivityClickHook()))
 
         oneAdapter.setItems(listOf(
+                HeaderModel("Features Examples"),
                 ActivityModel(getString(R.string.single_item_module_example), Intent(this@MainActivity, SingleItemModuleActivity::class.java)),
                 ActivityModel(getString(R.string.multiple_item_modules_example), Intent(this@MainActivity, MultipleItemModuleActivity::class.java)),
                 ActivityModel(getString(R.string.emptiness_module_example), Intent(this@MainActivity, EmptinessModuleActivity::class.java)),
@@ -32,22 +36,35 @@ class MainActivity : BaseExampleActivity() {
                 ActivityModel(getString(R.string.click_event_hook_example), Intent(this@MainActivity, ClickEventHookActivity::class.java)),
                 ActivityModel(getString(R.string.swipe_event_hook_example), Intent(this@MainActivity, SwipeEventHookActivity::class.java)),
                 ActivityModel(getString(R.string.first_bind_animation_example), Intent(this@MainActivity, FirstBindAnimationActivity::class.java)),
+                HeaderModel("External Libraries"),
+                ActivityModel(getString(R.string.butterknife_example), Intent(this@MainActivity, ButterKnifeActivity::class.java)),
+                HeaderModel("Complete Examples"),
                 ActivityModel(getString(R.string.complete_kotlin_example), Intent(this@MainActivity, CompleteKotlinExampleActivity::class.java)),
                 ActivityModel(getString(R.string.complete_java_example), Intent(this@MainActivity, CompleteJavaExampleActivity::class.java))
         ))
     }
 
-    private fun activityItemModule(): ItemModule<ActivityModel> {
-        return object : ItemModule<ActivityModel>() {
-            override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
-                override fun withLayoutResource() = R.layout.activity_model
-            }
+    class HeaderItem : ItemModule<HeaderModel>() {
+        override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
+            override fun withLayoutResource() = R.layout.header_model
+        }
 
-            override fun onBind(model: ActivityModel, viewBinder: ViewBinder) {
-                viewBinder.findViewById<TextView>(R.id.title).text = model.text
-            }
-        }.addEventHook(object : ClickEventHook<ActivityModel>() {
-            override fun onClick(model: ActivityModel, viewBinder: ViewBinder) = startActivity(model.intent)
-        })
+        override fun onBind(model: HeaderModel, viewBinder: ViewBinder) {
+            viewBinder.findViewById<TextView>(R.id.header_title).text = model.name
+        }
+    }
+
+    class ActivityItem : ItemModule<ActivityModel>() {
+        override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
+            override fun withLayoutResource() = R.layout.activity_model
+        }
+
+        override fun onBind(model: ActivityModel, viewBinder: ViewBinder) {
+            viewBinder.findViewById<TextView>(R.id.title).text = model.text
+        }
+    }
+
+    inner class ActivityClickHook : ClickEventHook<ActivityModel>() {
+        override fun onClick(model: ActivityModel, viewBinder: ViewBinder) = startActivity(model.intent)
     }
 }

@@ -19,12 +19,12 @@ class SingleItemModuleActivity : BaseExampleActivity() {
         super.onCreate(savedInstanceState)
 
         val oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(messageItem())
+                .attachItemModule(MessageItem())
 
         oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }
 
-    private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
+    private class MessageItem : ItemModule<MessageModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource(): Int = R.layout.message_model
         }
@@ -36,7 +36,7 @@ class SingleItemModuleActivity : BaseExampleActivity() {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(this@SingleItemModuleActivity).load(model.avatarImageId).into(image)
+            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(image)
         }
     }
 }

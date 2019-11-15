@@ -30,13 +30,13 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
         super.onCreate(savedInstanceState)
 
         oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(messageItem())
-                .attachItemSelectionModule(itemSelectionModule())
+                .attachItemModule(MessageItem().addState(MessageSelectionState()))
+                .attachItemSelectionModule(ItemSelectionModuleImpl())
 
         oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }
 
-    private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
+    private inner class MessageItem : ItemModule<MessageModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource(): Int = R.layout.message_model
         }
@@ -49,22 +49,24 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(this@ItemSelectionModuleActivity).load(model.avatarImageId).into(avatarImage)
+            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(avatarImage)
 
             // selected UI
             avatarImage.alpha = if (model.isSelected) 0.5f else 1f
             selectedLayer.visibility = if (model.isSelected) View.VISIBLE else View.GONE
             viewBinder.getRootView().setBackgroundColor(if (model.isSelected) ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.light_gray) else Color.WHITE)
         }
-    }.addState(object : SelectionState<MessageModel>() {
+    }
+
+    private class MessageSelectionState : SelectionState<MessageModel>() {
         override fun isSelectionEnabled(model: MessageModel): Boolean = true
 
         override fun onSelected(model: MessageModel, selected: Boolean) {
             model.isSelected = selected
         }
-    })
+    }
 
-    private fun itemSelectionModule(): ItemSelectionModule = object : ItemSelectionModule() {
+    private inner class ItemSelectionModuleImpl : ItemSelectionModule() {
         override fun provideModuleConfig(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig() {
             override fun withSelectionType() = SelectionType.Multiple
         }

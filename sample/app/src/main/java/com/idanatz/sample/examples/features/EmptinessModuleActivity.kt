@@ -25,13 +25,13 @@ class EmptinessModuleActivity : BaseExampleActivity(), ActionsListener {
         super.onCreate(savedInstanceState)
 
         oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(messageItem())
-                .attachEmptinessModule(emptinessModule())
+                .attachItemModule(MessageItem())
+                .attachEmptinessModule(EmptinessModuleImpl())
 
         initActionsDialog(Action.SetAll, Action.ClearAll).setListener(this)
     }
 
-    private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
+    private class MessageItem : ItemModule<MessageModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource(): Int = R.layout.message_model
         }
@@ -43,11 +43,11 @@ class EmptinessModuleActivity : BaseExampleActivity(), ActionsListener {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(this@EmptinessModuleActivity).load(model.avatarImageId).into(image)
+            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(image)
         }
     }
 
-    private fun emptinessModule(): EmptinessModule = object : EmptinessModule() {
+    private class EmptinessModuleImpl : EmptinessModule() {
         override fun provideModuleConfig(): EmptinessModuleConfig = object : EmptinessModuleConfig() {
             override fun withLayoutResource() = R.layout.empty_state
         }

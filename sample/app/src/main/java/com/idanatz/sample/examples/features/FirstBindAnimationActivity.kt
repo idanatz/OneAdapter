@@ -23,8 +23,8 @@ class FirstBindAnimationActivity : BaseExampleActivity() {
         super.onCreate(savedInstanceState)
 
         val oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(messageItem())
-                .attachItemModule(headerItem())
+                .attachItemModule(MessageItem())
+                .attachItemModule(HeaderItem())
 
         val items = modelGenerator.addHeadersFromMessages(
                 messages = modelGenerator.generateFirstMessages() + modelGenerator.generateLoadMoreMessages(),
@@ -33,7 +33,7 @@ class FirstBindAnimationActivity : BaseExampleActivity() {
         oneAdapter.setItems(items)
     }
 
-    private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
+    private inner class MessageItem : ItemModule<MessageModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource(): Int = R.layout.message_model
 
@@ -50,11 +50,11 @@ class FirstBindAnimationActivity : BaseExampleActivity() {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(this@FirstBindAnimationActivity).load(model.avatarImageId).into(image)
+            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(image)
         }
     }
 
-    private fun headerItem(): ItemModule<HeaderModel> = object : ItemModule<HeaderModel>() {
+    private class HeaderItem : ItemModule<HeaderModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource() = R.layout.header_model
 

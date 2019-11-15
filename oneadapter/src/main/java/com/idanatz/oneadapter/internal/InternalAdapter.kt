@@ -37,17 +37,15 @@ import java.util.*
 import java.util.concurrent.Future
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
-internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Adapter<OneViewHolder<Diffable>>(), LoadMoreObserver, SelectionObserver, ItemSelectionActionsProvider {
-
-    companion object {
-        const val UPDATE_DATA_DELAY_MILLIS = 100L
-    }
+internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Adapter<OneViewHolder<Diffable>>(),
+        LoadMoreObserver, SelectionObserver, ItemSelectionActionsProvider {
 
     private val context
         get() = recyclerView.context
 
     internal val modules = Modules()
     internal var data: MutableList<Diffable> = mutableListOf()
+    internal val holderVisibilityResolver: HolderVisibilityResolver = HolderVisibilityResolver(this)
 
     private val viewHolderCreatorsStore = ViewHolderCreatorsStore()
     private val animationPositionHandler = AnimationPositionHandler()
@@ -101,7 +99,8 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     //region Traditional Adapter Overrides
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OneViewHolder<Diffable> {
         val oneViewHolder = viewHolderCreatorsStore.getCreator(viewType)?.create(parent)
-        return oneViewHolder ?: throw RuntimeException("OneViewHolder creation failed")
+        oneViewHolder?.onCreateViewHolder() ?: throw RuntimeException("OneViewHolder creation failed")
+        return oneViewHolder
     }
 
     override fun onBindViewHolder(holder: OneViewHolder<Diffable>, position: Int) {
@@ -178,7 +177,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
         Validator.validateItemModuleAgainstRegisteredModules(modules.itemModules, dataClass)
         Validator.validateLayoutExists(context, layoutResourceId)
 
-        modules.itemModules[dataClass] = itemModule as ItemModule<*>
+        modules.itemModules[dataClass] = itemModule
         viewHolderCreatorsStore.addCreator(dataClass, object : ViewHolderCreator<M> {
             override fun create(parent: ViewGroup): OneViewHolder<M> {
                 return object : OneViewHolder<M>(
@@ -188,6 +187,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         statesHooksMap = itemModule.statesMap,
                         eventsHooksMap = itemModule.eventHooksMap
                 ) {
+                    override fun onCreated() { itemModule.onCreated(viewBinder) }
                     override fun onBind(model: M?) { model?.let { itemModule.onBind(it, viewBinder) } }
                     override fun onUnbind(model: M?) { model?.let { itemModule.onUnbind(it, viewBinder) } }
                 }
@@ -212,6 +212,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         layoutResourceId = layoutResourceId,
                         firstBindAnimation = moduleConfig.withFirstBindAnimation()
                 ) {
+                    override fun onCreated() { emptinessModule.onCreated(viewBinder) }
                     override fun onBind(model: Diffable?) = emptinessModule.onBind(viewBinder)
                     override fun onUnbind(model: Diffable?) = emptinessModule.onUnbind(viewBinder)
                 }
@@ -244,6 +245,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         layoutResourceId = layoutResourceId,
                         firstBindAnimation = moduleConfig.withFirstBindAnimation()
                 ) {
+                    override fun onCreated() { pagingModule.onCreated(viewBinder) }
                     override fun onBind(model: Diffable?) = pagingModule.onBind(viewBinder)
                     override fun onUnbind(model: Diffable?) = pagingModule.onUnbind(viewBinder)
                 }
@@ -295,12 +297,12 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                     OneItemDetailLookup(recyclerView),
                     StorageStrategy.createLongStorage()
             )
-                    .withSelectionPredicate(when (selectionModule.provideModuleConfig().withSelectionType()) {
-                        ItemSelectionModuleConfig.SelectionType.Single -> SelectionPredicates.createSelectSingleAnything()
-                        ItemSelectionModuleConfig.SelectionType.Multiple -> SelectionPredicates.createSelectAnything()
-                    })
-                    .build()
-                    .also { it.addObserver(SelectionTrackerObserver(this@InternalAdapter)) }
+            .withSelectionPredicate(when (selectionModule.provideModuleConfig().withSelectionType()) {
+                ItemSelectionModuleConfig.SelectionType.Single -> SelectionPredicates.createSelectSingleAnything()
+                ItemSelectionModuleConfig.SelectionType.Multiple -> SelectionPredicates.createSelectAnything()
+            })
+            .build()
+            .also { it.addObserver(SelectionTrackerObserver(this@InternalAdapter)) }
         }
     }
 
@@ -341,4 +343,8 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
         endlessScrollListener?.let { recyclerView.removeOnScrollListener(it) }
     }
     //endregion
+
+    companion object {
+        const val UPDATE_DATA_DELAY_MILLIS = 100L
+    }
 }

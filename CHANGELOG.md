@@ -1,6 +1,11 @@
 Changelog
 ==========
 
+Version 1.3.1
+----------------------------
+* Added support for ButterKnife + Example in the sample project
+* Added more utility functions like item visibility
+
 
 Version 1.3.0
 ----------------------------

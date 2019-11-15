@@ -5,21 +5,23 @@ import com.idanatz.oneadapter.external.events.ClickEventHook
 import com.idanatz.oneadapter.external.events.EventHook
 import com.idanatz.oneadapter.external.events.EventHooksMap
 import com.idanatz.oneadapter.external.events.SwipeEventHook
+import com.idanatz.oneadapter.external.interfaces.*
 import com.idanatz.oneadapter.internal.holders.ViewBinder
-import com.idanatz.oneadapter.internal.interfaces.InternalModuleConfig
 import com.idanatz.oneadapter.external.states.SelectionState
 import com.idanatz.oneadapter.external.states.State
 import com.idanatz.oneadapter.external.states.StatesMap
 
-abstract class ItemModule<M> {
+abstract class ItemModule<M> :
+        LayoutConfigurable<ItemModuleConfig>,
+        Creatable, ModelBindable<M>, ModelUnbindable<M>
+{
 
     internal val statesMap = StatesMap<M>()
     internal val eventHooksMap = EventHooksMap<M>()
 
-    abstract fun provideModuleConfig(): ItemModuleConfig
-    abstract fun onBind(@NotNull model: M, @NotNull viewBinder: ViewBinder)
-
-    open fun onUnbind(@NotNull model: M, @NotNull viewBinder: ViewBinder) {}
+    // lifecycle
+    override fun onCreated(@NotNull viewBinder: ViewBinder) {}
+    override fun onUnbind(@NotNull model: M, @NotNull viewBinder: ViewBinder) {}
 
     fun addState(state: State<M>): ItemModule<M> {
         when (state) {
@@ -37,4 +39,4 @@ abstract class ItemModule<M> {
     }
 }
 
-abstract class ItemModuleConfig : InternalModuleConfig()
+abstract class ItemModuleConfig : LayoutModuleConfig

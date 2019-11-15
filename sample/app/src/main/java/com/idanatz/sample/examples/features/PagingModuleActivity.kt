@@ -23,13 +23,13 @@ class PagingModuleActivity : BaseExampleActivity() {
         super.onCreate(savedInstanceState)
 
         oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(messageItem())
-                .attachPagingModule(pagingModule())
+                .attachItemModule(MessageItem())
+                .attachPagingModule(PagingModuleImpl())
 
         oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }
 
-    private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
+    private class MessageItem : ItemModule<MessageModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource(): Int = R.layout.message_model
         }
@@ -41,11 +41,11 @@ class PagingModuleActivity : BaseExampleActivity() {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(this@PagingModuleActivity).load(model.avatarImageId).into(image)
+            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(image)
         }
     }
 
-    private fun pagingModule(): PagingModule = object : PagingModule() {
+    private inner class PagingModuleImpl : PagingModule() {
         override fun provideModuleConfig(): PagingModuleConfig = object : PagingModuleConfig() {
             override fun withLayoutResource() = R.layout.load_more
             override fun withVisibleThreshold() = 3

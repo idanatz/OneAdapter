@@ -66,16 +66,16 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel.class);
 
         oneAdapter = new OneAdapter(recyclerView)
-                .attachItemModule(storyItem())
-                .attachItemModule(headerItem())
-                .attachItemModule(messageItem()
-                        .addState(selectionState())
-                        .addEventHook(clickEventHook())
-                        .addEventHook(swipeEventHook())
+                .attachItemModule(new StoryItem())
+                .attachItemModule(new HeaderItem())
+                .attachItemModule(new MessageItem()
+                        .addState(new MessageSelectionState())
+                        .addEventHook(new MessageClickHook())
+                        .addEventHook(new MessageSwipeHook())
                 )
-                .attachEmptinessModule(emptinessModule())
-                .attachPagingModule(pagingModule())
-                .attachItemSelectionModule(itemSelectionModule());
+                .attachEmptinessModule(new EmptinessModuleImpl())
+                .attachPagingModule(new PagingModuleImpl())
+                .attachItemSelectionModule(new ItemSelectionModuleImpl());
 
         initActionsDialog(Action.values()).setListener(viewModel);
 
@@ -96,196 +96,172 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         );
     }
 
-    @NotNull
-    private ItemModule<StoriesModel> storyItem() {
-        return new ItemModule<StoriesModel>() {
-            @NotNull @Override
-            public ItemModuleConfig provideModuleConfig() {
-                return new ItemModuleConfig() {
-                    @Override
-                    public int withLayoutResource() { return R.layout.stories_model; }
-                };
-            }
+    private class StoryItem extends ItemModule<StoriesModel> {
+        @NotNull @Override
+        public ItemModuleConfig provideModuleConfig() {
+            return new ItemModuleConfig() {
+                @Override
+                public int withLayoutResource() { return R.layout.stories_model; }
+            };
+        }
 
-            @Override
-            public void onBind(@NotNull StoriesModel model, @NotNull ViewBinder viewBinder) {
-                ImageView story1 = viewBinder.findViewById(R.id.story1);
-                ImageView story2 = viewBinder.findViewById(R.id.story2);
-                ImageView story3 = viewBinder.findViewById(R.id.story3);
+        @Override
+        public void onBind(@NotNull StoriesModel model, @NotNull ViewBinder viewBinder) {
+            ImageView story1 = viewBinder.findViewById(R.id.story1);
+            ImageView story2 = viewBinder.findViewById(R.id.story2);
+            ImageView story3 = viewBinder.findViewById(R.id.story3);
 
-                Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId1).into(story1);
-                Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId2).into(story2);
-                Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId3).into(story3);
-            }
-        };
+            Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId1).into(story1);
+            Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId2).into(story2);
+            Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId3).into(story3);
+        }
     }
 
-    @NotNull
-    private ItemModule<HeaderModel> headerItem() {
-        return new ItemModule<HeaderModel>() {
-            @NotNull @Override
-            public ItemModuleConfig provideModuleConfig() {
-                return new ItemModuleConfig() {
-                    @Override
-                    public int withLayoutResource() { return R.layout.header_model; }
+    private class HeaderItem extends ItemModule<HeaderModel> {
+        @NotNull @Override
+        public ItemModuleConfig provideModuleConfig() {
+            return new ItemModuleConfig() {
+                @Override
+                public int withLayoutResource() { return R.layout.header_model; }
 
-                    @Override
-                    public Animator withFirstBindAnimation() {
-                        // can be implemented by constructing ObjectAnimator
-                        ObjectAnimator animator = new ObjectAnimator();
-                        animator.setPropertyName("translationX");
-                        animator.setFloatValues(-1080f, 0f);
-                        animator.setDuration(750);
-                        return animator;
-                    }
-                };
-            }
-
-            @Override
-            public void onBind(@NotNull HeaderModel model, @NotNull ViewBinder viewBinder) {
-                TextView headerTitle = viewBinder.findViewById(R.id.header_title);
-                SwitchCompat headerSwitch = viewBinder.findViewById(R.id.header_switch);
-
-                headerTitle.setText(model.name);
-                headerSwitch.setVisibility(model.checkable ? View.VISIBLE : View.GONE);
-                headerSwitch.setChecked(model.checked);
-                headerSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.headerCheckedChanged(model , isChecked));
-            }
-        };
-    }
-
-    @NotNull
-    private ItemModule<MessageModel> messageItem() {
-        return new ItemModule<MessageModel>() {
-            @NotNull @Override
-            public ItemModuleConfig provideModuleConfig() {
-                return new ItemModuleConfig() {
-                    @Override
-                    public int withLayoutResource() { return R.layout.message_model; }
-
-                    @Nullable @Override
-                    public Animator withFirstBindAnimation() {
-                        // can be implemented by inflating Animator Xml
-                        return AnimatorInflater.loadAnimator(CompleteJavaExampleActivity.this, R.animator.item_animation_example);
-                    }
-                };
-            }
-
-            @Override
-            public void onBind(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
-                TextView id = viewBinder.findViewById(R.id.id);
-                TextView title = viewBinder.findViewById(R.id.title);
-                TextView body  = viewBinder.findViewById(R.id.body);
-                ImageView avatarImage = viewBinder.findViewById(R.id.avatarImage);
-                ImageView selectedLayer = viewBinder.findViewById(R.id.selected_layer);
-
-                id.setText(String.format(getString(R.string.message_model_id), model.id));
-                title.setText(model.title);
-                body.setText(model.body);
-                Glide.with(CompleteJavaExampleActivity.this).load(model.avatarImageId).into(avatarImage);
-
-                // selected UI
-                avatarImage.setAlpha(model.isSelected ? 0.5f : 1f);
-                selectedLayer.setVisibility(model.isSelected? View.VISIBLE : View.GONE);
-                viewBinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(CompleteJavaExampleActivity.this, R.color.light_gray) : Color.WHITE);
-            }
-        };
-    }
-
-    @NotNull
-    private SelectionState<MessageModel> selectionState() {
-        return new SelectionState<MessageModel>() {
-            @Override
-            public boolean isSelectionEnabled(@NotNull MessageModel model) {
-                return true;
-            }
-
-            @Override
-            public void onSelected(@NotNull MessageModel model, boolean selected) {
-                model.isSelected = selected;
-            }
-        };
-    }
-
-    @NotNull
-    private ClickEventHook<MessageModel> clickEventHook() {
-        return new ClickEventHook<MessageModel>() {
-            @Override
-            public void onClick(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
-                Toast.makeText(CompleteJavaExampleActivity.this, model.title + " clicked", Toast.LENGTH_SHORT).show();
-            }
-        };
-    }
-
-    @NotNull
-    private EmptinessModule emptinessModule() {
-        return new EmptinessModule() {
-            @NotNull @Override
-            public EmptinessModuleConfig provideModuleConfig() {
-                return new EmptinessModuleConfig() {
-                    @Override
-                    public int withLayoutResource() { return R.layout.empty_state; }
-                };
-            }
-
-            @Override
-            public void onBind(@NotNull ViewBinder viewBinder) {
-                LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
-                animation.setAnimation(R.raw.empty_list);
-                animation.playAnimation();
-            }
-
-            @Override
-            public void onUnbind(@NotNull ViewBinder viewBinder) {
-                LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
-                animation.pauseAnimation();
-            }
-        };
-    }
-
-    @NotNull
-    private PagingModule pagingModule() {
-        return new PagingModule() {
-            @NotNull @Override
-            public PagingModuleConfig provideModuleConfig() {
-                return new PagingModuleConfig() {
-                    @Override
-                    public int withLayoutResource() { return R.layout.load_more; }
-
-                    @Override
-                    public int withVisibleThreshold() { return 3; }
-                };
-            }
-
-            @Override
-            public void onLoadMore(int currentPage) {
-                viewModel.onLoadMore();
-            }
-        };
-    }
-
-    @NotNull
-    private ItemSelectionModule itemSelectionModule() {
-        return new ItemSelectionModule() {
-            @NotNull @Override
-            public ItemSelectionModuleConfig provideModuleConfig() {
-                return new ItemSelectionModuleConfig() {
-                    @NotNull @Override
-                    public SelectionType withSelectionType() { return SelectionType.Multiple; }
-                };
-            }
-
-            @Override
-            public void onSelectionUpdated(int selectedCount) {
-                if (selectedCount == 0) {
-                    setToolbarText(getString(R.string.app_name));
-                    toolbarMenu.findItem(R.id.action_delete).setVisible(false);
-                } else {
-                    setToolbarText(selectedCount + " selected");
-                    toolbarMenu.findItem(R.id.action_delete).setVisible(true);
+                @Override
+                public Animator withFirstBindAnimation() {
+                    // can be implemented by constructing ObjectAnimator
+                    ObjectAnimator animator = new ObjectAnimator();
+                    animator.setPropertyName("translationX");
+                    animator.setFloatValues(-1080f, 0f);
+                    animator.setDuration(750);
+                    return animator;
                 }
+            };
+        }
+
+        @Override
+        public void onBind(@NotNull HeaderModel model, @NotNull ViewBinder viewBinder) {
+            TextView headerTitle = viewBinder.findViewById(R.id.header_title);
+            SwitchCompat headerSwitch = viewBinder.findViewById(R.id.header_switch);
+
+            headerTitle.setText(model.name);
+            headerSwitch.setVisibility(model.checkable ? View.VISIBLE : View.GONE);
+            headerSwitch.setChecked(model.checked);
+            headerSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.headerCheckedChanged(model , isChecked));
+        }
+    }
+
+    private class MessageItem extends ItemModule<MessageModel> {
+        @NotNull @Override
+        public ItemModuleConfig provideModuleConfig() {
+            return new ItemModuleConfig() {
+                @Override
+                public int withLayoutResource() { return R.layout.message_model; }
+
+                @Nullable @Override
+                public Animator withFirstBindAnimation() {
+                    // can be implemented by inflating Animator Xml
+                    return AnimatorInflater.loadAnimator(CompleteJavaExampleActivity.this, R.animator.item_animation_example);
+                }
+            };
+        }
+
+        @Override
+        public void onBind(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
+            TextView id = viewBinder.findViewById(R.id.id);
+            TextView title = viewBinder.findViewById(R.id.title);
+            TextView body  = viewBinder.findViewById(R.id.body);
+            ImageView avatarImage = viewBinder.findViewById(R.id.avatarImage);
+            ImageView selectedLayer = viewBinder.findViewById(R.id.selected_layer);
+
+            id.setText(String.format(getString(R.string.message_model_id), model.id));
+            title.setText(model.title);
+            body.setText(model.body);
+            Glide.with(CompleteJavaExampleActivity.this).load(model.avatarImageId).into(avatarImage);
+
+            // selected UI
+            avatarImage.setAlpha(model.isSelected ? 0.5f : 1f);
+            selectedLayer.setVisibility(model.isSelected? View.VISIBLE : View.GONE);
+            viewBinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(CompleteJavaExampleActivity.this, R.color.light_gray) : Color.WHITE);
+        }
+    }
+
+    private class MessageSelectionState extends SelectionState<MessageModel> {
+        @Override
+        public boolean isSelectionEnabled(@NotNull MessageModel model) {
+            return true;
+        }
+
+        @Override
+        public void onSelected(@NotNull MessageModel model, boolean selected) {
+            model.isSelected = selected;
+        }
+    }
+
+    private class MessageClickHook extends ClickEventHook<MessageModel> {
+        @Override
+        public void onClick(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
+            Toast.makeText(CompleteJavaExampleActivity.this, model.title + " clicked", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private class EmptinessModuleImpl extends EmptinessModule {
+        @NotNull @Override
+        public EmptinessModuleConfig provideModuleConfig() {
+            return new EmptinessModuleConfig() {
+                @Override
+                public int withLayoutResource() { return R.layout.empty_state; }
+            };
+        }
+
+        @Override
+        public void onBind(@NotNull ViewBinder viewBinder) {
+            LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
+            animation.setAnimation(R.raw.empty_list);
+            animation.playAnimation();
+        }
+
+        @Override
+        public void onUnbind(@NotNull ViewBinder viewBinder) {
+            LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
+            animation.pauseAnimation();
+        }
+    }
+
+    private class PagingModuleImpl extends PagingModule {
+        @NotNull @Override
+        public PagingModuleConfig provideModuleConfig() {
+            return new PagingModuleConfig() {
+                @Override
+                public int withLayoutResource() { return R.layout.load_more; }
+
+                @Override
+                public int withVisibleThreshold() { return 3; }
+            };
+        }
+
+        @Override
+        public void onLoadMore(int currentPage) {
+            viewModel.onLoadMore();
+        }
+    }
+
+    private class ItemSelectionModuleImpl extends ItemSelectionModule {
+        @NotNull @Override
+        public ItemSelectionModuleConfig provideModuleConfig() {
+            return new ItemSelectionModuleConfig() {
+                @NotNull @Override
+                public SelectionType withSelectionType() { return SelectionType.Multiple; }
+            };
+        }
+
+        @Override
+        public void onSelectionUpdated(int selectedCount) {
+            if (selectedCount == 0) {
+                setToolbarText(getString(R.string.app_name));
+                toolbarMenu.findItem(R.id.action_delete).setVisible(false);
+            } else {
+                setToolbarText(selectedCount + " selected");
+                toolbarMenu.findItem(R.id.action_delete).setVisible(true);
             }
-        };
+        }
     }
 
     private void setToolbarText(String text) {
@@ -315,30 +291,28 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private SwipeEventHook<MessageModel> swipeEventHook()  {
-        return new SwipeEventHook<MessageModel>() {
-            @Override
-            public void onSwipe(@NotNull Canvas canvas, float xAxisOffset, @NotNull ViewBinder viewBinder) {
-                if (xAxisOffset < 0) {
-                    paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView());
-                } else if (xAxisOffset > 0) {
-                    paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView());
-                }
+    class MessageSwipeHook extends SwipeEventHook<MessageModel> {
+        @Override
+        public void onSwipe(@NotNull Canvas canvas, float xAxisOffset, @NotNull ViewBinder viewBinder) {
+            if (xAxisOffset < 0) {
+                paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView());
+            } else if (xAxisOffset > 0) {
+                paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView());
             }
+        }
 
-            @Override
-            public void onSwipeComplete(@NotNull MessageModel model, @NotNull SwipeDirection direction, @NotNull ViewBinder viewBinder) {
-                switch (direction) {
-                    case Right:
-                        Toast.makeText(CompleteJavaExampleActivity.this, model.title + " snoozed", Toast.LENGTH_SHORT).show();
-                        oneAdapter.update(model);
-                        break;
-                    case Left:
-                        viewModel.onSwipeToDeleteItem(model);
-                        break;
-                }
+        @Override
+        public void onSwipeComplete(@NotNull MessageModel model, @NotNull SwipeDirection direction, @NotNull ViewBinder viewBinder) {
+            switch (direction) {
+                case Right:
+                    Toast.makeText(CompleteJavaExampleActivity.this, model.title + " snoozed", Toast.LENGTH_SHORT).show();
+                    oneAdapter.update(model);
+                    break;
+                case Left:
+                    viewModel.onSwipeToDeleteItem(model);
+                    break;
             }
-        };
+        }
     }
 
     private void paintSwipeRight(Canvas canvas, float xAxisOffset, View rootView) {

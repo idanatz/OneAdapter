@@ -52,16 +52,16 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel::class.java)
 
         oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(storyItem())
-                .attachItemModule(headerItem())
-                .attachItemModule(messageItem()
-                        .addState(selectionState())
-                        .addEventHook(clickEventHook())
-                        .addEventHook(swipeEventHook())
+                .attachItemModule(StoryItem())
+                .attachItemModule(HeaderItem())
+                .attachItemModule(MessageItem()
+                        .addState(MessageSelectionState())
+                        .addEventHook(MessageClickHook())
+                        .addEventHook(MessageSwipeHook())
                 )
-                .attachEmptinessModule(emptinessModule())
-                .attachPagingModule(pagingModule())
-                .attachItemSelectionModule(itemSelectionModule())
+                .attachEmptinessModule(EmptinessModuleImpl())
+                .attachPagingModule(PagingModuleImpl())
+                .attachItemSelectionModule(ItemSelectionModuleImpl())
 
         initActionsDialog(*Action.values()).setListener(viewModel)
 
@@ -81,7 +81,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         )
     }
 
-    private fun storyItem(): ItemModule<StoriesModel> = object : ItemModule<StoriesModel>() {
+    private class StoryItem : ItemModule<StoriesModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource(): Int = R.layout.stories_model
         }
@@ -91,13 +91,13 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             val story2 = viewBinder.findViewById<ImageView>(R.id.story2)
             val story3 = viewBinder.findViewById<ImageView>(R.id.story3)
 
-            Glide.with(this@CompleteKotlinExampleActivity).load(model.storyImageId1).into(story1)
-            Glide.with(this@CompleteKotlinExampleActivity).load(model.storyImageId2).into(story2)
-            Glide.with(this@CompleteKotlinExampleActivity).load(model.storyImageId3).into(story3)
+            Glide.with(viewBinder.getRootView()).load(model.storyImageId1).into(story1)
+            Glide.with(viewBinder.getRootView()).load(model.storyImageId2).into(story2)
+            Glide.with(viewBinder.getRootView()).load(model.storyImageId3).into(story3)
         }
     }
 
-    private fun headerItem(): ItemModule<HeaderModel> = object : ItemModule<HeaderModel>() {
+    private inner class HeaderItem : ItemModule<HeaderModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource() = R.layout.header_model
             override fun withFirstBindAnimation(): Animator {
@@ -121,7 +121,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         }
     }
 
-    private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
+    private inner class MessageItem : ItemModule<MessageModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource() = R.layout.message_model
             override fun withFirstBindAnimation(): Animator {
@@ -140,7 +140,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             id.text = getString(R.string.message_model_id).format(model.id)
             title.text = model.title
             body.text = model.body
-            Glide.with(this@CompleteKotlinExampleActivity).load(model.avatarImageId).into(avatarImage)
+            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(avatarImage)
 
             // selected UI
             avatarImage.alpha = if (model.isSelected) 0.5f else 1f
@@ -149,7 +149,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         }
     }
 
-    private fun selectionState(): SelectionState<MessageModel> = object : SelectionState<MessageModel>() {
+    private class MessageSelectionState : SelectionState<MessageModel>() {
         override fun isSelectionEnabled(model: MessageModel): Boolean = true
 
         override fun onSelected(model: MessageModel, selected: Boolean) {
@@ -157,11 +157,11 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         }
     }
 
-    private fun clickEventHook(): ClickEventHook<MessageModel> = object : ClickEventHook<MessageModel>() {
-        override fun onClick(model: MessageModel, viewBinder: ViewBinder) = Toast.makeText(this@CompleteKotlinExampleActivity, "${model.title} clicked", Toast.LENGTH_SHORT).show()
+    private class MessageClickHook : ClickEventHook<MessageModel>() {
+        override fun onClick(model: MessageModel, viewBinder: ViewBinder) = Toast.makeText(viewBinder.getRootView().context, "${model.title} clicked", Toast.LENGTH_SHORT).show()
     }
 
-    private fun emptinessModule(): EmptinessModule = object : EmptinessModule() {
+    private class EmptinessModuleImpl : EmptinessModule() {
         override fun provideModuleConfig(): EmptinessModuleConfig = object : EmptinessModuleConfig() {
             override fun withLayoutResource() = R.layout.empty_state
         }
@@ -178,7 +178,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         }
     }
 
-    private fun pagingModule(): PagingModule = object : PagingModule() {
+    private inner class PagingModuleImpl : PagingModule() {
         override fun provideModuleConfig(): PagingModuleConfig = object : PagingModuleConfig() {
             override fun withLayoutResource() = R.layout.load_more
             override fun withVisibleThreshold() = 3
@@ -189,7 +189,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         }
     }
 
-    private fun itemSelectionModule(): ItemSelectionModule = object : ItemSelectionModule() {
+    private inner class ItemSelectionModuleImpl : ItemSelectionModule() {
         override fun provideModuleConfig(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig() {
             override fun withSelectionType() = SelectionType.Multiple
         }
@@ -227,7 +227,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun swipeEventHook(): SwipeEventHook<MessageModel> = object : SwipeEventHook<MessageModel>() {
+    private inner class MessageSwipeHook : SwipeEventHook<MessageModel>() {
         override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
             when {
                 xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView())

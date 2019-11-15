@@ -32,12 +32,12 @@ class SwipeEventHookActivity : BaseExampleActivity() {
         super.onCreate(savedInstanceState)
 
         oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(messageItem().addEventHook(swipeEventHook()))
+                .attachItemModule(MessageItem().addEventHook(MessageSwipeHook()))
 
         oneAdapter.setItems(modelGenerator.generateFirstMessages())
     }
 
-    private fun messageItem(): ItemModule<MessageModel> = object : ItemModule<MessageModel>() {
+    private class MessageItem : ItemModule<MessageModel>() {
         override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
             override fun withLayoutResource(): Int = R.layout.message_model
         }
@@ -49,27 +49,26 @@ class SwipeEventHookActivity : BaseExampleActivity() {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(this@SwipeEventHookActivity).load(model.avatarImageId).into(image)
+            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(image)
         }
     }
 
-    private fun swipeEventHook(): SwipeEventHook<MessageModel> {
-        return object : SwipeEventHook<MessageModel>() {
-            override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
-                when {
-                    xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView())
-                    xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView())
-                }
+    private inner class MessageSwipeHook : SwipeEventHook<MessageModel>() {
+        override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
+            when {
+                xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView())
+                xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView())
             }
+        }
 
-            override fun onSwipeComplete(model: MessageModel, direction: SwipeDirection, viewBinder: ViewBinder) {
-                when (direction) {
-                    SwipeDirection.Left -> oneAdapter.remove(model)
-                    SwipeDirection.Right -> {
-                        Toast.makeText(this@SwipeEventHookActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
-                        oneAdapter.update(model)
-                    }
+        override fun onSwipeComplete(model: MessageModel, direction: SwipeDirection, viewBinder: ViewBinder) {
+            when (direction) {
+                SwipeDirection.Left -> oneAdapter.remove(model)
+                SwipeDirection.Right -> {
+                    Toast.makeText(this@SwipeEventHookActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
+                    oneAdapter.update(model)
                 }
+
             }
         }
     }

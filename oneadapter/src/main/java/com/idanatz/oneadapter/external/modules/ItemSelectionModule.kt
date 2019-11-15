@@ -1,14 +1,18 @@
 package com.idanatz.oneadapter.external.modules
 
+import com.idanatz.oneadapter.external.interfaces.BehaviorModuleConfig
+import com.idanatz.oneadapter.external.interfaces.BehaviourConfigurable
 import com.idanatz.oneadapter.internal.selection.ItemSelectionActionsProvider
 
-abstract class ItemSelectionModule {
+abstract class ItemSelectionModule :
+        BehaviourConfigurable<ItemSelectionModuleConfig>
+{
 
-    abstract fun provideModuleConfig(): ItemSelectionModuleConfig
+    // functionality
     open fun onSelectionUpdated(selectedCount: Int) {}
 }
 
-abstract class ItemSelectionModuleConfig {
+abstract class ItemSelectionModuleConfig : BehaviorModuleConfig{
 
     abstract fun withSelectionType(): SelectionType
 

@@ -1,17 +1,23 @@
 package com.idanatz.oneadapter.external.modules
 
+import com.idanatz.oneadapter.external.interfaces.*
 import org.jetbrains.annotations.NotNull
 import com.idanatz.oneadapter.internal.holders.ViewBinder
-import com.idanatz.oneadapter.internal.interfaces.InternalModuleConfig
 
-abstract class PagingModule {
+abstract class PagingModule :
+        LayoutConfigurable<PagingModuleConfig>, BehaviourConfigurable<PagingModuleConfig>,
+        Creatable, Bindable, Unbindable
+{
 
-    abstract fun provideModuleConfig(): PagingModuleConfig
+    // lifecycle
+    override fun onCreated(@NotNull viewBinder: ViewBinder) {}
+    override fun onBind(@NotNull viewBinder: ViewBinder) {}
+    override fun onUnbind(@NotNull viewBinder: ViewBinder) {}
+
+    // functionality
     abstract fun onLoadMore(currentPage: Int)
-    open fun onBind(@NotNull viewBinder: ViewBinder) {}
-    open fun onUnbind(@NotNull viewBinder: ViewBinder) {}
 }
 
-abstract class PagingModuleConfig : InternalModuleConfig() {
+abstract class PagingModuleConfig : LayoutModuleConfig, BehaviorModuleConfig {
     abstract fun withVisibleThreshold() : Int
 }
