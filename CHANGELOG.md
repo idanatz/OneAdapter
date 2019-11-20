@@ -6,6 +6,7 @@ Version 1.4.0
 * Added support for ButterKnife and DataBinding
 * Added more utility functions like item visibility
 * Added examples for nested RecyclerView, ButterKnife and DataBinding in the sample project
+* Fixed Bug: Sync issues with background and ui threads when using nested RecyclerViews with OneAdapter
 * Breaking Change: ViewBinder getRootView function changed to a property
 * Breaking Change: added HookConfig for SwipeEventHook to specify the supported swipe directions
 
