@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 
 abstract class PagingModule :
-        LayoutConfigurable<PagingModuleConfig>, BehaviourConfigurable<PagingModuleConfig>,
+        LayoutModuleConfigurable<PagingModuleConfig>,
         Creatable, Bindable, Unbindable
 {
 
@@ -18,6 +18,6 @@ abstract class PagingModule :
     abstract fun onLoadMore(currentPage: Int)
 }
 
-abstract class PagingModuleConfig : LayoutModuleConfig, BehaviorModuleConfig {
+abstract class PagingModuleConfig : LayoutModuleConfig {
     abstract fun withVisibleThreshold() : Int
 }

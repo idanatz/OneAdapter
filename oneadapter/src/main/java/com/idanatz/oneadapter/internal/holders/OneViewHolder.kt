@@ -5,13 +5,12 @@ import android.graphics.Canvas
 import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
-import com.idanatz.oneadapter.external.events.EventHooksMap
-import com.idanatz.oneadapter.external.events.SwipeEventHook
+import com.idanatz.oneadapter.internal.event_hooks.EventHooksMap
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 import com.idanatz.oneadapter.internal.selection.OneItemDetail
-import com.idanatz.oneadapter.external.states.StatesMap
+import com.idanatz.oneadapter.internal.states.StatesMap
 import com.idanatz.oneadapter.internal.utils.extensions.inflateLayout
 import com.idanatz.oneadapter.internal.utils.extensions.let2
-
 
 @Suppress("NAME_SHADOWING")
 internal abstract class OneViewHolder<M> (

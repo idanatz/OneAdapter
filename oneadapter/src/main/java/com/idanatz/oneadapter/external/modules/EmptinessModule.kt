@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 
 abstract class EmptinessModule :
-        LayoutConfigurable<EmptinessModuleConfig>,
+        LayoutModuleConfigurable<EmptinessModuleConfig>,
         Creatable, Bindable, Unbindable
 {
 

@@ -1,5 +1,7 @@
 package com.idanatz.oneadapter.internal
 
+import android.os.Handler
+import android.os.Looper
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
@@ -59,26 +61,25 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     // Threading
     private val backgroundExecutor = OneSingleThreadPoolExecutor()
-    private val uiHandler
-        get() = recyclerView.handler
+    private val uiHandler = Handler(Looper.getMainLooper())
 
     // Diffing
     private var currentSetItemFuture: Future<*>? = null
     private val listUpdateCallback = object : ListUpdateCallback {
         override fun onInserted(position: Int, count: Int) {
-            Logger.logd { "onInserted -> position: $position, count: $count" }
+            Logger.logd(this@InternalAdapter) { "onInserted -> position: $position, count: $count" }
             notifyItemRangeInserted(position, count)
         }
         override fun onRemoved(position: Int, count: Int) {
-            Logger.logd { "onRemoved -> position: $position, count: $count" }
+            Logger.logd(this@InternalAdapter) { "onRemoved -> position: $position, count: $count" }
             notifyItemRangeRemoved(position, count)
         }
         override fun onMoved(fromPosition: Int, toPosition: Int) {
-            Logger.logd { "onRemoved -> fromPosition: $fromPosition, toPosition: $toPosition" }
+            Logger.logd(this@InternalAdapter) { "onRemoved -> fromPosition: $fromPosition, toPosition: $toPosition" }
             notifyItemMoved(fromPosition, toPosition)
         }
         override fun onChanged(position: Int, count: Int, payload: Any?) {
-            Logger.logd { "onChanged -> position: $position, count: $count, payload: $payload" }
+            Logger.logd(this@InternalAdapter) { "onChanged -> position: $position, count: $count, payload: $payload" }
             notifyItemRangeChanged(position, count, payload)
         }
     }
@@ -100,13 +101,14 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OneViewHolder<Diffable> {
         val oneViewHolder = viewHolderCreatorsStore.getCreator(viewType)?.create(parent)
         oneViewHolder?.onCreateViewHolder() ?: throw RuntimeException("OneViewHolder creation failed")
+        Logger.logd(this) { "onCreateViewHolder -> classDataType: ${viewHolderCreatorsStore.getClassDataType(viewType)}" }
         return oneViewHolder
     }
 
     override fun onBindViewHolder(holder: OneViewHolder<Diffable>, position: Int) {
         val model = data[position]
         val shouldAnimateBind = animationPositionHandler.shouldAnimateBind(holder.itemViewType, position)
-        Logger.logd {"onBindViewHolder -> position: $position, animation: $shouldAnimateBind, model: $model" }
+        Logger.logd(this) { "onBindViewHolder -> holder: $holder, position: $position, animation: $shouldAnimateBind, model: $model" }
 
         when (model) {
             is EmptyIndicator, is LoadingIndicator -> holder.onBindViewHolder(null, shouldAnimateBind)
@@ -120,7 +122,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                 is EmptyIndicator, is LoadingIndicator -> null
                 else -> model
             }
-        Logger.logd {"onBindSelection -> position: $position, model: $model, selected: $selected" }
+        Logger.logd(this) { "onBindSelection -> holder: $holder, position: $position, model: $model, selected: $selected" }
         holder.onBindSelection(model, selected)
     }
 
@@ -141,6 +143,8 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     //endregion
 
     fun updateData(incomingData: MutableList<Diffable>) {
+        Logger.logd(this) { "updateData -> incomingData: $incomingData" }
+
         // clear the last (maybe running) update data runnable
         if (currentSetItemFuture?.isDone == false) currentSetItemFuture?.cancel(true)
 
@@ -163,8 +167,12 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
             // handle the diffing
             val diffResult = DiffUtil.calculateDiff(OneDiffUtil(data, incomingData, diffCallback))
-            data = incomingData
-            uiHandler?.post { diffResult.dispatchUpdatesTo(listUpdateCallback) }
+
+            uiHandler.post {
+                Logger.logd(this) { "dispatchUpdatesTo -> incomingData: $incomingData" }
+                data = incomingData
+                diffResult.dispatchUpdatesTo(listUpdateCallback)
+            }
         }
     }
 
@@ -271,7 +279,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                 data.add(data.size, LoadingIndicator)
 
                 // post it to the UI handler because the recycler crashes when calling notify from an onScroll callback
-                uiHandler?.post { notifyItemInserted(data.size) }
+                uiHandler.post { notifyItemInserted(data.size) }
             }
         }
     }
@@ -330,7 +338,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
         val dataCopy = LinkedList(data).apply { removeAllItems(getSelectedItems()) }
         updateData(dataCopy)
 
-        uiHandler?.postDelayed({
+        uiHandler.postDelayed({
             clearSelection()
         }, UPDATE_DATA_DELAY_MILLIS)
     }

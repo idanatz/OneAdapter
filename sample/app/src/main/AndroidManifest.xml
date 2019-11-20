@@ -29,7 +29,8 @@
         <activity android:name="com.idanatz.sample.examples.features.ClickEventHookActivity"/>
         <activity android:name="com.idanatz.sample.examples.features.SwipeEventHookActivity"/>
         <activity android:name="com.idanatz.sample.examples.features.FirstBindAnimationActivity"/>
-        <activity android:name="com.idanatz.sample.examples.external_libraries.ButterKnifeActivity"/>
+        <activity android:name="com.idanatz.sample.examples.binding.ButterKnifeActivity"/>
+        <activity android:name="com.idanatz.sample.examples.binding.data_binding.DataBindingActivity"/>
         <activity android:name="com.idanatz.sample.examples.complete.view.CompleteJavaExampleActivity" />
         <activity android:name="com.idanatz.sample.examples.complete.view.CompleteKotlinExampleActivity" />
     </application>

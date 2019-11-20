@@ -3,7 +3,7 @@ package com.idanatz.oneadapter.internal.swiping
 import android.graphics.Canvas
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.idanatz.oneadapter.external.events.SwipeEventHook
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 import com.idanatz.oneadapter.internal.utils.extensions.toOneViewHolder
 
 internal class OneItemTouchHelper : ItemTouchHelper(OneItemTouchHelperCallback()) {
@@ -19,7 +19,7 @@ internal class OneItemTouchHelper : ItemTouchHelper(OneItemTouchHelperCallback()
 
         override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
             return viewHolder.toOneViewHolder().getSwipeEventHook()?.let { swipeEventHook ->
-                swipeEventHook.directions.map { mapDirection(it) }.reduce { accumulator, current -> accumulator or current }
+                swipeEventHook.provideHookConfig().withSwipeDirection().map { mapDirection(it) }.reduce { accumulator, current -> accumulator or current }
             } ?: super.getSwipeDirs(recyclerView, viewHolder)
         }
 

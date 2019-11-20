@@ -12,7 +12,8 @@ import androidx.core.content.ContextCompat
 
 import com.bumptech.glide.Glide
 import com.idanatz.oneadapter.OneAdapter
-import com.idanatz.oneadapter.external.events.SwipeEventHook
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHookConfig
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
@@ -49,15 +50,19 @@ class SwipeEventHookActivity : BaseExampleActivity() {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(image)
+            Glide.with(viewBinder.rootView).load(model.avatarImageId).into(image)
         }
     }
 
     private inner class MessageSwipeHook : SwipeEventHook<MessageModel>() {
+        override fun provideHookConfig(): SwipeEventHookConfig = object : SwipeEventHookConfig() {
+            override fun withSwipeDirection() = listOf(SwipeDirection.Left, SwipeDirection.Right)
+        }
+
         override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
             when {
-                xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView())
-                xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView())
+                xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.rootView)
+                xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.rootView)
             }
         }
 
@@ -66,7 +71,7 @@ class SwipeEventHookActivity : BaseExampleActivity() {
                 SwipeDirection.Left -> oneAdapter.remove(model)
                 SwipeDirection.Right -> {
                     Toast.makeText(this@SwipeEventHookActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
-                    oneAdapter.update(model)
+                    oneAdapter.update(model) // for resetting the view back into place
                 }
 
             }

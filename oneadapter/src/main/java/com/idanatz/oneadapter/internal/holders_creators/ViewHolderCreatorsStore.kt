@@ -18,8 +18,7 @@ internal class ViewHolderCreatorsStore {
         return dataTypes.indexOf(clazz)
     }
 
-    fun getCreator(viewType: Int): ViewHolderCreator<Diffable>? {
-        val dataType = dataTypes[viewType]
-        return holderCreators[dataType]
-    }
+    fun getClassDataType(viewType: Int) = dataTypes[viewType]
+
+    fun getCreator(viewType: Int): ViewHolderCreator<Diffable>? = holderCreators[getClassDataType(viewType)]
 }

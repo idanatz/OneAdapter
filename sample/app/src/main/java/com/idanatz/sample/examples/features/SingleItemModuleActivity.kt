@@ -36,7 +36,7 @@ class SingleItemModuleActivity : BaseExampleActivity() {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(image)
+            Glide.with(viewBinder.rootView).load(model.avatarImageId).into(image)
         }
     }
 }

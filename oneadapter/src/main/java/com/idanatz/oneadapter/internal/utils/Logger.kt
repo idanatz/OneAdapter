@@ -2,12 +2,13 @@ package com.idanatz.oneadapter.internal.utils
 
 import android.util.Log
 import com.idanatz.oneadapter.BuildConfig
+import com.idanatz.oneadapter.internal.InternalAdapter
 
-object Logger {
+internal object Logger {
 
-    fun logd(tag: String = "OneAdapter", body: () -> String) {
+    fun logd(internalAdapter: InternalAdapter? = null, body: () -> String) {
         if (BuildConfig.DEBUG) {
-            Log.d(tag, body())
+            Log.d("OneAdapter", "adapter: $internalAdapter, ${body()}")
         }
     }
 }

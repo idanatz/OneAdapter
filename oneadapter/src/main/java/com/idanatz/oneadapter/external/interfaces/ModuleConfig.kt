@@ -9,3 +9,4 @@ interface LayoutModuleConfig {
 }
 
 interface BehaviorModuleConfig
+interface BehaviorHookConfig

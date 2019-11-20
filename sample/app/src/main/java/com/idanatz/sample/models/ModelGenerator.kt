@@ -23,14 +23,14 @@ class ModelGenerator {
         return models
     }
 
-    fun generateMessage(id: Int): MessageModel {
-        val messageModel = MessageModel(id, 2, R.drawable.person_six, "Person Added", "This Message is added!")
+    fun generateMessage(id: Int, headerId: Int): MessageModel {
+        val messageModel = MessageModel(id, headerId, R.drawable.person_six, "Person Added", "This Message is added!")
         modelNumber++
         return messageModel
     }
 
     fun generateUpdatedMessage(id: Int, headerId: Int): MessageModel {
-        return MessageModel(id, headerId, R.drawable.person_two, "Person Updated", "This Message is updated!")
+        return MessageModel(id, headerId, R.drawable.person_six, "Person Updated", "This Message is updated!")
     }
 
     fun generateLoadMoreMessages(): List<MessageModel> {
@@ -47,7 +47,18 @@ class ModelGenerator {
     }
 
     fun generateStories(): StoriesModel {
-        return StoriesModel(0, R.drawable.story_one, R.drawable.story_two, R.drawable.story_three)
+        val storyModels: MutableList<StoryModel> = LinkedList()
+        storyModels.add(StoryModel(0, R.drawable.story_one))
+        storyModels.add(StoryModel(1, R.drawable.story_two))
+        storyModels.add(StoryModel(2, R.drawable.story_three))
+        storyModels.add(StoryModel(3, R.drawable.story_four))
+        storyModels.add(StoryModel(4, R.drawable.story_five))
+        storyModels.add(StoryModel(5, R.drawable.story_one))
+        storyModels.add(StoryModel(6, R.drawable.story_two))
+        storyModels.add(StoryModel(7, R.drawable.story_three))
+        storyModels.add(StoryModel(8, R.drawable.story_four))
+        storyModels.add(StoryModel(9, R.drawable.story_five))
+        return StoriesModel(storyModels)
     }
 
     fun addHeadersFromMessages(messages: List<MessageModel>, checkable: Boolean): MutableList<Diffable> {

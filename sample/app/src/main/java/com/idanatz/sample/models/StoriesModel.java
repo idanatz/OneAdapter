@@ -1,33 +1,41 @@
 package com.idanatz.sample.models;
 
+import android.os.Parcelable;
 import com.idanatz.oneadapter.external.interfaces.Diffable;
-
 import org.jetbrains.annotations.NotNull;
+import java.util.List;
 
 public class StoriesModel implements Diffable {
 
-    public int id;
-    public int storyImageId1;
-    public int storyImageId2;
-    public int storyImageId3;
+    public List<StoryModel> stories;
+    public Parcelable scrollPosition;
 
-    public StoriesModel(int id, int storyImageId1, int storyImageId2, int storyImageId3) {
-        this.id = id;
-        this.storyImageId1 = storyImageId1;
-        this.storyImageId2 = storyImageId2;
-        this.storyImageId3 = storyImageId3;
+    public StoriesModel(List<StoryModel> stories) {
+        this.stories = stories;
     }
 
     @Override
     public long getUniqueIdentifier() {
-        return id;
+        return 0; // there is a single stories model
     }
 
     @Override
     public boolean areContentTheSame(@NotNull Object other) {
-        return other instanceof StoriesModel &&
-                storyImageId1 == (((StoriesModel) other).storyImageId1) &&
-                storyImageId2 == (((StoriesModel) other).storyImageId2) &&
-                storyImageId3 == (((StoriesModel) other).storyImageId3);
+        if (!(other instanceof StoriesModel)) {
+            return false;
+        }
+
+        boolean storiesTheSame = true;
+        if (stories.size() != ((StoriesModel)other).stories.size()) {
+            storiesTheSame = false;
+        } else {
+            for (int i = 0; i < stories.size(); i++) {
+                if (!stories.get(i).areContentTheSame(((StoriesModel)other).stories.get(i))) {
+                    storiesTheSame = false;
+                }
+            }
+        }
+
+        return storiesTheSame;
     }
 }

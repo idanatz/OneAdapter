@@ -1,4 +1,4 @@
-package com.idanatz.oneadapter.tests.module_configs.internal_module_config
+package com.idanatz.oneadapter.tests.module_configs.layout_module_config
 
 import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -28,7 +28,7 @@ class ValidLayoutResourceShouldInflateSuccessfully : BaseTest() {
                 override fun withLayoutResource() = testedLayoutResource
             }
             override fun onBind(model: TestModel1, viewBinder: ViewBinder) {
-                rootView = viewBinder.getRootView()
+                rootView = viewBinder.rootView
             }
         }
         runOnActivity {

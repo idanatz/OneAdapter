@@ -26,6 +26,8 @@ https://medium.com/@idanatsmon/adapting-your-recyclerview-the-2019-approach-e47e
   - [Swipe Event Hook](#swipe-event-hook)
 - [Others:](#others)
   - [First Bind Animation](#first-bind-animation)
+  - [Data Binding](#data-binding)
+
 
 # Include in your project
 ```groovy
@@ -34,7 +36,10 @@ dependencies {
 }
 ```
 
-<br/><br/>
+Note that library interfaces and API may change slightly while the library design matures.<br/>
+Please see the changes in the CHANGELOG file before upgrading.
+
+
 # Preview
 ## Example
 You can try out the [example project](https://github.com/idanatz/OneAdapter/tree/develop/sample) that includes basic and advanced usage both in Java and Kotlin.
@@ -368,6 +373,16 @@ val oneAdapter = OneAdapter(recyclerView)
 ##### Java
 ```java
 class MessageSwipeEvent extends SwipeEventHook<MessageModel> {
+    @NotNull @Override
+    public SwipeEventHookConfig provideHookConfig() {
+        return new SwipeEventHookConfig() {
+            @NotNull @Override
+            public List<SwipeDirection> withSwipeDirection() {
+                return Arrays.asList(SwipeDirection.Left, SwipeDirection.Right);
+            }
+        };
+    }
+    
     @Override
     public void onSwipe(@NotNull Canvas canvas, float xAxisOffset, @NotNull ViewBinder viewBinder) {
         // draw your swipe UI here.
@@ -383,6 +398,10 @@ class MessageSwipeEvent extends SwipeEventHook<MessageModel> {
 ##### Kotlin
 ```kotlin
 class MessageSwipeEvent : SwipeEventHook<MessageModel>() {
+    override fun provideHookConfig(): SwipeEventHookConfig = object : SwipeEventHookConfig() {
+        override fun withSwipeDirection() = listOf(SwipeDirection.Left, SwipeDirection.Right)
+    }
+
     override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
         // draw your swipe UI here.
         // like painting the canvas red with a delete icon.
@@ -412,6 +431,7 @@ val oneAdapter = OneAdapter(recyclerView)
 ## Others
 
 ### First Bind Animation
+The provided Animator will be animated on the first bind of the corresponding ItemModule's models. 
 ##### Java
 ```java
 class MessageModule extends ItemModule<MessageModel> {
@@ -450,6 +470,46 @@ class MessageModule : ItemModule<MessageModel>() {
     }
 
     override fun onBind(model: MessageModel, viewBinder: ViewBinder) { ... }
+}
+```
+
+### Data Binding
+Built in support for Android Data Binding (https://developer.android.com/topic/libraries/data-binding)
+Full example is provided in the example project.
+##### Java
+```java
+class MessageModule extends ItemModule<ObservableMessageModel> {
+      @NotNull @Override
+      public ItemModuleConfig provideModuleConfig() {
+          return new ItemModuleConfig() {
+              @Override
+              public int withLayoutResource() { return R.layout.message_model_data_binding; }
+          };
+      }
+
+      @Override
+      public void onBind(@NotNull ObservableMessageModel model, @NotNull ViewBinder viewBinder) {
+          ViewDataBinding binding = viewBinder.getDataBinding();
+          binding.setVariable(BR.messageModel, model);
+          binding.setLifecycleOwner(DataBindingActivity.class);
+          binding.executePendingBindings();
+      }
+}
+```
+##### Kotlin
+```kotlin
+class MessageModule : ItemModule<ObservableMessageModel>() {
+    override fun provideModuleConfig() = object : ItemModuleConfig() {
+        override fun withLayoutResource() = R.layout.message_model_data_binding
+    }
+
+    override fun onBind(model: ObservableMessageModel, viewBinder: ViewBinder) {
+        viewBinder.dataBinding?.run {
+            setVariable(BR.messageModel, model)
+            lifecycleOwner = this@DataBindingActivity
+            executePendingBindings()
+        }
+    }
 }
 ```
 

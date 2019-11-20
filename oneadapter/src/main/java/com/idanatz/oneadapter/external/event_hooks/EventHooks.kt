@@ -1,6 +1,8 @@
-package com.idanatz.oneadapter.external.events
+package com.idanatz.oneadapter.external.event_hooks
 
 import android.graphics.Canvas
+import com.idanatz.oneadapter.external.interfaces.BehaviorHookConfig
+import com.idanatz.oneadapter.external.interfaces.BehaviourHookConfigurable
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import org.jetbrains.annotations.NotNull
 
@@ -14,9 +16,8 @@ abstract class ClickEventHook<M> : EventHook<M>() {
     abstract fun onClick(@NotNull model: M, @NotNull viewBinder: ViewBinder)
 }
 
-abstract class SwipeEventHook<M>(vararg supportedSwipeDirections: SwipeDirection = SwipeDirection.values()) : EventHook<M>() {
-
-    internal val directions: List<SwipeDirection> = supportedSwipeDirections.toList()
+abstract class SwipeEventHook<M>
+    : EventHook<M>(), BehaviourHookConfigurable<SwipeEventHookConfig> {
 
     companion object {
         val TAG: String = SwipeEventHook::class.java.simpleName
@@ -28,4 +29,9 @@ abstract class SwipeEventHook<M>(vararg supportedSwipeDirections: SwipeDirection
     enum class SwipeDirection {
         Right, Left
     }
+}
+
+abstract class SwipeEventHookConfig : BehaviorHookConfig {
+
+    abstract fun withSwipeDirection(): List<SwipeEventHook.SwipeDirection>
 }

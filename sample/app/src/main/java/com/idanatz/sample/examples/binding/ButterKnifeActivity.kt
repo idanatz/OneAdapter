@@ -1,4 +1,4 @@
-package com.idanatz.sample.examples.external_libraries
+package com.idanatz.sample.examples.binding
 
 import android.os.Bundle
 import android.widget.ImageView
@@ -29,7 +29,6 @@ class ButterKnifeActivity : BaseExampleActivity() {
     // Note: a class must be declared in order for ButterKnife to work.
     // Do not use anonymous ItemModule class or your view will not be binded by ButterKnife.
     class MessageItemModule : ItemModule<MessageModel>() {
-
         @BindView(R.id.title) lateinit var title: TextView
         @BindView(R.id.body) lateinit var body: TextView
         @BindView(R.id.avatarImage) lateinit var image: ImageView
@@ -39,13 +38,13 @@ class ButterKnifeActivity : BaseExampleActivity() {
         }
 
         override fun onCreated(viewBinder: ViewBinder) {
-            ButterKnife.bind(this, viewBinder.getRootView())
+            ButterKnife.bind(this, viewBinder.rootView)
         }
 
         override fun onBind(model: MessageModel, viewBinder: ViewBinder) {
             title.text = model.title
             body.text = model.body
-            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(image)
+            Glide.with(viewBinder.rootView).load(model.avatarImageId).into(image)
         }
     }
 }

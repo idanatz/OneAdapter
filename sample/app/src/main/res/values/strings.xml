@@ -15,8 +15,9 @@
     // configurations
     <string name="first_bind_animation_example">First Bind Animation Example</string>
 
-    // external libraries
+    // binding
     <string name="butterknife_example">ButterKnife Example</string>
+    <string name="data_binding_example">Data Binding Example</string>
 
     // full examples
     <string name="complete_java_example">Complete example using MVVM with RxJava and Room\nWritten in Java</string>

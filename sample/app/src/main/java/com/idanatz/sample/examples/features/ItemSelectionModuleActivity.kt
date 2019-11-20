@@ -49,12 +49,12 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(avatarImage)
+            Glide.with(viewBinder.rootView).load(model.avatarImageId).into(avatarImage)
 
             // selected UI
             avatarImage.alpha = if (model.isSelected) 0.5f else 1f
             selectedLayer.visibility = if (model.isSelected) View.VISIBLE else View.GONE
-            viewBinder.getRootView().setBackgroundColor(if (model.isSelected) ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.light_gray) else Color.WHITE)
+            viewBinder.rootView.setBackgroundColor(if (model.isSelected) ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.light_gray) else Color.WHITE)
         }
     }
 

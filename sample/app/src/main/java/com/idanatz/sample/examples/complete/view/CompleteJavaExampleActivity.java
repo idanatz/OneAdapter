@@ -15,6 +15,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 
@@ -26,14 +28,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.airbnb.lottie.LottieAnimationView;
-import com.idanatz.oneadapter.external.events.SwipeEventHook;
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook;
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHookConfig;
 import com.idanatz.sample.examples.BaseExampleActivity;
 import com.idanatz.sample.models.HeaderModel;
 import com.idanatz.sample.models.MessageModel;
 import com.idanatz.sample.models.StoriesModel;
 import com.idanatz.sample.examples.complete.view_model.CompleteExampleViewModel;
 import com.idanatz.oneadapter.OneAdapter;
-import com.idanatz.oneadapter.external.events.ClickEventHook;
+import com.idanatz.oneadapter.external.event_hooks.ClickEventHook;
 import com.idanatz.oneadapter.external.modules.EmptinessModuleConfig;
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig;
 import com.idanatz.oneadapter.external.modules.ItemSelectionActions;
@@ -47,6 +50,10 @@ import com.idanatz.oneadapter.external.modules.ItemSelectionModule;
 import com.idanatz.oneadapter.external.states.SelectionState;
 import com.idanatz.oneadapter.sample.R;
 import com.bumptech.glide.Glide;
+import com.idanatz.sample.models.StoryModel;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static com.idanatz.sample.examples.ActionsDialog.*;
 
@@ -66,7 +73,7 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel.class);
 
         oneAdapter = new OneAdapter(recyclerView)
-                .attachItemModule(new StoryItem())
+                .attachItemModule(new StoriesItem())
                 .attachItemModule(new HeaderItem())
                 .attachItemModule(new MessageItem()
                         .addState(new MessageSelectionState())
@@ -94,27 +101,6 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(items -> oneAdapter.setItems(items))
         );
-    }
-
-    private class StoryItem extends ItemModule<StoriesModel> {
-        @NotNull @Override
-        public ItemModuleConfig provideModuleConfig() {
-            return new ItemModuleConfig() {
-                @Override
-                public int withLayoutResource() { return R.layout.stories_model; }
-            };
-        }
-
-        @Override
-        public void onBind(@NotNull StoriesModel model, @NotNull ViewBinder viewBinder) {
-            ImageView story1 = viewBinder.findViewById(R.id.story1);
-            ImageView story2 = viewBinder.findViewById(R.id.story2);
-            ImageView story3 = viewBinder.findViewById(R.id.story3);
-
-            Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId1).into(story1);
-            Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId2).into(story2);
-            Glide.with(CompleteJavaExampleActivity.this).load(model.storyImageId3).into(story3);
-        }
     }
 
     private class HeaderItem extends ItemModule<HeaderModel> {
@@ -183,7 +169,7 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         }
     }
 
-    private class MessageSelectionState extends SelectionState<MessageModel> {
+    private static class MessageSelectionState extends SelectionState<MessageModel> {
         @Override
         public boolean isSelectionEnabled(@NotNull MessageModel model) {
             return true;
@@ -195,14 +181,70 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         }
     }
 
-    private class MessageClickHook extends ClickEventHook<MessageModel> {
+    private static class MessageClickHook extends ClickEventHook<MessageModel> {
         @Override
         public void onClick(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
-            Toast.makeText(CompleteJavaExampleActivity.this, model.title + " clicked", Toast.LENGTH_SHORT).show();
+            Toast.makeText(viewBinder.getRootView().getContext(), model.title + " clicked", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private class EmptinessModuleImpl extends EmptinessModule {
+    private static class StoriesItem extends ItemModule<StoriesModel> {
+        private OneAdapter oneAdapter;
+
+        @NotNull @Override
+        public ItemModuleConfig provideModuleConfig() {
+            return new ItemModuleConfig() {
+                @Override
+                public int withLayoutResource() { return R.layout.recycler_view; }
+            };
+        }
+
+        @Override
+        public void onCreated(@NotNull ViewBinder viewBinder) {
+            RecyclerView nestedRecyclerView = viewBinder.findViewById(R.id.recycler);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(viewBinder.getRootView().getContext(), LinearLayoutManager.HORIZONTAL, false);
+            nestedRecyclerView.setLayoutManager(layoutManager);
+
+            oneAdapter = new OneAdapter(nestedRecyclerView)
+                    .attachItemModule(new StoryItem());
+        }
+
+        @Override
+        public void onBind(@NotNull StoriesModel model, @NotNull ViewBinder viewBinder) {
+            oneAdapter.setItems(model.stories);
+
+            // restore scroll state
+            RecyclerView nestedRecyclerView = viewBinder.findViewById(R.id.recycler);
+            LinearLayoutManager layoutManager = (LinearLayoutManager) nestedRecyclerView.getLayoutManager();
+            layoutManager.onRestoreInstanceState(model.scrollPosition);
+        }
+
+        @Override
+        public void onUnbind(@NotNull StoriesModel model, @NotNull ViewBinder viewBinder) {
+            // save scroll state
+            RecyclerView nestedRecyclerView = viewBinder.findViewById(R.id.recycler);
+            LinearLayoutManager layoutManager = (LinearLayoutManager) nestedRecyclerView.getLayoutManager();
+            model.scrollPosition = layoutManager.onSaveInstanceState();
+        }
+
+        private static class StoryItem extends ItemModule<StoryModel> {
+            @NotNull @Override
+            public ItemModuleConfig provideModuleConfig() {
+                return new ItemModuleConfig() {
+                    @Override
+                    public int withLayoutResource() { return R.layout.story_model; }
+                };
+            }
+
+            @Override
+            public void onBind(@NotNull StoryModel model, @NotNull ViewBinder viewBinder) {
+                ImageView story = viewBinder.findViewById(R.id.story);
+                Glide.with(viewBinder.getRootView()).load(model.storyImageId).into(story);
+            }
+        }
+    }
+
+    private static class EmptinessModuleImpl extends EmptinessModule {
         @NotNull @Override
         public EmptinessModuleConfig provideModuleConfig() {
             return new EmptinessModuleConfig() {
@@ -291,7 +333,17 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class MessageSwipeHook extends SwipeEventHook<MessageModel> {
+    private class MessageSwipeHook extends SwipeEventHook<MessageModel> {
+        @NotNull @Override
+        public SwipeEventHookConfig provideHookConfig() {
+            return new SwipeEventHookConfig() {
+                @NotNull @Override
+                public List<SwipeDirection> withSwipeDirection() {
+                    return Arrays.asList(SwipeDirection.Left, SwipeDirection.Right);
+                }
+            };
+        }
+
         @Override
         public void onSwipe(@NotNull Canvas canvas, float xAxisOffset, @NotNull ViewBinder viewBinder) {
             if (xAxisOffset < 0) {

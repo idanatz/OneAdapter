@@ -1,4 +1,8 @@
-package com.idanatz.oneadapter.external.events
+package com.idanatz.oneadapter.internal.event_hooks
+
+import com.idanatz.oneadapter.external.event_hooks.ClickEventHook
+import com.idanatz.oneadapter.external.event_hooks.EventHook
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 
 internal class EventHooksMap<M> : HashMap<String, EventHook<M>>() {
 

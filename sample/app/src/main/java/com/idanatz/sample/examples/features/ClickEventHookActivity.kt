@@ -7,7 +7,7 @@ import android.widget.Toast
 
 import com.bumptech.glide.Glide
 import com.idanatz.oneadapter.OneAdapter
-import com.idanatz.oneadapter.external.events.ClickEventHook
+import com.idanatz.oneadapter.external.event_hooks.ClickEventHook
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
@@ -38,11 +38,11 @@ class ClickEventHookActivity : BaseExampleActivity() {
 
             title.text = model.title
             body.text = model.body
-            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(image)
+            Glide.with(viewBinder.rootView).load(model.avatarImageId).into(image)
         }
     }
 
     private class MessageClickHook : ClickEventHook<MessageModel>() {
-        override fun onClick(model: MessageModel, viewBinder: ViewBinder) = Toast.makeText(viewBinder.getRootView().context, "${model.title} clicked", Toast.LENGTH_SHORT).show()
+        override fun onClick(model: MessageModel, viewBinder: ViewBinder) = Toast.makeText(viewBinder.rootView.context, "${model.title} clicked", Toast.LENGTH_SHORT).show()
     }
 }

@@ -1,4 +1,7 @@
-package com.idanatz.oneadapter.external.states
+package com.idanatz.oneadapter.internal.states
+
+import com.idanatz.oneadapter.external.states.SelectionState
+import com.idanatz.oneadapter.external.states.State
 
 internal class StatesMap<M> : HashMap<String, State<M>>() {
 

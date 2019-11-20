@@ -16,21 +16,25 @@ import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.lottie.LottieAnimationView
 import com.idanatz.sample.models.HeaderModel
 import com.idanatz.sample.models.MessageModel
 import com.idanatz.sample.examples.complete.view_model.CompleteExampleViewModel
 import com.idanatz.oneadapter.OneAdapter
-import com.idanatz.oneadapter.external.events.ClickEventHook
+import com.idanatz.oneadapter.external.event_hooks.ClickEventHook
 import com.idanatz.oneadapter.external.states.SelectionState
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.bumptech.glide.Glide
-import com.idanatz.oneadapter.external.events.SwipeEventHook
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHookConfig
 import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.examples.ActionsDialog.*
 import com.idanatz.sample.models.StoriesModel
+import com.idanatz.sample.models.StoryModel
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 
@@ -52,7 +56,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel::class.java)
 
         oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(StoryItem())
+                .attachItemModule(StoriesItem())
                 .attachItemModule(HeaderItem())
                 .attachItemModule(MessageItem()
                         .addState(MessageSelectionState())
@@ -79,22 +83,6 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe { items -> oneAdapter.setItems(items) }
         )
-    }
-
-    private class StoryItem : ItemModule<StoriesModel>() {
-        override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
-            override fun withLayoutResource(): Int = R.layout.stories_model
-        }
-
-        override fun onBind(model: StoriesModel, viewBinder: ViewBinder) {
-            val story1 = viewBinder.findViewById<ImageView>(R.id.story1)
-            val story2 = viewBinder.findViewById<ImageView>(R.id.story2)
-            val story3 = viewBinder.findViewById<ImageView>(R.id.story3)
-
-            Glide.with(viewBinder.getRootView()).load(model.storyImageId1).into(story1)
-            Glide.with(viewBinder.getRootView()).load(model.storyImageId2).into(story2)
-            Glide.with(viewBinder.getRootView()).load(model.storyImageId3).into(story3)
-        }
     }
 
     private inner class HeaderItem : ItemModule<HeaderModel>() {
@@ -140,12 +128,12 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             id.text = getString(R.string.message_model_id).format(model.id)
             title.text = model.title
             body.text = model.body
-            Glide.with(viewBinder.getRootView()).load(model.avatarImageId).into(avatarImage)
+            Glide.with(viewBinder.rootView).load(model.avatarImageId).into(avatarImage)
 
             // selected UI
             avatarImage.alpha = if (model.isSelected) 0.5f else 1f
             selectedLayer.visibility = if (model.isSelected) View.VISIBLE else View.GONE
-            viewBinder.getRootView().setBackgroundColor(if (model.isSelected) ContextCompat.getColor(this@CompleteKotlinExampleActivity, R.color.light_gray) else Color.WHITE)
+            viewBinder.rootView.setBackgroundColor(if (model.isSelected) ContextCompat.getColor(this@CompleteKotlinExampleActivity, R.color.light_gray) else Color.WHITE)
         }
     }
 
@@ -158,7 +146,51 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     }
 
     private class MessageClickHook : ClickEventHook<MessageModel>() {
-        override fun onClick(model: MessageModel, viewBinder: ViewBinder) = Toast.makeText(viewBinder.getRootView().context, "${model.title} clicked", Toast.LENGTH_SHORT).show()
+        override fun onClick(model: MessageModel, viewBinder: ViewBinder) = Toast.makeText(viewBinder.rootView.context, "${model.title} clicked", Toast.LENGTH_SHORT).show()
+    }
+
+    private class StoriesItem : ItemModule<StoriesModel>() {
+        private var oneAdapter: OneAdapter? = null
+
+        override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
+            override fun withLayoutResource(): Int = R.layout.recycler_view
+        }
+
+        override fun onCreated(viewBinder: ViewBinder) {
+            val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
+            val layoutManager = LinearLayoutManager(viewBinder.rootView.context, LinearLayoutManager.HORIZONTAL, false)
+            nestedRecyclerView.layoutManager = layoutManager
+
+            oneAdapter = OneAdapter(nestedRecyclerView)
+                    .attachItemModule(StoryItem())
+        }
+
+        override fun onBind(model: StoriesModel, viewBinder: ViewBinder) {
+            oneAdapter?.setItems(model.stories)
+
+            // restore scroll state
+            val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
+            val layoutManager = nestedRecyclerView.layoutManager as LinearLayoutManager?
+            layoutManager?.onRestoreInstanceState(model.scrollPosition)
+        }
+
+        override fun onUnbind(model: StoriesModel, viewBinder: ViewBinder) {
+            // save scroll state
+            val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
+            val layoutManager = nestedRecyclerView.layoutManager as LinearLayoutManager?
+            model.scrollPosition = layoutManager?.onSaveInstanceState()
+        }
+
+        private class StoryItem : ItemModule<StoryModel>() {
+            override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
+                override fun withLayoutResource(): Int = R.layout.story_model
+            }
+
+            override fun onBind(model: StoryModel, viewBinder: ViewBinder) {
+                val story = viewBinder.findViewById<ImageView>(R.id.story)
+                Glide.with(viewBinder.rootView).load(model.storyImageId).into(story)
+            }
+        }
     }
 
     private class EmptinessModuleImpl : EmptinessModule() {
@@ -228,10 +260,14 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     }
 
     private inner class MessageSwipeHook : SwipeEventHook<MessageModel>() {
+        override fun provideHookConfig(): SwipeEventHookConfig = object : SwipeEventHookConfig() {
+            override fun withSwipeDirection() = listOf(SwipeDirection.Left, SwipeDirection.Right)
+        }
+
         override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
             when {
-                xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.getRootView())
-                xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.getRootView())
+                xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.rootView)
+                xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.rootView)
             }
         }
 

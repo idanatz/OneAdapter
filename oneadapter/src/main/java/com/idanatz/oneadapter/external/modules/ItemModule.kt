@@ -1,21 +1,20 @@
 package com.idanatz.oneadapter.external.modules
 
 import org.jetbrains.annotations.NotNull
-import com.idanatz.oneadapter.external.events.ClickEventHook
-import com.idanatz.oneadapter.external.events.EventHook
-import com.idanatz.oneadapter.external.events.EventHooksMap
-import com.idanatz.oneadapter.external.events.SwipeEventHook
+import com.idanatz.oneadapter.external.event_hooks.ClickEventHook
+import com.idanatz.oneadapter.external.event_hooks.EventHook
+import com.idanatz.oneadapter.internal.event_hooks.EventHooksMap
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 import com.idanatz.oneadapter.external.interfaces.*
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.external.states.SelectionState
 import com.idanatz.oneadapter.external.states.State
-import com.idanatz.oneadapter.external.states.StatesMap
+import com.idanatz.oneadapter.internal.states.StatesMap
 
 abstract class ItemModule<M> :
-        LayoutConfigurable<ItemModuleConfig>,
+        LayoutModuleConfigurable<ItemModuleConfig>,
         Creatable, ModelBindable<M>, ModelUnbindable<M>
 {
-
     internal val statesMap = StatesMap<M>()
     internal val eventHooksMap = EventHooksMap<M>()
 
