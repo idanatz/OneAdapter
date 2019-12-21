@@ -341,9 +341,10 @@ val oneAdapter = OneAdapter(recyclerView)
 
 <br/><br/><br/>
 ## Event Hooks
-Item Modules can easily be enhanced with event hooks, for instance, ClickEventHook which let you bind a click listener for the entire view.
+Item Modules can easily be enhanced with event hooks to get access to common events like clicking or swiping on an item.
 
 ### Click Event Hook
+Click Hook can be attached in order to recieve click events on an item.
 <br/></br>
 <img src="https://media1.tenor.com/images/6c6b218f27b250d1c72d98fc64ba895d/tenor.gif?itemid=15858123" width="210" height="420">
 <br/>
@@ -381,6 +382,7 @@ val oneAdapter = OneAdapter(recyclerView)
 
 <br/><br/>
 ### Swipe Event Hook
+Swipe Hook can be attached in order to receive swiping (during and when completed) events on an item.
 <br/></br>
 <img src="https://media1.tenor.com/images/6628708db23f76d528f451b1d1d8fd4c/tenor.gif?itemid=15858132" width="210" height="420">
 <br/>
