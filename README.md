@@ -207,6 +207,9 @@ val oneAdapter = OneAdapter(recyclerView)
 <br/><br/>
 ### Emptiness Module
 Emptiness Module is used for creating and binding a specific ViewHolder when the Adapter has no data to render.
+<br/></br>
+<img src="https://s5.gifyu.com/images/emptiness_module.gif" width="210" height="420">
+<br/>
 #### 1. Implement Emptiness Modules
 ##### Java
 ```java
