@@ -156,6 +156,9 @@ OneAdapter oneAdapter = new OneAdapter(recyclerView)
 <br/><br/>
 ### Paging Module
 Paging Module is used for creating and binding a specific ViewHolder at the end of the list when the Adapter reaches a load more state. The visible threshold configuration is used to indicate how many items before the end of the list the onLoadMore callback should be invoked.
+<br/></br>
+<img src="https://media1.tenor.com/images/275a6daed242e8f0c09b5020d602a2eb/tenor.gif?itemid=15858072" width="210" height="420">
+<br/>
 #### 1. Implement Paging Modules
 ##### Java
 ```java
@@ -208,7 +211,7 @@ val oneAdapter = OneAdapter(recyclerView)
 ### Emptiness Module
 Emptiness Module is used for creating and binding a specific ViewHolder when the Adapter has no data to render.
 <br/></br>
-<img src="https://s5.gifyu.com/images/emptiness_module.gif" width="210" height="420">
+<img src="https://media1.tenor.com/images/c653010777465c1c5d115210b7e349e8/tenor.gif?itemid=15858077" width="210" height="420">
 <br/>
 #### 1. Implement Emptiness Modules
 ##### Java
@@ -258,6 +261,9 @@ val oneAdapter = OneAdapter(recyclerView)
 <br/><br/>
 ### Selection Module
 Selection Module is used for enabling single or multiple selection on Items.
+<br/></br>
+<img src="https://media.tenor.com/images/2d6fdae647c6c774ceadeb79d7640e42/tenor.gif" width="210" height="420">
+<br/>
 #### 1. Implement Selection Modules
 ##### Java
 ```java
@@ -338,6 +344,9 @@ val oneAdapter = OneAdapter(recyclerView)
 Item Modules can easily be enhanced with event hooks, for instance, ClickEventHook which let you bind a click listener for the entire view.
 
 ### Click Event Hook
+<br/></br>
+<img src="https://media1.tenor.com/images/6c6b218f27b250d1c72d98fc64ba895d/tenor.gif?itemid=15858123" width="210" height="420">
+<br/>
 #### 1. Implement Click Event Hook
 ##### Java
 ```java
@@ -372,6 +381,9 @@ val oneAdapter = OneAdapter(recyclerView)
 
 <br/><br/>
 ### Swipe Event Hook
+<br/></br>
+<img src="https://media1.tenor.com/images/6628708db23f76d528f451b1d1d8fd4c/tenor.gif?itemid=15858132" width="210" height="420">
+<br/>
 #### 1. Implement Swipe Event Hook
 ##### Java
 ```java
@@ -435,6 +447,9 @@ val oneAdapter = OneAdapter(recyclerView)
 
 ### First Bind Animation
 The provided Animator will be animated on the first bind of the corresponding ItemModule's models. 
+<br/></br>
+<img src="https://media.tenor.com/images/9e9a9a6ad634157460e779fb59fd59eb/tenor.gif" width="210" height="420">
+<br/>
 ##### Java
 ```java
 class MessageModule extends ItemModule<MessageModel> {
