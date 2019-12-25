@@ -73,7 +73,6 @@ class SwipeEventHookActivity : BaseExampleActivity() {
                     Toast.makeText(this@SwipeEventHookActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
                     oneAdapter.update(model) // for resetting the view back into place
                 }
-
             }
         }
     }

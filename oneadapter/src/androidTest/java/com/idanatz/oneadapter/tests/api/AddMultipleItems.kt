@@ -8,17 +8,15 @@ import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
+private const val NUM_OF_ITEMS_TO_ADD = 20
+
 @RunWith(AndroidJUnit4::class)
 class AddMultipleItems : BaseTest() {
-
-    companion object {
-        const val NUM_OF_ITEMS = 20
-    }
 
     @Test
     fun test() {
         // preparation
-        val modelsToAdd = modelGenerator.generateModels(NUM_OF_ITEMS)
+        val modelsToAdd = modelGenerator.generateModels(NUM_OF_ITEMS_TO_ADD)
         var oldItemCount = -1
         runOnActivity {
             oneAdapter.apply {
@@ -37,7 +35,7 @@ class AddMultipleItems : BaseTest() {
             val newItemList = oneAdapter.internalAdapter.data
             val newItemCount = oneAdapter.itemCount
             newItemList shouldContainAll modelsToAdd
-            newItemCount shouldEqualTo (oldItemCount + NUM_OF_ITEMS)
+            newItemCount shouldEqualTo (oldItemCount + NUM_OF_ITEMS_TO_ADD)
         }
     }
 }

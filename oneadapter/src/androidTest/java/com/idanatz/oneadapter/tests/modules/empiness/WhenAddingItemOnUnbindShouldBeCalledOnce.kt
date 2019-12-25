@@ -3,9 +3,11 @@ package com.idanatz.oneadapter.tests.modules.empiness
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.modules.EmptinessModule
 import com.idanatz.oneadapter.helpers.BaseTest
+import com.idanatz.oneadapter.internal.holders.EmptyIndicator
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
+import org.amshove.kluent.shouldNotContain
 import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -13,20 +15,15 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WhenAddingItemOnUnbindShouldBeCalledOnce : BaseTest() {
 
+    private var onUnbindCalls = 0
+
     @Test
     fun test() {
         // preparation
-        var onUnbindCalls = 0
-        val emptinessModule = object : EmptinessModule() {
-            override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
-            override fun onUnbind(viewBinder: ViewBinder) {
-                onUnbindCalls++
-            }
-        }
         runOnActivity {
             oneAdapter.apply {
                 attachItemModule(modulesGenerator.generateValidItemModule())
-                attachEmptinessModule(emptinessModule)
+                attachEmptinessModule(TestEmptinessModule())
             }
         }
 
@@ -40,6 +37,14 @@ class WhenAddingItemOnUnbindShouldBeCalledOnce : BaseTest() {
         // assertion
         await().untilAsserted {
             onUnbindCalls shouldEqualTo 1
+            oneAdapter.internalAdapter.data shouldNotContain EmptyIndicator
+        }
+    }
+
+    inner class TestEmptinessModule : EmptinessModule() {
+        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
+        override fun onUnbind(viewBinder: ViewBinder) {
+            onUnbindCalls++
         }
     }
 }

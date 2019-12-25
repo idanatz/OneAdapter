@@ -8,18 +8,16 @@ import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
+private const val INDEX_TO_REMOVE = 1
+
 @RunWith(AndroidJUnit4::class)
 class RemoveSingleItemByIndex : BaseTest() {
-
-    companion object {
-        const val INDEX = 1
-    }
 
     @Test
     fun test() {
         // preparation
         val models = modelGenerator.generateModels(3)
-        val modelToRemove = models[INDEX]
+        val modelToRemove = models[INDEX_TO_REMOVE]
         var oldItemCount = -1
         runOnActivity {
             oneAdapter.apply {
@@ -31,7 +29,7 @@ class RemoveSingleItemByIndex : BaseTest() {
 
         // action
         runOnActivity {
-            oneAdapter.remove(INDEX)
+            oneAdapter.remove(INDEX_TO_REMOVE)
         }
 
         // assertion

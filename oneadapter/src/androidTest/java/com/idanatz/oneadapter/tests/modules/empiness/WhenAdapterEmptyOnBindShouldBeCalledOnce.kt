@@ -13,25 +13,25 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WhenAdapterEmptyOnBindShouldBeCalledOnce : BaseTest() {
 
+    private var onBindCalls = 0
+
     @Test
     fun test() {
-        // preparation
-        var onBindCalls = 0
-        val emptinessModule = object : EmptinessModule() {
-            override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
-            override fun onBind(viewBinder: ViewBinder) {
-                onBindCalls++
-            }
-        }
-
-        // action
+        // preparation & action
         runOnActivity {
-            oneAdapter.attachEmptinessModule(emptinessModule)
+            oneAdapter.attachEmptinessModule(TestEmptinessModule())
         }
 
         // assertion
         await().untilAsserted {
             onBindCalls shouldEqualTo 1
+        }
+    }
+
+    inner class TestEmptinessModule : EmptinessModule() {
+        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
+        override fun onBind(viewBinder: ViewBinder) {
+            onBindCalls++
         }
     }
 }

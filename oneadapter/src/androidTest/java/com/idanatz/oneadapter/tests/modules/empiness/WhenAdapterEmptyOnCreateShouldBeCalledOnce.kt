@@ -13,27 +13,26 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WhenAdapterEmptyOnCreateShouldBeCalledOnce : BaseTest() {
 
+    private var onCreateCalls = 0
+
     @Test
     fun test() {
-        var onCreateCalls = 0
-
-        // preparation
-        val emptinessModule = object : EmptinessModule() {
-            override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
-            override fun onBind(viewBinder: ViewBinder) {}
-            override fun onCreated(viewBinder: ViewBinder) {
-                onCreateCalls++
-            }
-        }
-
-        // action
+        // preparation & action
         runOnActivity {
-            oneAdapter.attachEmptinessModule(emptinessModule)
+            oneAdapter.attachEmptinessModule(TestEmptinessModule())
         }
 
         // assertion
         await().untilAsserted {
             onCreateCalls shouldEqualTo 1
+        }
+    }
+
+    inner class TestEmptinessModule : EmptinessModule() {
+        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
+        override fun onBind(viewBinder: ViewBinder) {}
+        override fun onCreated(viewBinder: ViewBinder) {
+            onCreateCalls++
         }
     }
 }

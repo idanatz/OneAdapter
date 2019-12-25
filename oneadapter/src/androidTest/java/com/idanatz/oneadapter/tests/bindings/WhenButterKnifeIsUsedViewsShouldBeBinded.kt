@@ -7,6 +7,7 @@ import butterknife.ButterKnife
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.internal.holders.ViewBinder
+import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.models.TestModel1
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldNotBe
@@ -17,21 +18,18 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WhenButterKnifeIsUsedViewsShouldBeBinded : BaseTest() {
 
-    var bindedView: TextView? = null
+    private var bindedView: TextView? = null
 
     @Test
     fun test() {
         // preparation
-        val models = modelGenerator.generateModel()
-        val itemModule = TestItemModule()
-
         runOnActivity {
-            oneAdapter.attachItemModule(itemModule)
+            oneAdapter.attachItemModule(TestItemModule())
         }
 
         // action
         runOnActivity {
-            oneAdapter.add(models)
+            oneAdapter.add(modelGenerator.generateModel())
         }
 
         // assertion
@@ -40,14 +38,14 @@ class WhenButterKnifeIsUsedViewsShouldBeBinded : BaseTest() {
         }
     }
 
-    inner class TestItemModule : ItemModule<TestModel1>() {
+    inner class TestItemModule : ItemModule<TestModel>() {
         @BindView(R.id.test_model_large) lateinit var text: TextView
 
         override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(R.layout.test_model_large)
         override fun onCreated(viewBinder: ViewBinder) {
             ButterKnife.bind(this, viewBinder.rootView)
         }
-        override fun onBind(model: TestModel1, viewBinder: ViewBinder) {
+        override fun onBind(model: TestModel, viewBinder: ViewBinder) {
             bindedView = text
         }
     }

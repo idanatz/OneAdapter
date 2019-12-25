@@ -6,6 +6,7 @@ import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.internal.validator.MissingConfigArgumentException
+import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.models.TestModel1
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,14 +16,18 @@ class InvalidLayoutResourceShouldThrowException : BaseTest() {
 
     @Test(expected = MissingConfigArgumentException::class)
     fun test() {
-        val itemModule = object : ItemModule<TestModel1>() {
-            override fun provideModuleConfig() = object : ItemModuleConfig() {
-                override fun withLayoutResource() = INVALID_RESOURCE
-            }
+        // preparation
+        val itemModule = TestItemModule()
 
-            override fun onBind(model: TestModel1, viewBinder: ViewBinder) {}
+        // action
+        oneAdapter.attachItemModule(itemModule)
+    }
+
+    inner class TestItemModule : ItemModule<TestModel>() {
+        override fun provideModuleConfig() = object : ItemModuleConfig() {
+            override fun withLayoutResource() = INVALID_RESOURCE
         }
 
-        oneAdapter.attachItemModule(itemModule)
+        override fun onBind(model: TestModel, viewBinder: ViewBinder) {}
     }
 }

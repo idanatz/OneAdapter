@@ -8,12 +8,10 @@ import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
+private const val INDEX_TO_ADD = 3
+
 @RunWith(AndroidJUnit4::class)
 class AddSingleItemToIndex : BaseTest() {
-
-    companion object {
-        const val INDEX = 3
-    }
 
     @Test
     fun test() {
@@ -30,14 +28,14 @@ class AddSingleItemToIndex : BaseTest() {
 
         // action
         runOnActivity {
-            oneAdapter.add(INDEX, modelToAdd)
+            oneAdapter.add(INDEX_TO_ADD, modelToAdd)
         }
 
         // assertion
         await().untilAsserted {
             val newItemList = oneAdapter.internalAdapter.data
             val newItemCount = oneAdapter.itemCount
-            newItemList[INDEX] shouldEqual modelToAdd
+            newItemList[INDEX_TO_ADD] shouldEqual modelToAdd
             newItemCount shouldEqualTo (oldItemCount + 1)
         }
     }

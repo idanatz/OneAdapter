@@ -15,27 +15,16 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WhenAddingFewDifferentItemsOnBindShouldBeCalledOnceForEachItemOnScreen : BaseTest() {
 
+    private val testedLayoutResource = R.layout.test_model_large
+
     @Test
     fun test() {
         // preparation
-        val testedLayoutResource = R.layout.test_model_large
-        val numberOfHoldersInScreen = getNumberOfHoldersCanBeOnScreen(testedLayoutResource)
+        val numberOfHoldersInScreen = getNumberOfHoldersThatCanBeOnScreen(testedLayoutResource)
         val models = modelGenerator.generateDifferentModels(numberOfHoldersInScreen) // about 6 items
-        val itemModule1 = object : ItemModule<TestModel1>() {
-            override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(testedLayoutResource)
-            override fun onBind(model: TestModel1, viewBinder: ViewBinder) {
-                model.onBindCalls++
-            }
-        }
-        val itemModule2 = object : ItemModule<TestModel2>() {
-            override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(testedLayoutResource)
-            override fun onBind(model: TestModel2, viewBinder: ViewBinder) {
-                model.onBindCalls++
-            }
-        }
         runOnActivity {
-            oneAdapter.attachItemModule(itemModule1)
-            oneAdapter.attachItemModule(itemModule2)
+            oneAdapter.attachItemModule(TestItemModule1())
+            oneAdapter.attachItemModule(TestItemModule2())
         }
 
         // action
@@ -46,6 +35,20 @@ class WhenAddingFewDifferentItemsOnBindShouldBeCalledOnceForEachItemOnScreen : B
         // assertion
         await().untilAsserted {
             models.sumBy { it.onBindCalls } shouldEqualTo numberOfHoldersInScreen
+        }
+    }
+
+    inner class TestItemModule1 : ItemModule<TestModel1>() {
+        override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(testedLayoutResource)
+        override fun onBind(model: TestModel1, viewBinder: ViewBinder) {
+            model.onBindCalls++
+        }
+    }
+
+    inner class TestItemModule2 : ItemModule<TestModel2>() {
+        override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(testedLayoutResource)
+        override fun onBind(model: TestModel2, viewBinder: ViewBinder) {
+            model.onBindCalls++
         }
     }
 }

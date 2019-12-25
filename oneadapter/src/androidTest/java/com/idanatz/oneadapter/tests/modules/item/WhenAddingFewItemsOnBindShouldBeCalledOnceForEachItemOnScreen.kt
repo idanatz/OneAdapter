@@ -4,7 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.internal.holders.ViewBinder
-import com.idanatz.oneadapter.models.TestModel1
+import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
 import org.awaitility.Awaitility.await
@@ -18,11 +18,11 @@ class WhenAddingFewItemsOnBindShouldBeCalledOnceForEachItemOnScreen : BaseTest()
     fun test() {
         // preparation
         val testedLayoutResource = R.layout.test_model_large
-        val numberOfHoldersInScreen = getNumberOfHoldersCanBeOnScreen(testedLayoutResource)
+        val numberOfHoldersInScreen = getNumberOfHoldersThatCanBeOnScreen(testedLayoutResource)
         val models = modelGenerator.generateModels(numberOfHoldersInScreen) // about 6 items
-        val itemModule = object : ItemModule<TestModel1>() {
+        val itemModule = object : ItemModule<TestModel>() {
             override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(testedLayoutResource)
-            override fun onBind(model: TestModel1, viewBinder: ViewBinder) {
+            override fun onBind(model: TestModel, viewBinder: ViewBinder) {
                 model.onBindCalls++
             }
         }

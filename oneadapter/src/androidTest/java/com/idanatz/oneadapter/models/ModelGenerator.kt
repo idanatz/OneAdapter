@@ -6,16 +6,16 @@ class ModelGenerator {
 
     private var modelNumber = 0
 
-    fun generateModel(): TestModel1 {
-        val messageModel = TestModel1(modelNumber, "Model #$modelNumber")
+    fun generateModel(): TestModel {
+        val messageModel = TestModel(modelNumber, "Model #$modelNumber")
         modelNumber++
         return messageModel
     }
 
-    fun generateModels(quantity: Int): List<TestModel1> {
-        val list: MutableList<TestModel1> = LinkedList()
+    fun generateModels(quantity: Int): List<TestModel> {
+        val list: MutableList<TestModel> = LinkedList()
         for(i in 1..quantity) {
-            addModel(list, TestModel1(modelNumber, "Model #$modelNumber"))
+            addModel(list, TestModel(modelNumber, "Model #$modelNumber"))
         }
         return list
     }

@@ -13,20 +13,15 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WhenClearingItemsOnBindShouldBeCalledOnce : BaseTest() {
 
+    private var onBindCalls = 0
+
     @Test
     fun test() {
         // preparation
-        var onBindCalls = 0
-        val emptinessModule = object : EmptinessModule() {
-            override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
-            override fun onBind(viewBinder: ViewBinder) {
-                onBindCalls++
-            }
-        }
         runOnActivity {
             oneAdapter.apply {
                 attachItemModule(modulesGenerator.generateValidItemModule())
-                attachEmptinessModule(emptinessModule)
+                attachEmptinessModule(TestEmptinessModule())
                 oneAdapter.internalAdapter.data = mutableListOf(modelGenerator.generateModel())
             }
         }
@@ -39,6 +34,13 @@ class WhenClearingItemsOnBindShouldBeCalledOnce : BaseTest() {
         // assertion
         await().untilAsserted {
             onBindCalls shouldEqualTo 1
+        }
+    }
+
+    inner class TestEmptinessModule : EmptinessModule() {
+        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
+        override fun onBind(viewBinder: ViewBinder) {
+            onBindCalls++
         }
     }
 }
