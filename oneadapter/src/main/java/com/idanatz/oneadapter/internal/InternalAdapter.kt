@@ -352,6 +352,10 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     }
     //endregion
 
+    fun getItemViewTypeFromClass(clazz: Class<Diffable>): Int? {
+        return viewHolderCreatorsStore.getCreatorUniqueIndex(clazz)
+    }
+
     companion object {
         const val UPDATE_DATA_DELAY_MILLIS = 100L
     }

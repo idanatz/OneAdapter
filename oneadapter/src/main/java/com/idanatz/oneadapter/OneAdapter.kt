@@ -79,6 +79,14 @@ class OneAdapter(recyclerView: RecyclerView) {
         }
     }
 
+    fun getItemViewType(position: Int): Int {
+        return internalAdapter.getItemViewType(position)
+    }
+
+    fun getItemViewTypeFromClass(clazz: Class<Diffable>): Int? {
+        return internalAdapter.getItemViewTypeFromClass(clazz)
+    }
+
     /**
      * Attach the given ItemModule to the adapter.
      * This will add the ability to process items of the ItemModule type.
