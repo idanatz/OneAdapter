@@ -83,7 +83,7 @@ class OneAdapter(recyclerView: RecyclerView) {
         return internalAdapter.getItemViewType(position)
     }
 
-    fun getItemViewTypeFromClass(clazz: Class<Diffable>): Int? {
+    fun getItemViewTypeFromClass(clazz: Class<*>): Int? {
         return internalAdapter.getItemViewTypeFromClass(clazz)
     }
 

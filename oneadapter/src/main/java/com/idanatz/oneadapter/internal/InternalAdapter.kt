@@ -352,7 +352,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     }
     //endregion
 
-    fun getItemViewTypeFromClass(clazz: Class<Diffable>): Int? {
+    fun getItemViewTypeFromClass(clazz: Class<*>): Int? {
         return viewHolderCreatorsStore.getCreatorUniqueIndex(clazz)
     }
 

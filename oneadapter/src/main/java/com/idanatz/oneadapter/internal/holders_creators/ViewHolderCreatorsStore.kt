@@ -11,7 +11,7 @@ internal class ViewHolderCreatorsStore {
         holderCreators[clazz] = creator
     }
 
-    fun getCreatorUniqueIndex(clazz: Class<Diffable>): Int {
+    fun getCreatorUniqueIndex(clazz: Class<*>): Int {
         if (dataTypes.indexOf(clazz) == -1) {
             dataTypes.add(clazz)
         }
