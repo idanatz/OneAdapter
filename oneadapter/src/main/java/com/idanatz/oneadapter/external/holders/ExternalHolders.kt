@@ -1,9 +1,9 @@
-package com.idanatz.oneadapter.internal.holders
+package com.idanatz.oneadapter.external.holders
 
 import com.idanatz.oneadapter.external.interfaces.Diffable
 import java.util.*
 
-internal abstract class InternalHolderModel : Diffable {
+abstract class ExternalHolderModel : Diffable {
 
     private val uniqueId = UUID.randomUUID().mostSignificantBits
 
@@ -11,5 +11,5 @@ internal abstract class InternalHolderModel : Diffable {
     override fun areContentTheSame(other: Any) = true
 }
 
-internal object LoadingIndicator : InternalHolderModel()
-internal object EmptyIndicator : InternalHolderModel()
+object LoadingIndicator : ExternalHolderModel()
+object EmptyIndicator : ExternalHolderModel()

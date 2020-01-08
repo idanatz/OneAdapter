@@ -11,8 +11,8 @@ import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.ListUpdateCallback
 import com.idanatz.oneadapter.external.interfaces.*
 import com.idanatz.oneadapter.internal.diffing.OneDiffUtil
-import com.idanatz.oneadapter.internal.holders.EmptyIndicator
-import com.idanatz.oneadapter.internal.holders.LoadingIndicator
+import com.idanatz.oneadapter.external.holders.EmptyIndicator
+import com.idanatz.oneadapter.external.holders.LoadingIndicator
 import com.idanatz.oneadapter.internal.holders.OneViewHolder
 import com.idanatz.oneadapter.internal.interfaces.DiffUtilCallback
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreator
