@@ -34,7 +34,7 @@ import com.idanatz.oneadapter.internal.utils.extensions.isClassExists
 import com.idanatz.oneadapter.internal.utils.extensions.let2
 import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
 import com.idanatz.oneadapter.internal.utils.extensions.removeClassIfExist
-import com.idanatz.oneadapter.internal.validator.MissingConfigArgumentException
+import com.idanatz.oneadapter.external.MissingConfigArgumentException
 import com.idanatz.oneadapter.internal.validator.Validator
 import java.util.concurrent.Future
 

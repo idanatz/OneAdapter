@@ -5,9 +5,8 @@ import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.internal.holders.ViewBinder
-import com.idanatz.oneadapter.internal.validator.MissingConfigArgumentException
+import com.idanatz.oneadapter.external.MissingConfigArgumentException
 import com.idanatz.oneadapter.models.TestModel
-import com.idanatz.oneadapter.models.TestModel1
 import org.junit.Test
 import org.junit.runner.RunWith
 

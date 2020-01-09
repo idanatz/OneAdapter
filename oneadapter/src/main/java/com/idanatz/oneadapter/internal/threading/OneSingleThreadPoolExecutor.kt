@@ -1,7 +1,7 @@
 package com.idanatz.oneadapter.internal.threading
 
-import com.idanatz.oneadapter.internal.validator.MissingModuleDefinitionException
-import com.idanatz.oneadapter.internal.validator.MultipleModuleConflictException
+import com.idanatz.oneadapter.external.MissingModuleDefinitionException
+import com.idanatz.oneadapter.external.MultipleModuleConflictException
 import java.util.concurrent.*
 
 internal class OneSingleThreadPoolExecutor : ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, LinkedBlockingQueue()) {

@@ -7,8 +7,8 @@ import com.idanatz.oneadapter.internal.InternalAdapter
 import com.idanatz.oneadapter.external.modules.Modules
 import com.idanatz.oneadapter.internal.utils.extensions.*
 import com.idanatz.oneadapter.internal.utils.extensions.getIndexOfItem
-import com.idanatz.oneadapter.internal.validator.MissingModuleDefinitionException
-import com.idanatz.oneadapter.internal.validator.MultipleModuleConflictException
+import com.idanatz.oneadapter.external.MissingModuleDefinitionException
+import com.idanatz.oneadapter.external.MultipleModuleConflictException
 
 class OneAdapter(recyclerView: RecyclerView) {
 

@@ -2,7 +2,7 @@ package com.idanatz.oneadapter.tests.modules.item
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.helpers.BaseTest
-import com.idanatz.oneadapter.internal.validator.MultipleModuleConflictException
+import com.idanatz.oneadapter.external.MultipleModuleConflictException
 import org.junit.Test
 import org.junit.runner.RunWith
 
