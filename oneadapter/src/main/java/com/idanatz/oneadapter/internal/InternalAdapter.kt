@@ -34,6 +34,7 @@ import com.idanatz.oneadapter.internal.utils.extensions.isClassExists
 import com.idanatz.oneadapter.internal.utils.extensions.let2
 import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
 import com.idanatz.oneadapter.internal.utils.extensions.removeClassIfExist
+import com.idanatz.oneadapter.internal.validator.UnsupportedClassException
 import com.idanatz.oneadapter.internal.validator.Validator
 import java.util.*
 import java.util.concurrent.Future
@@ -137,7 +138,11 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     override fun getItemViewType(position: Int) = viewHolderCreatorsStore.getCreatorUniqueIndex(data[position].javaClass)
 
     fun getItemViewTypeFromClass(clazz: Class<*>): Int? {
-        return viewHolderCreatorsStore.getCreatorUniqueIndex(clazz)
+        if(!Diffable::class.java.isAssignableFrom(clazz)) {
+            throw UnsupportedClassException()
+        }
+
+        return viewHolderCreatorsStore.getCreatorUniqueIndex(clazz as Class<Diffable>)
     }
 
     override fun onViewRecycled(holder: OneViewHolder<Diffable>) {
