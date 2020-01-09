@@ -136,6 +136,10 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     override fun getItemViewType(position: Int) = viewHolderCreatorsStore.getCreatorUniqueIndex(data[position].javaClass)
 
+    fun getItemViewTypeFromClass(clazz: Class<*>): Int? {
+        return viewHolderCreatorsStore.getCreatorUniqueIndex(clazz)
+    }
+
     override fun onViewRecycled(holder: OneViewHolder<Diffable>) {
         super.onViewRecycled(holder)
         holder.onUnbind(holder.model)
@@ -351,10 +355,6 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
         endlessScrollListener?.let { recyclerView.removeOnScrollListener(it) }
     }
     //endregion
-
-    fun getItemViewTypeFromClass(clazz: Class<*>): Int? {
-        return viewHolderCreatorsStore.getCreatorUniqueIndex(clazz)
-    }
 
     companion object {
         const val UPDATE_DATA_DELAY_MILLIS = 100L

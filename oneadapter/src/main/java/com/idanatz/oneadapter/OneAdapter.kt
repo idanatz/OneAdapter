@@ -79,14 +79,6 @@ class OneAdapter(recyclerView: RecyclerView) {
         }
     }
 
-    fun getItemViewType(position: Int): Int {
-        return internalAdapter.getItemViewType(position)
-    }
-
-    fun getItemViewTypeFromClass(clazz: Class<*>): Int? {
-        return internalAdapter.getItemViewTypeFromClass(clazz)
-    }
-
     /**
      * Attach the given ItemModule to the adapter.
      * This will add the ability to process items of the ItemModule type.
@@ -122,5 +114,13 @@ class OneAdapter(recyclerView: RecyclerView) {
 
     fun <M : Diffable> getVisibleItems(ofClass: Class<M>, requiredVisibilityPercentage: Float = 1f): List<M> {
         return internalAdapter.holderVisibilityResolver.getItems(ofClass, requiredVisibilityPercentage)
+    }
+
+    fun getItemViewType(position: Int): Int {
+        return internalAdapter.getItemViewType(position)
+    }
+
+    fun getItemViewTypeFromClass(clazz: Class<*>): Int? {
+        return internalAdapter.getItemViewTypeFromClass(clazz)
     }
 }
