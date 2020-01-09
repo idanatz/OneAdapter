@@ -1,6 +1,15 @@
 package com.idanatz.oneadapter.internal.utils.extensions
 
 import com.idanatz.oneadapter.external.interfaces.Diffable
+import java.util.*
+
+internal fun <T : Diffable> List<T>.createMutableCopy(): MutableList<T> {
+    return LinkedList(this)
+}
+
+internal fun <T : Diffable> List<T>.createMutableCopyAndApply(block: MutableList<T>.() -> Unit): MutableList<T> {
+    return LinkedList(this).apply(block)
+}
 
 internal fun <T : Diffable, M : Diffable> MutableList<T>.removeClassIfExist(classToRemove: Class<M>) {
     findIndexOfClass(classToRemove)?.let { foundIndex -> removeAt(foundIndex) }

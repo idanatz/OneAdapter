@@ -29,14 +29,16 @@ import com.idanatz.oneadapter.internal.selection.SelectionObserver
 import com.idanatz.oneadapter.internal.swiping.OneItemTouchHelper
 import com.idanatz.oneadapter.internal.threading.OneSingleThreadPoolExecutor
 import com.idanatz.oneadapter.internal.utils.*
-import com.idanatz.oneadapter.internal.validator.MissingConfigArgumentException
+import com.idanatz.oneadapter.internal.utils.extensions.*
 import com.idanatz.oneadapter.internal.utils.extensions.isClassExists
 import com.idanatz.oneadapter.internal.utils.extensions.let2
 import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
 import com.idanatz.oneadapter.internal.utils.extensions.removeClassIfExist
+import com.idanatz.oneadapter.internal.validator.MissingConfigArgumentException
 import com.idanatz.oneadapter.internal.validator.Validator
-import java.util.*
 import java.util.concurrent.Future
+
+private const val UPDATE_DATA_DELAY_MILLIS = 100L
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Adapter<OneViewHolder<Diffable>>(),
@@ -180,7 +182,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     fun <M : Diffable> register(itemModule: ItemModule<M>) {
         val moduleConfig = itemModule.provideModuleConfig()
         val layoutResourceId = moduleConfig.withLayoutResource()
-        val dataClass = extractGenericClass(itemModule.javaClass) ?: throw MissingConfigArgumentException("ItemModuleConfig missing model class")
+        val dataClass = extractGenericClass(itemModule.javaClass) as? Class<Diffable> ?: throw MissingConfigArgumentException("ItemModuleConfig missing model class")
 
         Validator.validateItemModuleAgainstRegisteredModules(modules.itemModules, dataClass)
         Validator.validateLayoutExists(context, layoutResourceId)
@@ -208,7 +210,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     fun enableEmptiness(emptinessModule: EmptinessModule) {
         val moduleConfig = emptinessModule.provideModuleConfig()
         val layoutResourceId = moduleConfig.withLayoutResource()
-        val dataClass = EmptyIndicator.javaClass
+        val dataClass = EmptyIndicator.javaClass as Class<Diffable>
 
         Validator.validateLayoutExists(context, layoutResourceId)
 
@@ -241,7 +243,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     fun enablePaging(pagingModule: PagingModule) {
         val moduleConfig = pagingModule.provideModuleConfig()
         val layoutResourceId = moduleConfig.withLayoutResource()
-        val dataClass = LoadingIndicator.javaClass
+        val dataClass = LoadingIndicator.javaClass as Class<Diffable>
 
         Validator.validateLayoutExists(context, layoutResourceId)
 
@@ -335,12 +337,10 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     }
 
     override fun removeSelectedItems() {
-        val dataCopy = LinkedList(data).apply { removeAllItems(getSelectedItems()) }
-        updateData(dataCopy)
+        val modifiedData = data.createMutableCopyAndApply { removeAllItems(getSelectedItems()) }
+        updateData(modifiedData)
 
-        uiHandler.postDelayed({
-            clearSelection()
-        }, UPDATE_DATA_DELAY_MILLIS)
+        uiHandler.postDelayed({ clearSelection() }, UPDATE_DATA_DELAY_MILLIS)
     }
 
     override fun clearSelection() = selectionTracker?.clearSelection()
@@ -351,8 +351,4 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
         endlessScrollListener?.let { recyclerView.removeOnScrollListener(it) }
     }
     //endregion
-
-    companion object {
-        const val UPDATE_DATA_DELAY_MILLIS = 100L
-    }
 }

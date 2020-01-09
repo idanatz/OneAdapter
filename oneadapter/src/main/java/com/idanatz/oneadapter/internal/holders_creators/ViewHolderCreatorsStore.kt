@@ -4,10 +4,10 @@ import com.idanatz.oneadapter.external.interfaces.Diffable
 
 internal class ViewHolderCreatorsStore {
 
-    private val dataTypes = mutableListOf<Class<*>>() // maps T.class to unique indexes for adapter's getCreatorUniqueIndex
-    private val holderCreators = mutableMapOf<Class<*>, ViewHolderCreator<Diffable>>() // maps T.class -> ViewHolderCreator<T>
+    private val dataTypes = mutableListOf<Class<Diffable>>() // maps T.class to unique indexes for adapter's getCreatorUniqueIndex
+    private val holderCreators = mutableMapOf<Class<Diffable>, ViewHolderCreator<Diffable>>() // maps T.class to its corresponding ViewHolderCreator<T>
 
-    fun addCreator(clazz: Class<*>, creator: ViewHolderCreator<Diffable>) {
+    fun addCreator(clazz: Class<Diffable>, creator: ViewHolderCreator<Diffable>) {
         holderCreators[clazz] = creator
     }
 

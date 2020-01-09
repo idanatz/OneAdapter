@@ -12,9 +12,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class WhenReachingThresholdOnUnbindShouldBeCalledOnce : BaseTest() {
+class WhenReachingThresholdOnBindShouldBeCalledOnce : BaseTest() {
 
-    private var onUnbindCalls = 0
+    private var onBindCalls = 0
 
     @Test
     fun test() {
@@ -36,15 +36,15 @@ class WhenReachingThresholdOnUnbindShouldBeCalledOnce : BaseTest() {
 
         // assertion
         await().untilAsserted {
-            onUnbindCalls shouldEqualTo 1
+            onBindCalls shouldEqualTo 1
         }
     }
 
     inner class TestPagingModule : PagingModule() {
         override fun provideModuleConfig(): PagingModuleConfig = modulesGenerator.generateValidPagingModuleConfig()
         override fun onLoadMore(currentPage: Int) {}
-        override fun onUnbind(viewBinder: ViewBinder) {
-            onUnbindCalls++
+        override fun onBind(viewBinder: ViewBinder) {
+            onBindCalls++
         }
     }
 }

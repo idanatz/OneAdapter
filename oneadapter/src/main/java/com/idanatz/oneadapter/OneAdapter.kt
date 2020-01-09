@@ -5,11 +5,10 @@ import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.oneadapter.internal.InternalAdapter
 import com.idanatz.oneadapter.external.modules.Modules
+import com.idanatz.oneadapter.internal.utils.extensions.*
 import com.idanatz.oneadapter.internal.utils.extensions.getIndexOfItem
-import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
 import com.idanatz.oneadapter.internal.validator.MissingModuleDefinitionException
 import com.idanatz.oneadapter.internal.validator.MultipleModuleConflictException
-import java.util.*
 
 class OneAdapter(recyclerView: RecyclerView) {
 
@@ -29,7 +28,7 @@ class OneAdapter(recyclerView: RecyclerView) {
      * @throws MissingModuleDefinitionException if any of the given items are missing an ItemModule.
      */
     fun setItems(items: List<Diffable>) {
-        internalAdapter.updateData(LinkedList(items))
+        internalAdapter.updateData(items.createMutableCopy())
     }
 
     /**
@@ -46,17 +45,17 @@ class OneAdapter(recyclerView: RecyclerView) {
     }
 
     fun add(index: Int, item: Diffable) {
-        val modifiedList = LinkedList(internalItems).apply { add(index, item) }
+        val modifiedList = internalItems.createMutableCopyAndApply { add(index, item) }
         internalAdapter.updateData(modifiedList)
     }
 
     fun add(items: List<Diffable>) {
-        val modifiedList = LinkedList(internalItems).apply { addAll(items) }
+        val modifiedList = internalItems.createMutableCopyAndApply { addAll(items) }
         internalAdapter.updateData(modifiedList)
     }
 
     fun remove(index: Int) {
-        val modifiedList = LinkedList(internalItems).apply { removeAt(index) }
+        val modifiedList = internalItems.createMutableCopyAndApply { removeAt(index) }
         internalAdapter.updateData(modifiedList)
     }
 
@@ -68,7 +67,7 @@ class OneAdapter(recyclerView: RecyclerView) {
     }
 
     fun remove(items: List<Diffable>) {
-        val modifiedList = LinkedList(internalItems).apply { removeAllItems(items) }
+        val modifiedList = internalItems.createMutableCopyAndApply { removeAllItems(items) }
         internalAdapter.updateData(modifiedList)
     }
 
@@ -104,14 +103,17 @@ class OneAdapter(recyclerView: RecyclerView) {
         return this
     }
 
+    @JvmOverloads
     fun getVisibleItemIndexes(requiredVisibilityPercentage: Float = 1f): List<Int> {
         return internalAdapter.holderVisibilityResolver.getIndexes(requiredVisibilityPercentage)
     }
 
+    @JvmOverloads
     fun <M : Diffable> getVisibleItemIndexes(ofClass: Class<M>, requiredVisibilityPercentage: Float = 1f): List<Int> {
         return internalAdapter.holderVisibilityResolver.getIndexes(ofClass, requiredVisibilityPercentage)
     }
 
+    @JvmOverloads
     fun <M : Diffable> getVisibleItems(ofClass: Class<M>, requiredVisibilityPercentage: Float = 1f): List<M> {
         return internalAdapter.holderVisibilityResolver.getItems(ofClass, requiredVisibilityPercentage)
     }
