@@ -117,4 +117,12 @@ class OneAdapter(recyclerView: RecyclerView) {
     fun <M : Diffable> getVisibleItems(ofClass: Class<M>, requiredVisibilityPercentage: Float = 1f): List<M> {
         return internalAdapter.holderVisibilityResolver.getItems(ofClass, requiredVisibilityPercentage)
     }
+
+    fun getItemViewType(position: Int): Int {
+        return internalAdapter.getItemViewType(position)
+    }
+
+    fun getItemViewTypeFromClass(clazz: Class<*>): Int? {
+        return internalAdapter.getItemViewTypeFromClass(clazz)
+    }
 }
