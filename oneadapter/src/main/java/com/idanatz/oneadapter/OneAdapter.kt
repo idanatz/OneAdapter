@@ -122,7 +122,12 @@ class OneAdapter(recyclerView: RecyclerView) {
         return internalAdapter.getItemViewType(position)
     }
 
-    fun getItemViewTypeFromClass(clazz: Class<*>): Int? {
+    /**
+     * Retrieves the view type of an item with a given class.
+     * Note that this class must implement the Diffable interface and the adapter must contain items of that class.
+     * @throws UnsupportedClassException if the class does not implement the Diffable interface.
+     */
+    fun getItemViewTypeFromClass(clazz: Class<*>): Int {
         return internalAdapter.getItemViewTypeFromClass(clazz)
     }
 }

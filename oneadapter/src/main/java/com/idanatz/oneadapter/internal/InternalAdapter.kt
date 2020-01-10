@@ -140,9 +140,9 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     override fun getItemViewType(position: Int) = viewHolderCreatorsStore.getCreatorUniqueIndex(data[position].javaClass)
 
-    fun getItemViewTypeFromClass(clazz: Class<*>): Int? {
+    fun getItemViewTypeFromClass(clazz: Class<*>): Int {
         if(!Diffable::class.java.isAssignableFrom(clazz)) {
-            throw UnsupportedClassException()
+            throw UnsupportedClassException("Class must implement Diffable interface")
         }
 
         return viewHolderCreatorsStore.getCreatorUniqueIndex(clazz as Class<Diffable>)
