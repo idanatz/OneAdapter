@@ -2,13 +2,10 @@ package com.idanatz.oneadapter.internal.validator
 
 import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
-import com.idanatz.oneadapter.external.MissingConfigArgumentException
-import com.idanatz.oneadapter.external.MissingLayoutManagerException
-import com.idanatz.oneadapter.external.MissingModuleDefinitionException
-import com.idanatz.oneadapter.external.MultipleModuleConflictException
+import com.idanatz.oneadapter.external.*
 import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.external.modules.ItemModule
-import com.idanatz.oneadapter.internal.holders.InternalHolderModel
+import com.idanatz.oneadapter.external.holders.OneHolderModel
 import java.lang.NullPointerException
 
 internal class Validator {
@@ -16,7 +13,7 @@ internal class Validator {
     companion object {
 
         fun validateItemsAgainstRegisteredModules(itemModulesMap: MutableMap<Class<*>, ItemModule<*>>, items: List<Diffable>) {
-            items.filterNot { it is InternalHolderModel }.find { !itemModulesMap.containsKey(it.javaClass) }?.let {
+            items.filterNot { it is OneHolderModel }.find { !itemModulesMap.containsKey(it.javaClass) }?.let {
                 throw MissingModuleDefinitionException("did you forget to attach ItemModule? (model: ${it.javaClass})")
             }
         }
@@ -37,6 +34,12 @@ internal class Validator {
 
         fun validateLayoutManagerExists(recyclerView: RecyclerView): RecyclerView.LayoutManager {
             return recyclerView.layoutManager ?: throw MissingLayoutManagerException("RecyclerView's Layout Manager must be configured")
+        }
+
+        fun validateModelClassIsDiffable(clazz: Class<*>) {
+            if (!Diffable::class.java.isAssignableFrom(clazz)) {
+                throw UnsupportedClassException("${clazz.simpleName} must implement Diffable interface")
+            }
         }
     }
 }

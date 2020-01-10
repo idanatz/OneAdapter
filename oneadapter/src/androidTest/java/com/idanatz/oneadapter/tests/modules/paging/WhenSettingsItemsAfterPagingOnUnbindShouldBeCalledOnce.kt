@@ -1,10 +1,10 @@
 package com.idanatz.oneadapter.tests.modules.paging
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.idanatz.oneadapter.external.holders.LoadingIndicator
 import com.idanatz.oneadapter.external.modules.PagingModule
 import com.idanatz.oneadapter.external.modules.PagingModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
-import com.idanatz.oneadapter.internal.holders.LoadingIndicator
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo

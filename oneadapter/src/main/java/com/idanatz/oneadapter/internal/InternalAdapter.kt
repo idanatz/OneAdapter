@@ -11,8 +11,8 @@ import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.ListUpdateCallback
 import com.idanatz.oneadapter.external.interfaces.*
 import com.idanatz.oneadapter.internal.diffing.OneDiffUtil
-import com.idanatz.oneadapter.internal.holders.EmptyIndicator
-import com.idanatz.oneadapter.internal.holders.LoadingIndicator
+import com.idanatz.oneadapter.external.holders.EmptyIndicator
+import com.idanatz.oneadapter.external.holders.LoadingIndicator
 import com.idanatz.oneadapter.internal.holders.OneViewHolder
 import com.idanatz.oneadapter.internal.interfaces.DiffUtilCallback
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreator
@@ -133,10 +133,15 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     override fun getItemId(position: Int): Long  {
         val item = data[position]
         // javaClass is used for lettings different Diffable models share the same unique identifier
-        return item.javaClass.simpleName.hashCode() + item.getUniqueIdentifier()
+        return item.javaClass.name.hashCode() + item.getUniqueIdentifier()
     }
 
     override fun getItemViewType(position: Int) = viewHolderCreatorsStore.getCreatorUniqueIndex(data[position].javaClass)
+
+    fun getItemViewTypeFromClass(clazz: Class<*>): Int {
+        Validator.validateModelClassIsDiffable(clazz)
+        return viewHolderCreatorsStore.getCreatorUniqueIndex(clazz as Class<Diffable>)
+    }
 
     override fun onViewRecycled(holder: OneViewHolder<Diffable>) {
         super.onViewRecycled(holder)

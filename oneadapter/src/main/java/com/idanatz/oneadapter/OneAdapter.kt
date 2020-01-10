@@ -9,6 +9,7 @@ import com.idanatz.oneadapter.internal.utils.extensions.*
 import com.idanatz.oneadapter.internal.utils.extensions.getIndexOfItem
 import com.idanatz.oneadapter.external.MissingModuleDefinitionException
 import com.idanatz.oneadapter.external.MultipleModuleConflictException
+import com.idanatz.oneadapter.external.UnsupportedClassException
 
 class OneAdapter(recyclerView: RecyclerView) {
 
@@ -116,5 +117,19 @@ class OneAdapter(recyclerView: RecyclerView) {
     @JvmOverloads
     fun <M : Diffable> getVisibleItems(ofClass: Class<M>, requiredVisibilityPercentage: Float = 1f): List<M> {
         return internalAdapter.holderVisibilityResolver.getItems(ofClass, requiredVisibilityPercentage)
+    }
+
+    fun getItemViewType(position: Int): Int {
+        return internalAdapter.getItemViewType(position)
+    }
+
+    /**
+     * Retrieves the view type of an item with a given class.
+     * Note that this class must implement the Diffable interface and the adapter must contain items of that class.
+     * @throws UnsupportedClassException if the class does not implement the Diffable interface
+     * or is not registered as an Module data type.
+     */
+    fun getItemViewTypeFromClass(clazz: Class<*>): Int {
+        return internalAdapter.getItemViewTypeFromClass(clazz)
     }
 }
