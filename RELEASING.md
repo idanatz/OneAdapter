@@ -1,4 +1,5 @@
-Release Steps:
+Release Steps
+=============
 1. Increment version in develop.
 2. Update CHANGELOG with changes.
 3. Update README (features, latest dep version, etc...)
