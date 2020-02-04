@@ -3,10 +3,10 @@ package com.idanatz.oneadapter.tests.modules.empiness
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.modules.EmptinessModule
 import com.idanatz.oneadapter.helpers.BaseTest
+import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
-import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -23,14 +23,14 @@ class WhenAdapterEmptyOnCreateShouldBeCalledOnce : BaseTest() {
         }
 
         // assertion
-        await().untilAsserted {
+        waitUntilAsserted {
             onCreateCalls shouldEqualTo 1
         }
     }
 
     inner class TestEmptinessModule : EmptinessModule() {
         override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
-        override fun onBind(viewBinder: ViewBinder) {}
+        override fun onBind(viewBinder: ViewBinder, metadata: Metadata) {}
         override fun onCreated(viewBinder: ViewBinder) {
             onCreateCalls++
         }

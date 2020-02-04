@@ -10,7 +10,8 @@ import androidx.databinding.ViewDataBinding
  */
 class ViewBinder(
         val rootView: View,
-        private val cachedViews: SparseArray<View> = SparseArray()) {
+        private val cachedViews: SparseArray<View> = SparseArray()
+) {
 
     val dataBinding: ViewDataBinding? by lazy {
         try {

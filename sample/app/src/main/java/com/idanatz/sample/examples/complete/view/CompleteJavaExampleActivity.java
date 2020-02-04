@@ -30,6 +30,9 @@ import android.widget.Toast;
 import com.airbnb.lottie.LottieAnimationView;
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook;
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHookConfig;
+import com.idanatz.oneadapter.external.interfaces.Item;
+import com.idanatz.oneadapter.internal.holders.Metadata;
+import com.idanatz.oneadapter.internal.selection.ItemSelectionActions;
 import com.idanatz.sample.examples.BaseExampleActivity;
 import com.idanatz.sample.models.HeaderModel;
 import com.idanatz.sample.models.MessageModel;
@@ -39,7 +42,6 @@ import com.idanatz.oneadapter.OneAdapter;
 import com.idanatz.oneadapter.external.event_hooks.ClickEventHook;
 import com.idanatz.oneadapter.external.modules.EmptinessModuleConfig;
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig;
-import com.idanatz.oneadapter.external.modules.ItemSelectionActions;
 import com.idanatz.oneadapter.external.modules.PagingModuleConfig;
 import com.idanatz.oneadapter.external.modules.ItemSelectionModuleConfig;
 import com.idanatz.oneadapter.external.modules.EmptinessModule;
@@ -123,14 +125,14 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         }
 
         @Override
-        public void onBind(@NotNull HeaderModel model, @NotNull ViewBinder viewBinder) {
+        public void onBind(@NotNull Item<HeaderModel> item, @NotNull ViewBinder viewBinder) {
             TextView headerTitle = viewBinder.findViewById(R.id.header_title);
             SwitchCompat headerSwitch = viewBinder.findViewById(R.id.header_switch);
 
-            headerTitle.setText(model.name);
-            headerSwitch.setVisibility(model.checkable ? View.VISIBLE : View.GONE);
-            headerSwitch.setChecked(model.checked);
-            headerSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.headerCheckedChanged(model , isChecked));
+            headerTitle.setText(item.getModel().name);
+            headerSwitch.setVisibility(item.getModel().checkable ? View.VISIBLE : View.GONE);
+            headerSwitch.setChecked(item.getModel().checked);
+            headerSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.headerCheckedChanged(item.getModel() , isChecked));
         }
     }
 
@@ -150,22 +152,22 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         }
 
         @Override
-        public void onBind(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
+        public void onBind(@NotNull Item<MessageModel> item, @NotNull ViewBinder viewBinder) {
             TextView id = viewBinder.findViewById(R.id.id);
             TextView title = viewBinder.findViewById(R.id.title);
             TextView body  = viewBinder.findViewById(R.id.body);
             ImageView avatarImage = viewBinder.findViewById(R.id.avatarImage);
             ImageView selectedLayer = viewBinder.findViewById(R.id.selected_layer);
 
-            id.setText(String.format(getString(R.string.message_model_id), model.id));
-            title.setText(model.title);
-            body.setText(model.body);
-            Glide.with(CompleteJavaExampleActivity.this).load(model.avatarImageId).into(avatarImage);
+            id.setText(String.format(getString(R.string.message_model_id), item.getModel().id));
+            title.setText(item.getModel().title);
+            body.setText(item.getModel().body);
+            Glide.with(CompleteJavaExampleActivity.this).load(item.getModel().avatarImageId).into(avatarImage);
 
             // selected UI
-            avatarImage.setAlpha(model.isSelected ? 0.5f : 1f);
-            selectedLayer.setVisibility(model.isSelected? View.VISIBLE : View.GONE);
-            viewBinder.getRootView().setBackgroundColor(model.isSelected ? ContextCompat.getColor(CompleteJavaExampleActivity.this, R.color.light_gray) : Color.WHITE);
+            avatarImage.setAlpha(item.getMetadata().isSelected() ? 0.5f : 1f);
+            selectedLayer.setVisibility(item.getMetadata().isSelected() ? View.VISIBLE : View.GONE);
+            viewBinder.getRootView().setBackgroundColor(item.getMetadata().isSelected() ? ContextCompat.getColor(CompleteJavaExampleActivity.this, R.color.light_gray) : Color.WHITE);
         }
     }
 
@@ -177,7 +179,7 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
 
         @Override
         public void onSelected(@NotNull MessageModel model, boolean selected) {
-            model.isSelected = selected;
+            // place logic related to the selection here
         }
     }
 
@@ -210,21 +212,21 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         }
 
         @Override
-        public void onBind(@NotNull StoriesModel model, @NotNull ViewBinder viewBinder) {
-            oneAdapter.setItems(model.stories);
+        public void onBind(@NotNull Item<StoriesModel> item, @NotNull ViewBinder viewBinder) {
+            oneAdapter.setItems(item.getModel().stories);
 
             // restore scroll state
             RecyclerView nestedRecyclerView = viewBinder.findViewById(R.id.recycler);
             LinearLayoutManager layoutManager = (LinearLayoutManager) nestedRecyclerView.getLayoutManager();
-            layoutManager.onRestoreInstanceState(model.scrollPosition);
+            layoutManager.onRestoreInstanceState(item.getModel().scrollPosition);
         }
 
         @Override
-        public void onUnbind(@NotNull StoriesModel model, @NotNull ViewBinder viewBinder) {
+        public void onUnbind(@NotNull Item<StoriesModel> item, @NotNull ViewBinder viewBinder) {
             // save scroll state
             RecyclerView nestedRecyclerView = viewBinder.findViewById(R.id.recycler);
             LinearLayoutManager layoutManager = (LinearLayoutManager) nestedRecyclerView.getLayoutManager();
-            model.scrollPosition = layoutManager.onSaveInstanceState();
+            item.getModel().scrollPosition = layoutManager.onSaveInstanceState();
         }
 
         private static class StoryItem extends ItemModule<StoryModel> {
@@ -237,9 +239,9 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
             }
 
             @Override
-            public void onBind(@NotNull StoryModel model, @NotNull ViewBinder viewBinder) {
+            public void onBind(@NotNull Item<StoryModel> item, @NotNull ViewBinder viewBinder) {
                 ImageView story = viewBinder.findViewById(R.id.story);
-                Glide.with(viewBinder.getRootView()).load(model.storyImageId).into(story);
+                Glide.with(viewBinder.getRootView()).load(item.getModel().storyImageId).into(story);
             }
         }
     }
@@ -254,14 +256,14 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         }
 
         @Override
-        public void onBind(@NotNull ViewBinder viewBinder) {
+        public void onBind(@NotNull ViewBinder viewBinder, @NotNull Metadata metadata) {
             LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
             animation.setAnimation(R.raw.empty_list);
             animation.playAnimation();
         }
 
         @Override
-        public void onUnbind(@NotNull ViewBinder viewBinder) {
+        public void onUnbind(@NotNull ViewBinder viewBinder, @NotNull Metadata metadata) {
             LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
             animation.pauseAnimation();
         }
@@ -323,10 +325,10 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_delete) {
-            ItemSelectionActions itemSelectionActions = oneAdapter.getModulesActions().getItemSelectionActions();
-            if (itemSelectionActions != null) {
-                viewModel.onDeleteItemsClicked(itemSelectionActions.getSelectedItems());
-                itemSelectionActions.clearSelection();
+            ItemSelectionActions actions = oneAdapter.getModules().getItemSelectionModule().getActions();
+            if (actions != null) {
+                viewModel.onDeleteItemsClicked(actions.getSelectedItems());
+                actions.clearSelection();
             }
             return true;
         }

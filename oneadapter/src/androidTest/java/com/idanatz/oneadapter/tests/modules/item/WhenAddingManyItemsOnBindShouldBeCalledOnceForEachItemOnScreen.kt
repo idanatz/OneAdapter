@@ -1,13 +1,13 @@
 package com.idanatz.oneadapter.tests.modules.item
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
-import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -32,15 +32,15 @@ class WhenAddingManyItemsOnBindShouldBeCalledOnceForEachItemOnScreen : BaseTest(
         }
 
         // assertion
-        await().untilAsserted {
+        waitUntilAsserted {
             models.sumBy { it.onBindCalls } shouldEqualTo numberOfHoldersInScreen
         }
     }
 
     inner class TestItemModule : ItemModule<TestModel>() {
         override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(testedLayoutResource)
-        override fun onBind(model: TestModel, viewBinder: ViewBinder) {
-            model.onBindCalls++
+        override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {
+            item.model.onBindCalls++
         }
     }
 }

@@ -14,7 +14,6 @@ public class MessageModel implements Diffable {
     public String title;
     public String body;
     public int headerId;
-    public boolean isSelected;
 
     public MessageModel(int id, int headerId, int avatarImageId, String title, String body) {
         this.id = id;
@@ -22,7 +21,6 @@ public class MessageModel implements Diffable {
         this.avatarImageId = avatarImageId;
         this.title = title;
         this.body = body;
-        this.isSelected = false;
     }
 
     @Override
@@ -36,7 +34,6 @@ public class MessageModel implements Diffable {
                 headerId == (((MessageModel) other).headerId) &&
                 avatarImageId ==(((MessageModel) other).avatarImageId) &&
                 title.equals(((MessageModel) other).title) &&
-                body.equals(((MessageModel) other).body) &&
-                isSelected == (((MessageModel) other).isSelected);
+                body.equals(((MessageModel) other).body);
     }
 }

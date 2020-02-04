@@ -5,11 +5,11 @@ import com.idanatz.oneadapter.external.holders.LoadingIndicator
 import com.idanatz.oneadapter.external.modules.PagingModule
 import com.idanatz.oneadapter.external.modules.PagingModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
+import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
 import org.amshove.kluent.shouldNotContain
-import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -37,7 +37,7 @@ class WhenSettingsItemsAfterPagingOnUnbindShouldBeCalledOnce : BaseTest() {
         }
 
         // assertion
-        await().untilAsserted {
+        waitUntilAsserted {
             onUnbindCalls shouldEqualTo 1
             oneAdapter.internalAdapter.data shouldNotContain LoadingIndicator
         }
@@ -51,7 +51,7 @@ class WhenSettingsItemsAfterPagingOnUnbindShouldBeCalledOnce : BaseTest() {
                 oneAdapter.setItems(modelGenerator.generateModels(10))
             }
         }
-        override fun onUnbind(viewBinder: ViewBinder) {
+        override fun onUnbind(viewBinder: ViewBinder, metadata: Metadata) {
             onUnbindCalls++
         }
     }

@@ -8,8 +8,10 @@ import butterknife.ButterKnife
 
 import com.bumptech.glide.Glide
 import com.idanatz.oneadapter.OneAdapter
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
+import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.models.MessageModel
@@ -41,10 +43,10 @@ class ButterKnifeActivity : BaseExampleActivity() {
             ButterKnife.bind(this, viewBinder.rootView)
         }
 
-        override fun onBind(model: MessageModel, viewBinder: ViewBinder) {
-            title.text = model.title
-            body.text = model.body
-            Glide.with(viewBinder.rootView).load(model.avatarImageId).into(image)
+        override fun onBind(item: Item<MessageModel>, viewBinder: ViewBinder) {
+            title.text = item.model.title
+            body.text = item.model.body
+            Glide.with(viewBinder.rootView).load(item.model.avatarImageId).into(image)
         }
     }
 }

@@ -13,6 +13,7 @@ import com.bumptech.glide.Glide
 import androidx.databinding.BindingAdapter
 import android.widget.ImageView
 import androidx.lifecycle.ViewModelProviders
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.sample.examples.ActionsDialog
 import com.idanatz.sample.models.ObservableMessageModel
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -51,9 +52,9 @@ class DataBindingActivity : BaseExampleActivity() {
             override fun withLayoutResource(): Int = R.layout.message_model_data_binding
         }
 
-        override fun onBind(model: ObservableMessageModel, viewBinder: ViewBinder) {
+        override fun onBind(item: Item<ObservableMessageModel>, viewBinder: ViewBinder) {
             viewBinder.dataBinding?.run {
-                setVariable(BR.messageModel, model)
+                setVariable(BR.messageModel, item.model)
                 lifecycleOwner = this@DataBindingActivity
                 executePendingBindings()
             }

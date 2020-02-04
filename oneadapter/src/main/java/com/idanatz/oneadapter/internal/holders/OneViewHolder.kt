@@ -16,14 +16,16 @@ import com.idanatz.oneadapter.internal.utils.extensions.let2
 internal abstract class OneViewHolder<M> (
         parent: ViewGroup,
         @LayoutRes layoutResourceId: Int,
-        private val firstBindAnimation: Animator? = null,
+        val firstBindAnimation: Animator? = null,
         private val statesHooksMap: StatesMap<M>? = null, // Not all ViewHolders will have states configured
         private val eventsHooksMap: EventHooksMap<M>? = null // Not all ViewHolders will have events configured
 ) : RecyclerView.ViewHolder(parent.context.inflateLayout(layoutResourceId, parent, false)) {
 
     lateinit var viewBinder: ViewBinder
+    lateinit var metadata: Metadata
     var model: M? = null
 
+    // internal flags
     var isSwiping = false
 
     abstract fun onCreated()
@@ -32,20 +34,22 @@ internal abstract class OneViewHolder<M> (
 
     fun onCreateViewHolder() {
         this.viewBinder = ViewBinder(itemView)
+        this.metadata = Metadata()
         onCreated()
     }
 
-    fun onBindViewHolder(model: M?, shouldAnimate: Boolean) {
+    fun onBindViewHolder(model: M?, metadata: Metadata) {
         this.model = model
-        handleAnimations(shouldAnimate)
+        this.metadata = metadata
+
+        handleAnimations(metadata.isAnimating)
         handleEventHooks()
         onBind(model)
     }
 
     fun onBindSelection(model: M?, selected: Boolean) {
         let2(statesHooksMap?.getSelectionState(), model) { selectionState, model ->
-            if (selected) selectionState.onSelected(model, true)
-            else selectionState.onSelected(model, false)
+            selectionState.onSelected(model, selected)
         }
     }
 
@@ -75,10 +79,8 @@ internal abstract class OneViewHolder<M> (
 
     private fun handleAnimations(shouldAnimate: Boolean) {
         if (shouldAnimate) {
-            firstBindAnimation?.apply {
-                setTarget(itemView)
-                start()
-            }
+            firstBindAnimation?.setTarget(itemView)
+            firstBindAnimation?.start()
         } else {
             firstBindAnimation?.end()
         }

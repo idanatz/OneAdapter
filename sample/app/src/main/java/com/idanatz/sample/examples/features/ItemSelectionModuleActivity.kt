@@ -7,10 +7,12 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 
 import com.bumptech.glide.Glide
 import com.idanatz.oneadapter.OneAdapter
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.external.modules.ItemSelectionModule
@@ -41,28 +43,29 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
             override fun withLayoutResource(): Int = R.layout.message_model
         }
 
-        override fun onBind(model: MessageModel, viewBinder: ViewBinder) {
+        override fun onBind(item: Item<MessageModel>, viewBinder: ViewBinder) {
             val title = viewBinder.findViewById<TextView>(R.id.title)
             val body = viewBinder.findViewById<TextView>(R.id.body)
             val avatarImage = viewBinder.findViewById<ImageView>(R.id.avatarImage)
             val selectedLayer = viewBinder.findViewById<ImageView>(R.id.selected_layer)
 
-            title.text = model.title
-            body.text = model.body
-            Glide.with(viewBinder.rootView).load(model.avatarImageId).into(avatarImage)
+            title.text = item.model.title
+            body.text = item.model.body
+            Glide.with(viewBinder.rootView).load(item.model.avatarImageId).into(avatarImage)
 
             // selected UI
-            avatarImage.alpha = if (model.isSelected) 0.5f else 1f
-            selectedLayer.visibility = if (model.isSelected) View.VISIBLE else View.GONE
-            viewBinder.rootView.setBackgroundColor(if (model.isSelected) ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.light_gray) else Color.WHITE)
+            avatarImage.alpha = if (item.metadata.isSelected) 0.5f else 1f
+            selectedLayer.visibility = if (item.metadata.isSelected) View.VISIBLE else View.GONE
+            viewBinder.rootView.setBackgroundColor(if (item.metadata.isSelected) ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.light_gray) else Color.WHITE)
         }
     }
 
-    private class MessageSelectionState : SelectionState<MessageModel>() {
+    private inner class MessageSelectionState : SelectionState<MessageModel>() {
         override fun isSelectionEnabled(model: MessageModel): Boolean = true
 
         override fun onSelected(model: MessageModel, selected: Boolean) {
-            model.isSelected = selected
+            val message = "${model.title} " + if (selected) "selected" else "unselected"
+            Toast.makeText(this@ItemSelectionModuleActivity, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -95,7 +98,7 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == R.id.action_delete) {
-            oneAdapter.modulesActions.itemSelectionActions?.removeSelectedItems()
+            oneAdapter.modules.itemSelectionModule?.actions?.removeSelectedItems()
             return true
         }
         return super.onOptionsItemSelected(item)

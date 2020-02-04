@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.TextView
 import com.idanatz.oneadapter.OneAdapter
 import com.idanatz.oneadapter.external.event_hooks.ClickEventHook
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
@@ -51,8 +52,8 @@ class MainActivity : BaseExampleActivity() {
             override fun withLayoutResource() = R.layout.header_model
         }
 
-        override fun onBind(model: HeaderModel, viewBinder: ViewBinder) {
-            viewBinder.findViewById<TextView>(R.id.header_title).text = model.name
+        override fun onBind(item: Item<HeaderModel>, viewBinder: ViewBinder) {
+            viewBinder.findViewById<TextView>(R.id.header_title).text = item.model.name
         }
     }
 
@@ -61,8 +62,8 @@ class MainActivity : BaseExampleActivity() {
             override fun withLayoutResource() = R.layout.activity_model
         }
 
-        override fun onBind(model: ActivityModel, viewBinder: ViewBinder) {
-            viewBinder.findViewById<TextView>(R.id.title).text = model.text
+        override fun onBind(item: Item<ActivityModel>, viewBinder: ViewBinder) {
+            viewBinder.findViewById<TextView>(R.id.title).text = item.model.text
         }
     }
 

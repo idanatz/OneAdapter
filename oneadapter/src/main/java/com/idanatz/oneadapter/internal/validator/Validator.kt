@@ -5,7 +5,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.idanatz.oneadapter.external.*
 import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.external.modules.ItemModule
-import com.idanatz.oneadapter.external.holders.OneHolderModel
+import com.idanatz.oneadapter.external.holders.OneInternalHolderModel
 import java.lang.NullPointerException
 
 internal class Validator {
@@ -13,7 +13,7 @@ internal class Validator {
     companion object {
 
         fun validateItemsAgainstRegisteredModules(itemModulesMap: MutableMap<Class<*>, ItemModule<*>>, items: List<Diffable>) {
-            items.filterNot { it is OneHolderModel }.find { !itemModulesMap.containsKey(it.javaClass) }?.let {
+            items.filterNot { it is OneInternalHolderModel }.find { !itemModulesMap.containsKey(it.javaClass) }?.let {
                 throw MissingModuleDefinitionException("did you forget to attach ItemModule? (model: ${it.javaClass})")
             }
         }

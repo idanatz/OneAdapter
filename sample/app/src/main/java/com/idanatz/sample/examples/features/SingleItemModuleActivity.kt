@@ -6,6 +6,7 @@ import android.widget.TextView
 
 import com.bumptech.glide.Glide
 import com.idanatz.oneadapter.OneAdapter
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
@@ -29,14 +30,14 @@ class SingleItemModuleActivity : BaseExampleActivity() {
             override fun withLayoutResource(): Int = R.layout.message_model
         }
 
-        override fun onBind(model: MessageModel, viewBinder: ViewBinder) {
+        override fun onBind(item: Item<MessageModel>, viewBinder: ViewBinder) {
             val title = viewBinder.findViewById<TextView>(R.id.title)
             val body = viewBinder.findViewById<TextView>(R.id.body)
             val image = viewBinder.findViewById<ImageView>(R.id.avatarImage)
 
-            title.text = model.title
-            body.text = model.body
-            Glide.with(viewBinder.rootView).load(model.avatarImageId).into(image)
+            title.text = item.model.title
+            body.text = item.model.body
+            Glide.with(viewBinder.rootView).load(item.model.avatarImageId).into(image)
         }
     }
 }

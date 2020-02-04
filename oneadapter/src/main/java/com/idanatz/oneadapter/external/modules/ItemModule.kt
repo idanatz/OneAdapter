@@ -9,9 +9,10 @@ import com.idanatz.oneadapter.external.interfaces.*
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.external.states.SelectionState
 import com.idanatz.oneadapter.external.states.State
+import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.oneadapter.internal.states.StatesMap
 
-abstract class ItemModule<M> :
+abstract class ItemModule<M : Diffable> :
         LayoutModuleConfigurable<ItemModuleConfig>,
         Creatable, ModelBindable<M>, ModelUnbindable<M>
 {
@@ -20,7 +21,7 @@ abstract class ItemModule<M> :
 
     // lifecycle
     override fun onCreated(@NotNull viewBinder: ViewBinder) {}
-    override fun onUnbind(@NotNull model: M, @NotNull viewBinder: ViewBinder) {}
+    override fun onUnbind(item: Item<M>, viewBinder: ViewBinder) {}
 
     fun addState(state: State<M>): ItemModule<M> {
         when (state) {

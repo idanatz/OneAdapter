@@ -18,8 +18,8 @@ class OneAdapter(recyclerView: RecyclerView) {
     private val internalItems: List<Diffable>
         get() = internalAdapter.data
 
-    val modulesActions: Modules.Actions
-        get() = internalAdapter.modules.actions
+    val modules: Modules
+        get() = internalAdapter.modules
 
     val itemCount: Int
         get() = internalAdapter.itemCount

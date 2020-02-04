@@ -4,11 +4,11 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.holders.EmptyIndicator
 import com.idanatz.oneadapter.external.modules.EmptinessModule
 import com.idanatz.oneadapter.helpers.BaseTest
+import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
 import org.amshove.kluent.shouldNotContain
-import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -35,7 +35,7 @@ class WhenAddingItemOnUnbindShouldBeCalledOnce : BaseTest() {
         }
 
         // assertion
-        await().untilAsserted {
+        waitUntilAsserted {
             onUnbindCalls shouldEqualTo 1
             oneAdapter.internalAdapter.data shouldNotContain EmptyIndicator
         }
@@ -43,7 +43,7 @@ class WhenAddingItemOnUnbindShouldBeCalledOnce : BaseTest() {
 
     inner class TestEmptinessModule : EmptinessModule() {
         override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
-        override fun onUnbind(viewBinder: ViewBinder) {
+        override fun onUnbind(viewBinder: ViewBinder, metadata: Metadata) {
             onUnbindCalls++
         }
     }

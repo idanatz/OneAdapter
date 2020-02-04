@@ -6,7 +6,6 @@ import com.idanatz.oneadapter.external.modules.PagingModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
-import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -38,7 +37,7 @@ class WhenReachingThresholdOnLoadMoreShouldBeCalledOnce : BaseTest() {
         }
 
         // assertion
-        await().untilAsserted {
+        waitUntilAsserted {
             onLoadMoreCalls shouldEqualTo 1
         }
     }

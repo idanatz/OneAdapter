@@ -9,5 +9,5 @@ abstract class SelectionState<M> : State<M>() {
         val TAG: String = SelectionState::class.java.simpleName
     }
     abstract fun isSelectionEnabled(@NotNull model: M): Boolean
-    abstract fun onSelected(@NotNull model: M, selected: Boolean)
+    open fun onSelected(@NotNull model: M, selected: Boolean) {}
 }

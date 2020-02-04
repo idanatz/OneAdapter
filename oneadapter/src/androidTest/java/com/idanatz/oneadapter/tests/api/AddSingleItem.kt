@@ -29,7 +29,7 @@ class AddSingleItem : BaseTest() {
         }
 
         // assertion
-        await().untilAsserted {
+        waitUntilAsserted {
             val newItemList = oneAdapter.internalAdapter.data
             val newItemCount = oneAdapter.itemCount
             newItemList shouldContain modelToAdd

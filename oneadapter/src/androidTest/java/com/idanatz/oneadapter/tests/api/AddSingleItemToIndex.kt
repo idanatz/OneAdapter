@@ -32,7 +32,7 @@ class AddSingleItemToIndex : BaseTest() {
         }
 
         // assertion
-        await().untilAsserted {
+        waitUntilAsserted {
             val newItemList = oneAdapter.internalAdapter.data
             val newItemCount = oneAdapter.itemCount
             newItemList[INDEX_TO_ADD] shouldEqual modelToAdd

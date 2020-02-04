@@ -11,10 +11,6 @@ internal fun <T : Diffable> List<T>.createMutableCopyAndApply(block: MutableList
     return LinkedList(this).apply(block)
 }
 
-internal fun <T : Diffable, M : Diffable> MutableList<T>.removeClassIfExist(classToRemove: Class<M>) {
-    findIndexOfClass(classToRemove)?.let { foundIndex -> removeAt(foundIndex) }
-}
-
 internal fun <T : Diffable, M : Diffable> MutableList<T>.findIndexOfClass(classToFind: Class<M>): Int? {
     return indexOfFirst { classToFind.isInstance(it) }.takeIf { it != -1 }
 }

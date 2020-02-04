@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 1.5.0
+-------------
+* Fixed Bug: clear() not triggering onBind of emptiness module when the adapter was already empty
+* Breaking Changes: 
+    * Wrapped each model with Item object in all module's OnBind and onUnbind call in order to get additional information like item position, isSelected, etc... (using the Metadata object) 
+    * Removed modules actions class, each module now holds its own actions
+
+
 Version 1.4.1
 -------------
 * Added the ability to get view types from the adapter to support GridLayoutManager.SpanSizeLookup 

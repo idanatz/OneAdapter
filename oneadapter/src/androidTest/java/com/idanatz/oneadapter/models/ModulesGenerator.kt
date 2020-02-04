@@ -1,5 +1,6 @@
 package com.idanatz.oneadapter.models
 
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.EmptinessModuleConfig
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
@@ -11,7 +12,7 @@ class ModulesGenerator {
 
     fun generateValidItemModule(resourceId: Int = R.layout.test_model_small): ItemModule<TestModel> = object : ItemModule<TestModel>() {
         override fun provideModuleConfig() = generateValidItemModuleConfig(resourceId)
-        override fun onBind(model: TestModel, viewBinder: ViewBinder) {}
+        override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {}
     }
 
     fun generateValidItemModuleConfig(resourceId: Int): ItemModuleConfig = object : ItemModuleConfig() {

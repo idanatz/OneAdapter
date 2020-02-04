@@ -4,10 +4,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.modules.PagingModule
 import com.idanatz.oneadapter.external.modules.PagingModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
+import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
-import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -35,7 +35,7 @@ class WhenReachingThresholdOnBindShouldBeCalledOnce : BaseTest() {
         }
 
         // assertion
-        await().untilAsserted {
+        waitUntilAsserted {
             onBindCalls shouldEqualTo 1
         }
     }
@@ -43,7 +43,7 @@ class WhenReachingThresholdOnBindShouldBeCalledOnce : BaseTest() {
     inner class TestPagingModule : PagingModule() {
         override fun provideModuleConfig(): PagingModuleConfig = modulesGenerator.generateValidPagingModuleConfig()
         override fun onLoadMore(currentPage: Int) {}
-        override fun onBind(viewBinder: ViewBinder) {
+        override fun onBind(viewBinder: ViewBinder, metadata: Metadata) {
             onBindCalls++
         }
     }

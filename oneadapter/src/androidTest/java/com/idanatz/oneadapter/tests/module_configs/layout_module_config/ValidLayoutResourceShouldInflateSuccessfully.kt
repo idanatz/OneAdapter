@@ -2,6 +2,7 @@ package com.idanatz.oneadapter.tests.module_configs.layout_module_config
 
 import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
@@ -35,7 +36,7 @@ class ValidLayoutResourceShouldInflateSuccessfully : BaseTest() {
         }
 
         // assertion
-        await().untilAsserted {
+        waitUntilAsserted {
             expectedLayoutId shouldEqual rootView?.id
         }
     }
@@ -44,7 +45,7 @@ class ValidLayoutResourceShouldInflateSuccessfully : BaseTest() {
         override fun provideModuleConfig() = object : ItemModuleConfig() {
             override fun withLayoutResource() = testedLayoutResource
         }
-        override fun onBind(model: TestModel, viewBinder: ViewBinder) {
+        override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {
             rootView = viewBinder.rootView
         }
     }

@@ -29,7 +29,7 @@ class Clear : BaseTest() {
         }
 
         // assertion
-        await().untilAsserted {
+        waitUntilAsserted {
             val newItemList = oneAdapter.internalAdapter.data
             newItemList shouldHaveSize 0
         }

@@ -13,6 +13,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.OneAdapter
 import com.idanatz.oneadapter.models.ModulesGenerator
 import com.idanatz.oneadapter.test.R
+import org.awaitility.Awaitility
+import org.awaitility.core.ThrowingRunnable
 import org.junit.After
 import org.junit.Rule
 import java.util.concurrent.CountDownLatch
@@ -58,14 +60,15 @@ open class BaseTest {
 
     @After
     open fun cleanup() {
+        Awaitility.reset()
     }
 
     protected fun runOnActivity(block: (activity: TestActivity) -> Unit) {
         activityScenarioRule.scenario.onActivity(block)
     }
 
-    protected fun runWithDelay(block: () -> Unit) {
-        handler.postDelayed(block, 750)
+    protected fun runWithDelay(delayInMillis: Long = 750L, block: () -> Unit) {
+        handler.postDelayed(block, delayInMillis)
     }
 
     protected fun catchException(block: () -> Unit): Throwable {
@@ -80,6 +83,11 @@ open class BaseTest {
         block()
         countDownLatch.await(10L, TimeUnit.SECONDS)
         return thrownException ?: throw IllegalStateException("No exception was caught")
+    }
+
+    protected fun waitUntilAsserted(timeoutInMillis: Long = 3000L, block: () -> Unit) {
+        Awaitility.setDefaultTimeout(timeoutInMillis, TimeUnit.MILLISECONDS)
+        Awaitility.await().untilAsserted { block() }
     }
 
     protected fun getNumberOfHoldersThatCanBeOnScreen(@LayoutRes layoutId: Int): Int {

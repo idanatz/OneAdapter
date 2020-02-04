@@ -21,7 +21,7 @@ import com.idanatz.oneadapter.internal.paging.EndlessScrollListener
 import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.oneadapter.internal.animations.AnimationPositionHandler
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreatorsStore
-import com.idanatz.oneadapter.internal.selection.ItemSelectionActionsProvider
+import com.idanatz.oneadapter.internal.selection.ItemSelectionActions
 import com.idanatz.oneadapter.internal.selection.OneItemDetailLookup
 import com.idanatz.oneadapter.internal.selection.OneItemKeyProvider
 import com.idanatz.oneadapter.internal.selection.SelectionTrackerObserver
@@ -33,8 +33,8 @@ import com.idanatz.oneadapter.internal.utils.extensions.*
 import com.idanatz.oneadapter.internal.utils.extensions.isClassExists
 import com.idanatz.oneadapter.internal.utils.extensions.let2
 import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
-import com.idanatz.oneadapter.internal.utils.extensions.removeClassIfExist
 import com.idanatz.oneadapter.external.MissingConfigArgumentException
+import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.oneadapter.internal.validator.Validator
 import java.util.concurrent.Future
 
@@ -42,7 +42,7 @@ private const val UPDATE_DATA_DELAY_MILLIS = 100L
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Adapter<OneViewHolder<Diffable>>(),
-        LoadMoreObserver, SelectionObserver, ItemSelectionActionsProvider {
+        LoadMoreObserver, SelectionObserver, ItemSelectionActions {
 
     private val context
         get() = recyclerView.context
@@ -109,12 +109,13 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     override fun onBindViewHolder(holder: OneViewHolder<Diffable>, position: Int) {
         val model = data[position]
-        val shouldAnimateBind = animationPositionHandler.shouldAnimateBind(holder.itemViewType, position)
-        Logger.logd(this) { "onBindViewHolder -> holder: $holder, position: $position, animation: $shouldAnimateBind, model: $model" }
+        val shouldAnimateBind = holder.firstBindAnimation != null && animationPositionHandler.shouldAnimateBind(holder.itemViewType, position)
+        val metadata = Metadata(position, isItemSelected(position), shouldAnimateBind)
+        Logger.logd(this) { "onBindViewHolder -> holder: $holder, model: $model, metadata: $metadata" }
 
         when (model) {
-            is EmptyIndicator, is LoadingIndicator -> holder.onBindViewHolder(null, shouldAnimateBind)
-            else -> holder.onBindViewHolder(model, shouldAnimateBind)
+            is EmptyIndicator, is LoadingIndicator -> holder.onBindViewHolder(null, metadata)
+            else -> holder.onBindViewHolder(model, metadata)
         }
     }
 
@@ -152,7 +153,14 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     fun updateData(incomingData: MutableList<Diffable>) {
         Logger.logd(this) { "updateData -> incomingData: $incomingData" }
 
-        // clear the last (maybe running) update data runnable
+        // handle cases where no diffing is required
+        if (incomingData.isEmpty() && data.contains(EmptyIndicator)) {
+            Logger.logd(this) { "updateData -> no diffing required, refreshing EmptyModule" }
+            notifyItemChanged(0)
+            return
+        }
+
+        // clear the last (maybe running) diffing runnable
         if (currentSetItemFuture?.isDone == false) currentSetItemFuture?.cancel(true)
 
         currentSetItemFuture = backgroundExecutor.submit {
@@ -163,12 +171,12 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                 0 -> {
                     animationPositionHandler.resetState()
 
-                    if (modules.emptinessModule != null) { incomingData.add(0, EmptyIndicator) }
+                    if (modules.emptinessModule != null) { incomingData.add(EmptyIndicator) }
                     if (modules.pagingModule != null) { endlessScrollListener?.resetState() }
                 }
                 else -> {
-                    if (modules.emptinessModule != null) incomingData.removeClassIfExist(EmptyIndicator::class.java)
-                    if (modules.pagingModule != null) incomingData.removeClassIfExist(LoadingIndicator::class.java)
+                    if (modules.emptinessModule != null) incomingData.remove(EmptyIndicator)
+                    if (modules.pagingModule != null) incomingData.remove(LoadingIndicator)
                 }
             }
 
@@ -176,7 +184,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
             val diffResult = DiffUtil.calculateDiff(OneDiffUtil(data, incomingData, diffCallback))
 
             uiHandler.post {
-                Logger.logd(this) { "dispatchUpdatesTo -> incomingData: $incomingData" }
+                Logger.logd(this) { "updateData -> dispatching update with incomingData: $incomingData" }
                 data = incomingData
                 diffResult.dispatchUpdatesTo(listUpdateCallback)
             }
@@ -203,8 +211,8 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         eventsHooksMap = itemModule.eventHooksMap
                 ) {
                     override fun onCreated() { itemModule.onCreated(viewBinder) }
-                    override fun onBind(model: M?) { model?.let { itemModule.onBind(it, viewBinder) } }
-                    override fun onUnbind(model: M?) { model?.let { itemModule.onUnbind(it, viewBinder) } }
+                    override fun onBind(model: M?) { model?.let { itemModule.onBind(Item(it, metadata), viewBinder) } }
+                    override fun onUnbind(model: M?) { model?.let { itemModule.onUnbind(Item(it, metadata), viewBinder) } }
                 }
             }
         } as ViewHolderCreator<Diffable>)
@@ -228,8 +236,8 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         firstBindAnimation = moduleConfig.withFirstBindAnimation()
                 ) {
                     override fun onCreated() { emptinessModule.onCreated(viewBinder) }
-                    override fun onBind(model: Diffable?) = emptinessModule.onBind(viewBinder)
-                    override fun onUnbind(model: Diffable?) = emptinessModule.onUnbind(viewBinder)
+                    override fun onBind(model: Diffable?) = emptinessModule.onBind(viewBinder, metadata)
+                    override fun onUnbind(model: Diffable?) = emptinessModule.onUnbind(viewBinder, metadata)
                 }
             }
         })
@@ -261,8 +269,8 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         firstBindAnimation = moduleConfig.withFirstBindAnimation()
                 ) {
                     override fun onCreated() { pagingModule.onCreated(viewBinder) }
-                    override fun onBind(model: Diffable?) = pagingModule.onBind(viewBinder)
-                    override fun onUnbind(model: Diffable?) = pagingModule.onUnbind(viewBinder)
+                    override fun onBind(model: Diffable?) = pagingModule.onBind(viewBinder, metadata)
+                    override fun onUnbind(model: Diffable?) = pagingModule.onUnbind(viewBinder, metadata)
                 }
             }
         })
@@ -298,8 +306,8 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     //region Selection Module
     fun enableSelection(itemSelectionModule: ItemSelectionModule) {
+        itemSelectionModule.actions = this
         modules.itemSelectionModule = itemSelectionModule
-        modules.actions.itemSelectionActions = ItemSelectionActions(this)
         configureItemSelectionModule()
     }
 
@@ -339,6 +347,12 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
         return let2(selectionTracker, itemKeyProvider) { selectionTracker, itemKeyProvider ->
             selectionTracker.selection?.map { key -> itemKeyProvider.getPosition(key) }?.filter { it >= 0 }?.map { position -> data[position] } ?: emptyList()
         } ?: emptyList()
+    }
+
+    override fun isItemSelected(position: Int): Boolean {
+        return let2(selectionTracker, itemKeyProvider) { selectionTracker, itemKeyProvider ->
+            selectionTracker.isSelected(itemKeyProvider.getKey(position))
+        } ?: false
     }
 
     override fun removeSelectedItems() {

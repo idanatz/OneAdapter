@@ -30,7 +30,9 @@ import com.idanatz.oneadapter.sample.R
 import com.bumptech.glide.Glide
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHookConfig
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.*
+import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.examples.ActionsDialog.*
 import com.idanatz.sample.models.StoriesModel
@@ -98,15 +100,15 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             }
         }
 
-        override fun onBind(model: HeaderModel, viewBinder: ViewBinder) {
-            val headerTitle = viewBinder.findViewById<TextView>(R.id.header_title)
-            val headerSwitch = viewBinder.findViewById<SwitchCompat>(R.id.header_switch)
+	    override fun onBind(item: Item<HeaderModel>, viewBinder: ViewBinder) {
+		    val headerTitle = viewBinder.findViewById<TextView>(R.id.header_title)
+		    val headerSwitch = viewBinder.findViewById<SwitchCompat>(R.id.header_switch)
 
-            headerTitle.text = model.name
-            headerSwitch.visibility = if (model.checkable) View.VISIBLE else View.GONE
-            headerSwitch.isChecked = model.checked
-            headerSwitch.setOnCheckedChangeListener { _, isChecked -> viewModel.headerCheckedChanged(model, isChecked) }
-        }
+		    headerTitle.text = item.model.name
+		    headerSwitch.visibility = if (item.model.checkable) View.VISIBLE else View.GONE
+		    headerSwitch.isChecked = item.model.checked
+		    headerSwitch.setOnCheckedChangeListener { _, isChecked -> viewModel.headerCheckedChanged(item.model, isChecked) }
+	    }
     }
 
     private inner class MessageItem : ItemModule<MessageModel>() {
@@ -118,30 +120,30 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             }
         }
 
-        override fun onBind(model: MessageModel, viewBinder: ViewBinder) {
-            val id = viewBinder.findViewById<TextView>(R.id.id)
-            val title = viewBinder.findViewById<TextView>(R.id.title)
-            val body = viewBinder.findViewById<TextView>(R.id.body)
-            val avatarImage = viewBinder.findViewById<ImageView>(R.id.avatarImage)
-            val selectedLayer = viewBinder.findViewById<ImageView>(R.id.selected_layer)
+	    override fun onBind(item: Item<MessageModel>, viewBinder: ViewBinder) {
+		    val id = viewBinder.findViewById<TextView>(R.id.id)
+		    val title = viewBinder.findViewById<TextView>(R.id.title)
+		    val body = viewBinder.findViewById<TextView>(R.id.body)
+		    val avatarImage = viewBinder.findViewById<ImageView>(R.id.avatarImage)
+		    val selectedLayer = viewBinder.findViewById<ImageView>(R.id.selected_layer)
 
-            id.text = getString(R.string.message_model_id).format(model.id)
-            title.text = model.title
-            body.text = model.body
-            Glide.with(viewBinder.rootView).load(model.avatarImageId).into(avatarImage)
+		    id.text = getString(R.string.message_model_id).format(item.model.id)
+		    title.text = item.model.title
+		    body.text = item.model.body
+		    Glide.with(viewBinder.rootView).load(item.model.avatarImageId).into(avatarImage)
 
-            // selected UI
-            avatarImage.alpha = if (model.isSelected) 0.5f else 1f
-            selectedLayer.visibility = if (model.isSelected) View.VISIBLE else View.GONE
-            viewBinder.rootView.setBackgroundColor(if (model.isSelected) ContextCompat.getColor(this@CompleteKotlinExampleActivity, R.color.light_gray) else Color.WHITE)
-        }
+		    // selected UI
+		    avatarImage.alpha = if (item.metadata.isSelected) 0.5f else 1f
+		    selectedLayer.visibility = if (item.metadata.isSelected) View.VISIBLE else View.GONE
+		    viewBinder.rootView.setBackgroundColor(if (item.metadata.isSelected) ContextCompat.getColor(this@CompleteKotlinExampleActivity, R.color.light_gray) else Color.WHITE)	    }
     }
 
-    private class MessageSelectionState : SelectionState<MessageModel>() {
+    private inner class MessageSelectionState : SelectionState<MessageModel>() {
         override fun isSelectionEnabled(model: MessageModel): Boolean = true
 
         override fun onSelected(model: MessageModel, selected: Boolean) {
-            model.isSelected = selected
+            val message = "${model.title} " + if (selected) "selected" else "unselected"
+            Toast.makeText(this@CompleteKotlinExampleActivity, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -165,20 +167,20 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
                     .attachItemModule(StoryItem())
         }
 
-        override fun onBind(model: StoriesModel, viewBinder: ViewBinder) {
-            oneAdapter?.setItems(model.stories)
+        override fun onBind(item: Item<StoriesModel>, viewBinder: ViewBinder) {
+            oneAdapter?.setItems(item.model.stories)
 
             // restore scroll state
             val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
             val layoutManager = nestedRecyclerView.layoutManager as LinearLayoutManager?
-            layoutManager?.onRestoreInstanceState(model.scrollPosition)
+            layoutManager?.onRestoreInstanceState(item.model.scrollPosition)
         }
 
-        override fun onUnbind(model: StoriesModel, viewBinder: ViewBinder) {
+        override fun onUnbind(item: Item<StoriesModel>, viewBinder: ViewBinder) {
             // save scroll state
             val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
             val layoutManager = nestedRecyclerView.layoutManager as LinearLayoutManager?
-            model.scrollPosition = layoutManager?.onSaveInstanceState()
+            item.model.scrollPosition = layoutManager?.onSaveInstanceState()
         }
 
         private class StoryItem : ItemModule<StoryModel>() {
@@ -186,9 +188,9 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
                 override fun withLayoutResource(): Int = R.layout.story_model
             }
 
-            override fun onBind(model: StoryModel, viewBinder: ViewBinder) {
+            override fun onBind(item: Item<StoryModel>, viewBinder: ViewBinder) {
                 val story = viewBinder.findViewById<ImageView>(R.id.story)
-                Glide.with(viewBinder.rootView).load(model.storyImageId).into(story)
+                Glide.with(viewBinder.rootView).load(item.model.storyImageId).into(story)
             }
         }
     }
@@ -198,13 +200,13 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             override fun withLayoutResource() = R.layout.empty_state
         }
 
-        override fun onBind(viewBinder: ViewBinder) {
+        override fun onBind(viewBinder: ViewBinder, metadata: Metadata) {
             val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
             animation.setAnimation(R.raw.empty_list)
             animation.playAnimation()
         }
 
-        override fun onUnbind(viewBinder: ViewBinder) {
+        override fun onUnbind(viewBinder: ViewBinder, metadata: Metadata) {
             val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
             animation.pauseAnimation()
         }
@@ -250,7 +252,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == R.id.action_delete) {
-            oneAdapter.modulesActions.itemSelectionActions?.let { itemSelectionActions ->
+            oneAdapter.modules.itemSelectionModule?.actions?.let { itemSelectionActions ->
                 viewModel.onDeleteItemsClicked(itemSelectionActions.getSelectedItems())
                 itemSelectionActions.clearSelection()
             }
