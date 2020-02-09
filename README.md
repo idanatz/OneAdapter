@@ -283,9 +283,9 @@ class MessageModule : ItemModule<ObservableMessageModel>() {
         override fun withLayoutResource() = R.layout.message_model_data_binding
     }
 
-    override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
+    override fun onBind(item: Item<ObservableMessageModel>, viewBinder: ViewBinder) {
         viewBinder.dataBinding?.run {
-            setVariable(BR.messageModel, model)
+            setVariable(BR.messageModel, item.model)
             lifecycleOwner = this@DataBindingActivity
             executePendingBindings()
         }
