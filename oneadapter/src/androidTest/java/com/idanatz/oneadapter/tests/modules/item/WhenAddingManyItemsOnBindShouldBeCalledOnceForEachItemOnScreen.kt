@@ -18,22 +18,19 @@ class WhenAddingManyItemsOnBindShouldBeCalledOnceForEachItemOnScreen : BaseTest(
 
     @Test
     fun test() {
-        // preparation
-        val numberOfHoldersInScreen = getNumberOfHoldersThatCanBeOnScreen(testedLayoutResource)
-        val models = modelGenerator.generateModels(numberOfHoldersInScreen) // about 70 items
-        val itemModule = TestItemModule()
-        runOnActivity {
-            oneAdapter.attachItemModule(itemModule)
-        }
+        configure {
+            val numberOfHoldersInScreen = getNumberOfHoldersThatCanBeOnScreen(testedLayoutResource)
+            val models = modelGenerator.generateModels(numberOfHoldersInScreen) // about 70 items
 
-        // action
-        runOnActivity {
-            oneAdapter.add(models)
-        }
-
-        // assertion
-        waitUntilAsserted {
-            models.sumBy { it.onBindCalls } shouldEqualTo numberOfHoldersInScreen
+            prepareOnActivity {
+                oneAdapter.attachItemModule(TestItemModule())
+            }
+            actOnActivity {
+                oneAdapter.add(models)
+            }
+            untilAsserted {
+                models.sumBy { it.onBindCalls } shouldEqualTo numberOfHoldersInScreen
+            }
         }
     }
 

@@ -50,66 +50,25 @@ You can try out the [example project](https://github.com/idanatz/OneAdapter/tree
 # Basic Usage
 ### 1. Implement Item Module
 Item Modules are used for the creation and binding of all ViewHolders for you. In the onBind method, you will receive as a parameter the model associated with this view and a ViewBinder class that lets you find (and cache) the views defined in the associated layout file.
-##### Java
-```java
-class MessageModule extends ItemModule<MessageModel> {
-      @NotNull @Override
-      public ItemModuleConfig provideModuleConfig() {
-          return new ItemModuleConfig() {
-              @Override
-              public int withLayoutResource() { return R.layout.message_model; }
-          };
-      }
 
-      @Override
-      public void onBind(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
-          TextView title = viewBinder.findViewById(R.id.title);
-          title.setText(model.title);
-      }
-    
-     @Override
-      public void onUnbind(@NotNull ViewBinder viewBinder) {
-          // unbind logic like stop animation, release webview resources, etc.
-      }
-}
-```
-##### Kotlin
 ```kotlin
 class MessageModule : ItemModule<MessageModel>() {
     override fun provideModuleConfig() = object : ItemModuleConfig() {
         override fun withLayoutResource() = R.layout.message_model
     }
 
-    override fun onBind(model: MessageModel, viewBinder: ViewBinder) {
+    override fun onBind(item: Item<MessageModel>, viewBinder: ViewBinder) {
         val title = viewBinder.findViewById<TextView>(R.id.title)
-        title.text = model.title
+        title.text = item.model.title
     }
 
-    override fun onUnbind(viewBinder: ViewBinder) {
+    override fun onUnbind(item: Item<MessageModel>, viewBinder: ViewBinder) {
         // unbind logic like stop animation, release webview resources, etc.
     }
 }
 ```
 ### 2. Implement Diffable
 The Adapter is calculating the difference between its current data and the modified data on a background thread and posting the result to the main thread. In order for this magic to work without writing tons of DiffUtil.Callback, your models need to implement one simple interface:
-##### Java
-```java
-public class MessageModel implements Diffable {
-    private int id;
-    private String title;
-
-    @Override
-    public long getUniqueIdentifier() {
-        return id;
-    }
-
-    @Override
-    public boolean areContentTheSame(@NotNull Object other) {
-        return other instanceof MessageModel && title.equals(((MessageModel) other).title);
-    }
-}
-```
-##### Kotlin
 ```kotlin
 class MessageModel : Diffable {
     private val id: Int = 0
@@ -120,17 +79,9 @@ class MessageModel : Diffable {
 }
 ```
 ### 3. Attach To OneAdapter & Use
-##### Java
-```java
-OneAdapter oneAdapter = new OneAdapter(recyclerView)
-    .attachItemModule(new MessageModule());
-    
-oneAdapter.setItems(...)  
-```
-##### Kotlin
 ```kotlin
 val oneAdapter = OneAdapter(recyclerView)
-    .attachItemModule(MessageModule());
+    .attachItemModule(MessageModule())
     
 oneAdapter.setItems(...) 
 ```
@@ -141,15 +92,15 @@ oneAdapter.setItems(...)
 ### Multiple Types
 Have more than one view type? not a problem, just create another ItemModule and attach it to OneAdapter in the same way.
 #### 1. Implement Multiple Item Modules
-```java
-class MessageModule extends ItemModule<MessageModel> { ... }
-class StoryModule extends ItemModule<StoryModel> { ... }
+```kotlin
+class MessageModule : ItemModule<MessageModel> { ... }
+class StoryModule : ItemModule<StoryModel> { ... }
 ```
 #### 2. Attach To OneAdapter
-```java
-OneAdapter oneAdapter = new OneAdapter(recyclerView)
-    .attachItemModule(new MessageModule())
-    .attachItemModule(new StoryModule())
+```kotlin
+val oneAdapter = OneAdapter(recyclerView)
+    .attachItemModule(MessageModule())
+    .attachItemModule(StoryModule())
     ...
 ```
 
@@ -160,27 +111,6 @@ Paging Module is used for creating and binding a specific ViewHolder at the end 
 <img src="https://media1.tenor.com/images/275a6daed242e8f0c09b5020d602a2eb/tenor.gif?itemid=15858072" width="210" height="420">
 <br/>
 #### 1. Implement Paging Modules
-##### Java
-```java
-class PagingModuleImpl extends PagingModule {
-    @NotNull @Override
-    public PagingModuleConfig provideModuleConfig() {
-        return new PagingModuleConfig() {
-            @Override
-            public int withLayoutResource() { return R.layout.load_more; } // can be some loading animation.
-
-            @Override
-            public int withVisibleThreshold() { return 3; } // invoke onLoadMore 3 items before the end.
-        };
-    }
-
-    @Override
-    public void onLoadMore(int currentPage) {
-        // place your load more logic here, like asking the ViewModel to load the next page of data.
-    }
-}
-```
-##### Kotlin
 ```kotlin
 class PagingModuleImpl : PagingModule() {
     override fun provideModuleConfig() = object : PagingModuleConfig() {
@@ -194,13 +124,6 @@ class PagingModuleImpl : PagingModule() {
 }
 ```
 #### 2. Attach To OneAdapter
-##### Java
-```java
-OneAdapter oneAdapter = new OneAdapter(recyclerView)
-    .attachPagingModule(new PagingModuleImpl())
-    ...
-```
-##### Kotlin
 ```kotlin
 val oneAdapter = OneAdapter(recyclerView)
     .attachPagingModule(PagingModuleImpl())
@@ -214,44 +137,18 @@ Emptiness Module is used for creating and binding a specific ViewHolder when the
 <img src="https://media1.tenor.com/images/c653010777465c1c5d115210b7e349e8/tenor.gif?itemid=15858077" width="210" height="420">
 <br/>
 #### 1. Implement Emptiness Modules
-##### Java
-```java
-class EmptinessModuleImpl extends EmptinessModule {
-    @NotNull @Override
-    public EmptinessModuleConfig provideModuleConfig() {
-        return new EmptinessModuleConfig() {
-            @Override
-            public int withLayoutResource() { return R.layout.empty_state; }
-        };
-    }
-
-    @Override
-    public void onBind(@NotNull ViewBinder viewBinder) { ... }
-
-    @Override
-    public void onUnbind(@NotNull ViewBinder viewBinder) { ... }
-}
-```
-##### Kotlin
 ```kotlin
 class EmptinessModuleImpl : EmptinessModule() {
     override fun provideModuleConfig(): EmptinessModuleConfig = object : EmptinessModuleConfig() {
         override fun withLayoutResource() = R.layout.empty_state
     }
 
-    override fun onBind(viewBinder: ViewBinder) { ... }
+    override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) { ... }
 
-    override fun onUnbind(viewBinder: ViewBinder) { ... }
+    override fun onUnbind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) { ... }
 }
 ```
 #### 2. Attach To OneAdapter
-##### Java
-```java
-OneAdapter oneAdapter = new OneAdapter(recyclerView)
-    .attachEmptinessModule(new EmptinessModuleImpl())
-    ...
-```
-##### Kotlin
 ```kotlin
 val oneAdapter = OneAdapter(recyclerView)
     .attachEmptinessModule(EmptinessModuleImpl())
@@ -265,24 +162,6 @@ Selection Module is used for enabling single or multiple selection on Items.
 <img src="https://media.tenor.com/images/2d6fdae647c6c774ceadeb79d7640e42/tenor.gif" width="210" height="420">
 <br/>
 #### 1. Implement Selection Modules
-##### Java
-```java
-class ItemSelectionModuleImpl extends ItemSelectionModule {
-    @NotNull @Override
-    public ItemSelectionModuleConfig provideModuleConfig() {
-        return new ItemSelectionModuleConfig() {
-            @NotNull @Override
-            public SelectionType withSelectionType() { return SelectionType.Multiple; } // Or SelectionType.Single.
-        };
-    }
-
-    @Override
-    public void onSelectionUpdated(int selectedCount) {
-       // place your general selection logic here, like changing the toolbar text to indicate the selected count.
-    }
-}
-```
-##### Kotlin
 ```kotlin
 class ItemSelectionModuleImpl : ItemSelectionModule() {
     override fun provideModuleConfig(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig() {
@@ -295,43 +174,17 @@ class ItemSelectionModuleImpl : ItemSelectionModule() {
 }
 ```
 #### 2. Implement Selection State
-##### Java
-```java
-class SelectionStateImpl extends SelectionState<MessageModel> {
-    @Override
-    public boolean isSelectionEnabled(@NotNull MessageModel model) {
-        return true;
-    }
-
-    @Override
-    public void onSelected(@NotNull MessageModel model, boolean selected) {
-        // update your model here. 
-        // right after this call you will receive an onBind call in order to reflect your changes on the relevant Item Module.
-        model.isSelected = selected;
-    }
-}
-```
-##### Kotlin
 ```kotlin
 class SelectionStateImpl : SelectionState<MessageModel>() {
     override fun isSelectionEnabled(model: MessageModel) = true
 
     override fun onSelected(model: MessageModel, selected: Boolean) {
-        // update your model here. 
+        // insert your selected logic here. 
         // right after this call you will receive an onBind call in order to reflect your changes on the relevant Item Module.
-        model.isSelected = selected;
     }
 }
 ```
 #### 3. Attach To ItemModule & OneAdapter
-##### Java
-```java
-OneAdapter oneAdapter = new OneAdapter(recyclerView)
-    .attachItemModule(new MessageModule()).addState(new SelectionStateImpl())
-    .attachItemSelectionModule(new ItemSelectionModuleImpl())
-    ...
-```
-##### Kotlin
 ```kotlin
 val oneAdapter = OneAdapter(recyclerView)
     .attachItemModule(MessageModule()).addState(SelectionStateImpl())
@@ -349,16 +202,6 @@ Click Hook can be attached in order to recieve click events on an item.
 <img src="https://media1.tenor.com/images/6c6b218f27b250d1c72d98fc64ba895d/tenor.gif?itemid=15858123" width="210" height="420">
 <br/>
 #### 1. Implement Click Event Hook
-##### Java
-```java
-class MessageClickEvent extends ClickEventHook<MessageModel> {
-    @Override
-    public void onClick(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
-        // place your on click logic here.
-    }
-}
-```
-##### Kotlin
 ```kotlin
 class MessageClickEvent : ClickEventHook<MessageModel>() {
     override fun onClick(model: MessageModel, viewBinder: ViewBinder) {
@@ -367,13 +210,6 @@ class MessageClickEvent : ClickEventHook<MessageModel>() {
 }
 ```
 #### 2. Attach To ItemModule
-##### Java
-```java
-OneAdapter oneAdapter = new OneAdapter(recyclerView)
-    .attachItemModule(new MessageModule()).addEventHook(new MessageClickEvent())
-    ...
-```
-##### Kotlin
 ```kotlin
 val oneAdapter = OneAdapter(recyclerView)
     .attachItemModule(MessageModule()).addEventHook(MessageClickEvent())
@@ -387,32 +223,6 @@ Swipe Hook can be attached in order to receive swiping (during and when complete
 <img src="https://media1.tenor.com/images/6628708db23f76d528f451b1d1d8fd4c/tenor.gif?itemid=15858132" width="210" height="420">
 <br/>
 #### 1. Implement Swipe Event Hook
-##### Java
-```java
-class MessageSwipeEvent extends SwipeEventHook<MessageModel> {
-    @NotNull @Override
-    public SwipeEventHookConfig provideHookConfig() {
-        return new SwipeEventHookConfig() {
-            @NotNull @Override
-            public List<SwipeDirection> withSwipeDirection() {
-                return Arrays.asList(SwipeDirection.Left, SwipeDirection.Right);
-            }
-        };
-    }
-    
-    @Override
-    public void onSwipe(@NotNull Canvas canvas, float xAxisOffset, @NotNull ViewBinder viewBinder) {
-        // draw your swipe UI here.
-        // like painting the canvas red with a delete icon.
-    }
-    @Override
-    public void onSwipeComplete(@NotNull MessageModel model, @NotNull SwipeDirection direction, @NotNull ViewBinder viewBinder) {
-        // place your swipe logic here.
-        // like removing an item after it was swiped right.
-    }
-}
-```
-##### Kotlin
 ```kotlin
 class MessageSwipeEvent : SwipeEventHook<MessageModel>() {
     override fun provideHookConfig(): SwipeEventHookConfig = object : SwipeEventHookConfig() {
@@ -431,13 +241,6 @@ class MessageSwipeEvent : SwipeEventHook<MessageModel>() {
 }
 ```
 #### 2. Attach To ItemModule
-##### Java
-```java
-OneAdapter oneAdapter = new OneAdapter(recyclerView)
-    .attachItemModule(new MessageModule()).addEventHook(new MessageSwipeEvent())
-    ...
-```
-##### Kotlin
 ```kotlin
 val oneAdapter = OneAdapter(recyclerView)
     .attachItemModule(MessageModule()).addEventHook(MessageSwipeEvent())
@@ -452,28 +255,6 @@ The provided Animator will be animated on the first bind of the corresponding It
 <br/></br>
 <img src="https://media.tenor.com/images/9e9a9a6ad634157460e779fb59fd59eb/tenor.gif" width="210" height="420">
 <br/>
-##### Java
-```java
-class MessageModule extends ItemModule<MessageModel> {
-      @NotNull @Override
-      public ItemModuleConfig provideModuleConfig() {
-          return new ItemModuleConfig() {
-              @Override
-              public int withLayoutResource() { return R.layout.message_model; }
-              
-              @Nullable @Override
-              public Animator withFirstBindAnimation() {
-                  // can be implemented by inflating Animator Xml
-                  return AnimatorInflater.loadAnimator(context, R.animator.item_animation_example);
-              }
-          };
-      }
-
-      @Override
-      public void onBind(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) { ... }
-}
-```
-##### Kotlin
 ```kotlin
 class MessageModule : ItemModule<MessageModel>() {
     override fun provideModuleConfig() = object : ItemModuleConfig() {
@@ -489,41 +270,20 @@ class MessageModule : ItemModule<MessageModel>() {
         }
     }
 
-    override fun onBind(model: MessageModel, viewBinder: ViewBinder) { ... }
+    override fun onBind(item: Item<MessageModel>, viewBinder: ViewBinder) { ... }
 }
 ```
 
 ### Data Binding
 Built in support for Android Data Binding (https://developer.android.com/topic/libraries/data-binding)
 Full example is provided in the example project.
-##### Java
-```java
-class MessageModule extends ItemModule<ObservableMessageModel> {
-      @NotNull @Override
-      public ItemModuleConfig provideModuleConfig() {
-          return new ItemModuleConfig() {
-              @Override
-              public int withLayoutResource() { return R.layout.message_model_data_binding; }
-          };
-      }
-
-      @Override
-      public void onBind(@NotNull ObservableMessageModel model, @NotNull ViewBinder viewBinder) {
-          ViewDataBinding binding = viewBinder.getDataBinding();
-          binding.setVariable(BR.messageModel, model);
-          binding.setLifecycleOwner(DataBindingActivity.class);
-          binding.executePendingBindings();
-      }
-}
-```
-##### Kotlin
 ```kotlin
 class MessageModule : ItemModule<ObservableMessageModel>() {
     override fun provideModuleConfig() = object : ItemModuleConfig() {
         override fun withLayoutResource() = R.layout.message_model_data_binding
     }
 
-    override fun onBind(model: ObservableMessageModel, viewBinder: ViewBinder) {
+    override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
         viewBinder.dataBinding?.run {
             setVariable(BR.messageModel, model)
             lifecycleOwner = this@DataBindingActivity

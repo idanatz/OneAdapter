@@ -19,31 +19,29 @@ class UpdateSingleItem : BaseTest() {
 
     @Test
     fun test() {
-        // preparation
-        val modelToUpdate = modelGenerator.generateModel()
-        var oldItemCount = -1
-        runOnActivity {
-            oneAdapter.apply {
-                attachItemModule(TestItemModule())
-                internalAdapter.data = mutableListOf(modelToUpdate)
-                oldItemCount = itemCount
+        configure {
+            val modelToUpdate = modelGenerator.generateModel()
+            var oldItemCount = -1
+
+            prepareOnActivity {
+                oneAdapter.apply {
+                    attachItemModule(TestItemModule())
+                    internalAdapter.data = mutableListOf(modelToUpdate)
+                    oldItemCount = itemCount
+                }
             }
-        }
+            actOnActivity {
+                modelToUpdate.content = updatedValue
+                oneAdapter.update(modelToUpdate)
+            }
+            untilAsserted {
+                val newItemCount = oneAdapter.itemCount
+                val newContent = (oneAdapter.internalAdapter.data[0] as TestModel).content
 
-        // action
-        runOnActivity {
-            modelToUpdate.content = updatedValue
-            oneAdapter.update(modelToUpdate)
-        }
-
-        // assertion
-        waitUntilAsserted {
-            val newItemCount = oneAdapter.itemCount
-            val newContent = (oneAdapter.internalAdapter.data[0] as TestModel).content
-
-            newContent shouldBeEqualTo updatedValue
-            modelToUpdate.onBindCalls shouldEqualTo 1
-            newItemCount shouldEqualTo oldItemCount
+                newContent shouldBeEqualTo updatedValue
+                modelToUpdate.onBindCalls shouldEqualTo 1
+                newItemCount shouldEqualTo oldItemCount
+            }
         }
     }
 

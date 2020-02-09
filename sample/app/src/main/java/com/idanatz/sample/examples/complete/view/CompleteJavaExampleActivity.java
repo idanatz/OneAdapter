@@ -30,8 +30,8 @@ import android.widget.Toast;
 import com.airbnb.lottie.LottieAnimationView;
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook;
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHookConfig;
+import com.idanatz.oneadapter.external.holders.EmptyIndicator;
 import com.idanatz.oneadapter.external.interfaces.Item;
-import com.idanatz.oneadapter.internal.holders.Metadata;
 import com.idanatz.oneadapter.internal.selection.ItemSelectionActions;
 import com.idanatz.sample.examples.BaseExampleActivity;
 import com.idanatz.sample.models.HeaderModel;
@@ -256,14 +256,14 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         }
 
         @Override
-        public void onBind(@NotNull ViewBinder viewBinder, @NotNull Metadata metadata) {
+        public void onBind(@NotNull Item<EmptyIndicator> item, @NotNull ViewBinder viewBinder) {
             LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
             animation.setAnimation(R.raw.empty_list);
             animation.playAnimation();
         }
 
         @Override
-        public void onUnbind(@NotNull ViewBinder viewBinder, @NotNull Metadata metadata) {
+        public void onUnbind(@NotNull Item<EmptyIndicator> item, @NotNull ViewBinder viewBinder) {
             LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
             animation.pauseAnimation();
         }

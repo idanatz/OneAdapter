@@ -12,30 +12,19 @@ import org.amshove.kluent.shouldEqualTo
 import org.junit.Test
 import org.junit.runner.RunWith
 
-private const val NUM_OF_CLEARS = 3
-
 @RunWith(AndroidJUnit4::class)
-class WhenClearingItemsOnBindShouldBeCalledEachTime : BaseTest() {
+class WhenOnBindInvokedItemPositionMetadataShouldBeZero : BaseTest() {
 
-    private var onBindCalls = 0
+    private var position = -1
 
     @Test
     fun test() {
         configure {
-            prepareOnActivity {
-                oneAdapter.apply {
-                    attachItemModule(modulesGenerator.generateValidItemModule())
-                    attachEmptinessModule(TestEmptinessModule())
-                    oneAdapter.internalAdapter.data = mutableListOf(modelGenerator.generateModel())
-                }
-            }
             actOnActivity {
-                for(i in 0 until NUM_OF_CLEARS) {
-                    runWithDelay(i * 500L) { oneAdapter.clear() }
-                }
+                oneAdapter.attachEmptinessModule(TestEmptinessModule())
             }
             untilAsserted {
-                onBindCalls shouldEqualTo NUM_OF_CLEARS
+                position shouldEqualTo 0
             }
         }
     }
@@ -43,7 +32,7 @@ class WhenClearingItemsOnBindShouldBeCalledEachTime : BaseTest() {
     inner class TestEmptinessModule : EmptinessModule() {
         override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_empty)
         override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
-            onBindCalls++
+            position = item.metadata.position
         }
     }
 }

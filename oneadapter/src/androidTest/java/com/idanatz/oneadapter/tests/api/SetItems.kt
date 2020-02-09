@@ -4,7 +4,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.helpers.BaseTest
 import org.amshove.kluent.shouldContainAll
 import org.amshove.kluent.shouldEqualTo
-import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -15,27 +14,25 @@ class SetItems : BaseTest() {
 
     @Test
     fun test() {
-        // preparation
-        val modelsToSet = modelGenerator.generateModels(NUM_OF_ITEMS_TO_GENERATE)
-        var oldItemCount = -1
-        runOnActivity {
-            oneAdapter.apply {
-                attachItemModule(modulesGenerator.generateValidItemModule())
-                oldItemCount = itemCount
+        configure {
+            val modelsToSet = modelGenerator.generateModels(NUM_OF_ITEMS_TO_GENERATE)
+            var oldItemCount = -1
+
+            prepareOnActivity {
+                oneAdapter.apply {
+                    attachItemModule(modulesGenerator.generateValidItemModule())
+                    oldItemCount = itemCount
+                }
             }
-        }
-
-        // action
-        runOnActivity {
-            oneAdapter.setItems(modelsToSet)
-        }
-
-        // assertion
-        waitUntilAsserted {
-            val newItemList = oneAdapter.internalAdapter.data
-            val newItemCount = oneAdapter.itemCount
-            newItemList shouldContainAll modelsToSet
-            newItemCount shouldEqualTo (oldItemCount + NUM_OF_ITEMS_TO_GENERATE)
+            actOnActivity {
+                oneAdapter.setItems(modelsToSet)
+            }
+            untilAsserted {
+                val newItemList = oneAdapter.internalAdapter.data
+                val newItemCount = oneAdapter.itemCount
+                newItemList shouldContainAll modelsToSet
+                newItemCount shouldEqualTo (oldItemCount + NUM_OF_ITEMS_TO_GENERATE)
+            }
         }
     }
 }

@@ -20,22 +20,20 @@ class WhenAddingFewDifferentItemsOnCreateShouldBeCalledOnceForEachItemOnScreen :
 
     @Test
     fun test() {
-        // preparation
-        val numberOfHoldersInScreen = getNumberOfHoldersThatCanBeOnScreen(testedLayoutResource)
-        val models = modelGenerator.generateDifferentModels(numberOfHoldersInScreen) // about 6 items
-        runOnActivity {
-            oneAdapter.attachItemModule(TestItemModule1())
-            oneAdapter.attachItemModule(TestItemModule2())
-        }
+        configure {
+            val numberOfHoldersInScreen = getNumberOfHoldersThatCanBeOnScreen(testedLayoutResource)
+            val models = modelGenerator.generateDifferentModels(numberOfHoldersInScreen) // about 6 items
 
-        // action
-        runOnActivity {
-            oneAdapter.add(models)
-        }
-
-        // assertion
-        waitUntilAsserted {
-            onCreateCalls shouldEqualTo numberOfHoldersInScreen
+            prepareOnActivity {
+                oneAdapter.attachItemModule(TestItemModule1())
+                oneAdapter.attachItemModule(TestItemModule2())
+            }
+            actOnActivity {
+                oneAdapter.add(models)
+            }
+            untilAsserted {
+                onCreateCalls shouldEqualTo numberOfHoldersInScreen
+            }
         }
     }
 

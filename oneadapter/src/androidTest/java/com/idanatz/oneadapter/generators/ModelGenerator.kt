@@ -1,5 +1,8 @@
-package com.idanatz.oneadapter.models
+package com.idanatz.oneadapter.generators
 
+import com.idanatz.oneadapter.models.TestModel
+import com.idanatz.oneadapter.models.TestModel1
+import com.idanatz.oneadapter.models.TestModel2
 import java.util.*
 
 class ModelGenerator {

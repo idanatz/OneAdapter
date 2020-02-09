@@ -11,7 +11,8 @@ class WhenAddingItemWithNoModulesShouldThrowException : BaseTest() {
 
     @Test(expected = MissingModuleDefinitionException::class)
     fun test() {
-        // action & assertion
+        // exception will be thrown from the RecyclerView thread so we need to catch it
+        // and throw it again to the test thread
         throw catchException {
             oneAdapter.add(modelGenerator.generateModel())
         }

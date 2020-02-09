@@ -19,26 +19,23 @@ class WhenReachingThresholdOnLoadMoreShouldBeCalledOnce : BaseTest() {
 
     @Test
     fun test() {
-        // preparation
-        runOnActivity {
-            oneAdapter.apply {
-                attachItemModule(modulesGenerator.generateValidItemModule(R.layout.test_model_large))
-                attachPagingModule(TestPagingModule())
-                oneAdapter.internalAdapter.data = modelGenerator.generateModels(numberOfItemsToCreate).toMutableList()
+        configure {
+            prepareOnActivity {
+                oneAdapter.apply {
+                    attachItemModule(modulesGenerator.generateValidItemModule(R.layout.test_model_large))
+                    attachPagingModule(TestPagingModule())
+                    oneAdapter.internalAdapter.data = modelGenerator.generateModels(numberOfItemsToCreate).toMutableList()
+                }
             }
-        }
-
-        // action
-        runOnActivity {
-            runWithDelay { // run with delay to let the items settle
-                val positionToScroll = numberOfItemsToCreate - pagingVisibleThreshold + 1 // + 1 for passing the threshold
-                recyclerView.smoothScrollToPosition(positionToScroll)
+            actOnActivity {
+                runWithDelay { // run with delay to let the items settle
+                    val positionToScroll = numberOfItemsToCreate - pagingVisibleThreshold + 1 // + 1 for passing the threshold
+                    recyclerView.smoothScrollToPosition(positionToScroll)
+                }
             }
-        }
-
-        // assertion
-        waitUntilAsserted {
-            onLoadMoreCalls shouldEqualTo 1
+            untilAsserted {
+                onLoadMoreCalls shouldEqualTo 1
+            }
         }
     }
 

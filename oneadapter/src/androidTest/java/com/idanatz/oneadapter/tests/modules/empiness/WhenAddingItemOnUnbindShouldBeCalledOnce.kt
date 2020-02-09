@@ -2,6 +2,7 @@ package com.idanatz.oneadapter.tests.modules.empiness
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.holders.EmptyIndicator
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.EmptinessModule
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.internal.holders.Metadata
@@ -19,31 +20,28 @@ class WhenAddingItemOnUnbindShouldBeCalledOnce : BaseTest() {
 
     @Test
     fun test() {
-        // preparation
-        runOnActivity {
-            oneAdapter.apply {
-                attachItemModule(modulesGenerator.generateValidItemModule())
-                attachEmptinessModule(TestEmptinessModule())
+        configure {
+            prepareOnActivity {
+                oneAdapter.apply {
+                    attachItemModule(modulesGenerator.generateValidItemModule())
+                    attachEmptinessModule(TestEmptinessModule())
+                }
             }
-        }
-
-        // action
-        runOnActivity {
-            runWithDelay { // wait for the empty module onBind to get called
-                oneAdapter.add(modelGenerator.generateModel())
+            actOnActivity {
+                runWithDelay { // wait for the empty module onBind to get called
+                    oneAdapter.add(modelGenerator.generateModel())
+                }
             }
-        }
-
-        // assertion
-        waitUntilAsserted {
-            onUnbindCalls shouldEqualTo 1
-            oneAdapter.internalAdapter.data shouldNotContain EmptyIndicator
+            untilAsserted {
+                onUnbindCalls shouldEqualTo 1
+                oneAdapter.internalAdapter.data shouldNotContain EmptyIndicator
+            }
         }
     }
 
     inner class TestEmptinessModule : EmptinessModule() {
-        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
-        override fun onUnbind(viewBinder: ViewBinder, metadata: Metadata) {
+        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_empty)
+        override fun onUnbind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
             onUnbindCalls++
         }
     }

@@ -1,4 +1,4 @@
-package com.idanatz.oneadapter.models
+package com.idanatz.oneadapter.generators
 
 import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.EmptinessModuleConfig
@@ -6,6 +6,7 @@ import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.external.modules.PagingModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
+import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.test.R
 
 class ModulesGenerator {

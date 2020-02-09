@@ -14,30 +14,30 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WhenAddingFewItemsOnBindShouldBeCalledOnceForEachItemOnScreen : BaseTest() {
 
+    private val testedLayoutResource = R.layout.test_model_large
+
     @Test
     fun test() {
-        // preparation
-        val testedLayoutResource = R.layout.test_model_large
-        val numberOfHoldersInScreen = getNumberOfHoldersThatCanBeOnScreen(testedLayoutResource)
-        val models = modelGenerator.generateModels(numberOfHoldersInScreen) // about 6 items
-        val itemModule = object : ItemModule<TestModel>() {
-            override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(testedLayoutResource)
-            override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {
-                item.model.onBindCalls++
+        configure {
+            val numberOfHoldersInScreen = getNumberOfHoldersThatCanBeOnScreen(testedLayoutResource)
+            val models = modelGenerator.generateModels(numberOfHoldersInScreen) // about 6 items
+
+            prepareOnActivity {
+                oneAdapter.attachItemModule(TestItemModule())
+            }
+            actOnActivity {
+                oneAdapter.add(models)
+            }
+            untilAsserted {
+                models.sumBy { it.onBindCalls } shouldEqualTo numberOfHoldersInScreen
             }
         }
-        runOnActivity {
-            oneAdapter.attachItemModule(itemModule)
-        }
+    }
 
-        // action
-        runOnActivity {
-            oneAdapter.add(models)
-        }
-
-        // assertion
-        waitUntilAsserted {
-            models.sumBy { it.onBindCalls } shouldEqualTo numberOfHoldersInScreen
+    inner class TestItemModule : ItemModule<TestModel>() {
+        override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(testedLayoutResource)
+        override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {
+            item.model.onBindCalls++
         }
     }
 }

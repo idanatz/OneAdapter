@@ -11,7 +11,6 @@ import com.idanatz.oneadapter.internal.utils.extensions.inflateLayout
 import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqual
-import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -23,21 +22,19 @@ class ValidLayoutResourceShouldInflateSuccessfully : BaseTest() {
 
     @Test
     fun test() {
-        // preparation
-        var expectedLayoutId = 0
-        runOnActivity {
-            oneAdapter.attachItemModule(TestItemModule())
-            expectedLayoutId = it.inflateLayout(testedLayoutResource).id
-        }
+        configure {
+            var expectedLayoutId = 0
 
-        // action
-        runOnActivity {
-            oneAdapter.add(modelGenerator.generateModel())
-        }
-
-        // assertion
-        waitUntilAsserted {
-            expectedLayoutId shouldEqual rootView?.id
+            prepareOnActivity {
+                oneAdapter.attachItemModule(TestItemModule())
+                expectedLayoutId = it.inflateLayout(testedLayoutResource).id
+            }
+            actOnActivity {
+                oneAdapter.add(modelGenerator.generateModel())
+            }
+            untilAsserted {
+                expectedLayoutId shouldEqual rootView?.id
+            }
         }
     }
 

@@ -18,24 +18,22 @@ class WhenItemLeavesTheScreenOnUnbindShouldBeCalledOnce : BaseTest() {
 
     @Test
     fun test() {
-        // preparation
-        val numberOfHoldersInScreen = getNumberOfHoldersThatCanBeOnScreen(testedLayoutResource)
-        val models = modelGenerator.generateModels(numberOfHoldersInScreen + 4) // create enough items that some can get recycled
-        runOnActivity {
-            oneAdapter.attachItemModule(TestItemModule())
-            oneAdapter.add(models)
-        }
+        configure {
+            val numberOfHoldersInScreen = getNumberOfHoldersThatCanBeOnScreen(testedLayoutResource)
+            val models = modelGenerator.generateModels(numberOfHoldersInScreen + 4) // create enough items that some can get recycled
 
-        // action
-        runOnActivity {
-            runWithDelay { // run with delay to let the items settle
-                recyclerView.smoothScrollToPosition(oneAdapter.itemCount - 1)
+            prepareOnActivity {
+                oneAdapter.attachItemModule(TestItemModule())
+                oneAdapter.add(models)
             }
-        }
-
-        // assertion
-        waitUntilAsserted {
-            models.sumBy { it.onUnbindCalls } shouldEqualTo 1
+            actOnActivity {
+                runWithDelay { // run with delay to let the items settle
+                    recyclerView.smoothScrollToPosition(oneAdapter.itemCount - 1)
+                }
+            }
+            untilAsserted {
+                models.sumBy { it.onUnbindCalls } shouldEqualTo 1
+            }
         }
     }
 

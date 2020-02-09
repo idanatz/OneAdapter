@@ -30,9 +30,9 @@ import com.idanatz.oneadapter.sample.R
 import com.bumptech.glide.Glide
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHookConfig
+import com.idanatz.oneadapter.external.holders.EmptyIndicator
 import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.*
-import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.examples.ActionsDialog.*
 import com.idanatz.sample.models.StoriesModel
@@ -200,13 +200,13 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             override fun withLayoutResource() = R.layout.empty_state
         }
 
-        override fun onBind(viewBinder: ViewBinder, metadata: Metadata) {
+        override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
             val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
             animation.setAnimation(R.raw.empty_list)
             animation.playAnimation()
         }
 
-        override fun onUnbind(viewBinder: ViewBinder, metadata: Metadata) {
+        override fun onUnbind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
             val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
             animation.pauseAnimation()
         }

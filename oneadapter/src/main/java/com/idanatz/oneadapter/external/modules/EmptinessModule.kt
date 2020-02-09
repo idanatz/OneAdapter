@@ -1,19 +1,19 @@
 package com.idanatz.oneadapter.external.modules
 
+import com.idanatz.oneadapter.external.holders.EmptyIndicator
 import com.idanatz.oneadapter.external.interfaces.*
-import com.idanatz.oneadapter.internal.holders.Metadata
 import org.jetbrains.annotations.NotNull
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 
 abstract class EmptinessModule :
         LayoutModuleConfigurable<EmptinessModuleConfig>,
-        Creatable, Bindable, Unbindable
+        Creatable, Bindable<EmptyIndicator>, Unbindable<EmptyIndicator>
 {
 
     // lifecycle
     override fun onCreated(@NotNull viewBinder: ViewBinder) {}
-    override fun onBind(@NotNull viewBinder: ViewBinder, @NotNull metadata: Metadata) {}
-    override fun onUnbind(@NotNull viewBinder: ViewBinder, @NotNull metadata: Metadata) {}
+    override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {}
+    override fun onUnbind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {}
 }
 
 abstract class EmptinessModuleConfig : LayoutModuleConfig

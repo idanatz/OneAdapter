@@ -4,7 +4,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.helpers.BaseTest
 import org.amshove.kluent.shouldEqual
 import org.amshove.kluent.shouldEqualTo
-import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -15,28 +14,26 @@ class AddSingleItemToIndex : BaseTest() {
 
     @Test
     fun test() {
-        // preparation
-        val modelToAdd = modelGenerator.generateModel()
-        var oldItemCount = -1
-        runOnActivity {
-            oneAdapter.apply {
-                attachItemModule(modulesGenerator.generateValidItemModule())
-                internalAdapter.data = modelGenerator.generateModels(5).toMutableList()
-                oldItemCount = oneAdapter.itemCount
+        configure {
+            val modelToAdd = modelGenerator.generateModel()
+            var oldItemCount = -1
+
+            prepareOnActivity {
+                oneAdapter.apply {
+                    attachItemModule(modulesGenerator.generateValidItemModule())
+                    internalAdapter.data = modelGenerator.generateModels(5).toMutableList()
+                    oldItemCount = oneAdapter.itemCount
+                }
             }
-        }
-
-        // action
-        runOnActivity {
-            oneAdapter.add(INDEX_TO_ADD, modelToAdd)
-        }
-
-        // assertion
-        waitUntilAsserted {
-            val newItemList = oneAdapter.internalAdapter.data
-            val newItemCount = oneAdapter.itemCount
-            newItemList[INDEX_TO_ADD] shouldEqual modelToAdd
-            newItemCount shouldEqualTo (oldItemCount + 1)
+            actOnActivity {
+                oneAdapter.add(INDEX_TO_ADD, modelToAdd)
+            }
+            untilAsserted {
+                val newItemList = oneAdapter.internalAdapter.data
+                val newItemCount = oneAdapter.itemCount
+                newItemList[INDEX_TO_ADD] shouldEqual modelToAdd
+                newItemCount shouldEqualTo (oldItemCount + 1)
+            }
         }
     }
 }

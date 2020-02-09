@@ -1,6 +1,8 @@
 package com.idanatz.oneadapter.tests.modules.empiness
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.idanatz.oneadapter.external.holders.EmptyIndicator
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.EmptinessModule
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.internal.holders.Metadata
@@ -17,20 +19,18 @@ class WhenAdapterEmptyOnCreateShouldBeCalledOnce : BaseTest() {
 
     @Test
     fun test() {
-        // preparation & action
-        runOnActivity {
-            oneAdapter.attachEmptinessModule(TestEmptinessModule())
-        }
-
-        // assertion
-        waitUntilAsserted {
-            onCreateCalls shouldEqualTo 1
+        configure {
+            actOnActivity {
+                oneAdapter.attachEmptinessModule(TestEmptinessModule())
+            }
+            untilAsserted {
+                onCreateCalls shouldEqualTo 1
+            }
         }
     }
 
     inner class TestEmptinessModule : EmptinessModule() {
-        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_model_small)
-        override fun onBind(viewBinder: ViewBinder, metadata: Metadata) {}
+        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_empty)
         override fun onCreated(viewBinder: ViewBinder) {
             onCreateCalls++
         }

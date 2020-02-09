@@ -5,4 +5,4 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/large_model_height"
     android:gravity="center"
-    android:text="text"/>
+    android:text="Model Large"/>

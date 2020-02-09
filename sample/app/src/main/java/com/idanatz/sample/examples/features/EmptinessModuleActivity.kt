@@ -12,10 +12,10 @@ import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.models.MessageModel
 import com.airbnb.lottie.LottieAnimationView
+import com.idanatz.oneadapter.external.holders.EmptyIndicator
 import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.EmptinessModule
 import com.idanatz.oneadapter.external.modules.EmptinessModuleConfig
-import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.examples.ActionsDialog.*
 
@@ -54,16 +54,16 @@ class EmptinessModuleActivity : BaseExampleActivity(), ActionsListener {
             override fun withLayoutResource() = R.layout.empty_state
         }
 
-        override fun onBind(viewBinder: ViewBinder, metadata: Metadata) {
-            val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
-            animation.setAnimation(R.raw.empty_list)
-            animation.playAnimation()
-        }
+	    override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
+		    val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
+		    animation.setAnimation(R.raw.empty_list)
+		    animation.playAnimation()
+	    }
 
-        override fun onUnbind(viewBinder: ViewBinder, metadata: Metadata) {
-            val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
-            animation.pauseAnimation()
-        }
+	    override fun onUnbind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
+		    val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
+		    animation.pauseAnimation()
+	    }
     }
 
     override fun onSetAllClicked() {

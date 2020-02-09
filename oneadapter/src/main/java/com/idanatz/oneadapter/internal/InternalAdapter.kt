@@ -236,8 +236,8 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         firstBindAnimation = moduleConfig.withFirstBindAnimation()
                 ) {
                     override fun onCreated() { emptinessModule.onCreated(viewBinder) }
-                    override fun onBind(model: Diffable?) = emptinessModule.onBind(viewBinder, metadata)
-                    override fun onUnbind(model: Diffable?) = emptinessModule.onUnbind(viewBinder, metadata)
+                    override fun onBind(model: Diffable?) = emptinessModule.onBind(Item(EmptyIndicator, metadata), viewBinder)
+                    override fun onUnbind(model: Diffable?) = emptinessModule.onUnbind(Item(EmptyIndicator, metadata), viewBinder)
                 }
             }
         })
@@ -269,8 +269,8 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         firstBindAnimation = moduleConfig.withFirstBindAnimation()
                 ) {
                     override fun onCreated() { pagingModule.onCreated(viewBinder) }
-                    override fun onBind(model: Diffable?) = pagingModule.onBind(viewBinder, metadata)
-                    override fun onUnbind(model: Diffable?) = pagingModule.onUnbind(viewBinder, metadata)
+                    override fun onBind(model: Diffable?) = pagingModule.onBind(Item(LoadingIndicator, metadata), viewBinder)
+                    override fun onUnbind(model: Diffable?) = pagingModule.onUnbind(Item(LoadingIndicator, metadata), viewBinder)
                 }
             }
         })

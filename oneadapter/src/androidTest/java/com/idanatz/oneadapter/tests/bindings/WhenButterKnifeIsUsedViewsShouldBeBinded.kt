@@ -21,19 +21,16 @@ class WhenButterKnifeIsUsedViewsShouldBeBinded : BaseTest() {
 
     @Test
     fun test() {
-        // preparation
-        runOnActivity {
-            oneAdapter.attachItemModule(TestItemModule())
-        }
-
-        // action
-        runOnActivity {
-            oneAdapter.add(modelGenerator.generateModel())
-        }
-
-        // assertion
-        waitUntilAsserted {
-            bindedView shouldNotBe null
+        configure {
+            prepareOnActivity {
+                oneAdapter.attachItemModule(TestItemModule())
+            }
+            actOnActivity {
+                oneAdapter.add(modelGenerator.generateModel())
+            }
+            untilAsserted {
+                bindedView shouldNotBe null
+            }
         }
     }
 

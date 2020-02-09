@@ -14,7 +14,7 @@ import com.idanatz.oneadapter.internal.states.StatesMap
 
 abstract class ItemModule<M : Diffable> :
         LayoutModuleConfigurable<ItemModuleConfig>,
-        Creatable, ModelBindable<M>, ModelUnbindable<M>
+        Creatable, Bindable<M>, Unbindable<M>
 {
     internal val statesMap = StatesMap<M>()
     internal val eventHooksMap = EventHooksMap<M>()
