@@ -30,7 +30,7 @@ class WhenAdapterEmptyOnCreateShouldBeCalledOnce : BaseTest() {
     }
 
     inner class TestEmptinessModule : EmptinessModule() {
-        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_empty)
+        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig()
         override fun onCreated(viewBinder: ViewBinder) {
             onCreateCalls++
         }

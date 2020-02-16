@@ -1,10 +1,7 @@
 package com.idanatz.oneadapter.generators
 
 import com.idanatz.oneadapter.external.interfaces.Item
-import com.idanatz.oneadapter.external.modules.EmptinessModuleConfig
-import com.idanatz.oneadapter.external.modules.ItemModule
-import com.idanatz.oneadapter.external.modules.ItemModuleConfig
-import com.idanatz.oneadapter.external.modules.PagingModuleConfig
+import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.test.R
@@ -16,11 +13,20 @@ class ModulesGenerator {
         override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {}
     }
 
+    fun generateValidEmptinessModule(): EmptinessModule = object : EmptinessModule() {
+        override fun provideModuleConfig(): EmptinessModuleConfig = generateValidEmptinessModuleConfig()
+    }
+
+    fun generateValidPagingModule(): PagingModule = object : PagingModule() {
+        override fun provideModuleConfig() = generateValidPagingModuleConfig()
+        override fun onLoadMore(currentPage: Int) {}
+    }
+
     fun generateValidItemModuleConfig(resourceId: Int): ItemModuleConfig = object : ItemModuleConfig() {
         override fun withLayoutResource(): Int = resourceId
     }
 
-    fun generateValidEmptinessModuleConfig(resourceId: Int): EmptinessModuleConfig = object : EmptinessModuleConfig() {
+    fun generateValidEmptinessModuleConfig(resourceId: Int = R.layout.test_empty): EmptinessModuleConfig = object : EmptinessModuleConfig() {
         override fun withLayoutResource(): Int = resourceId
     }
 

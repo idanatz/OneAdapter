@@ -1,6 +1,7 @@
 package com.idanatz.oneadapter.tests.module_configs.selection
 
 import android.graphics.Color
+import android.util.SparseIntArray
 import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.interfaces.Item
@@ -21,15 +22,15 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WhenSelectionTypeMultipleSelectingMultipleItemIsSupported : BaseTest() {
 
-	private val modelsEvents = hashMapOf<TestModel, Int>()
+	private val modelsEvents = SparseIntArray()
 	private var isNotSelectedCount = 0
 
 	@Test
 	fun test() {
 		configure {
 			val models = modelGenerator.generateModels(2)
-			modelsEvents[models[0]] = 0
-			modelsEvents[models[1]] = 0
+			modelsEvents.put(models[0].id, 0)
+			modelsEvents.put(models[1].id, 0)
 
 			prepareOnActivity {
 				oneAdapter
@@ -57,8 +58,8 @@ class WhenSelectionTypeMultipleSelectingMultipleItemIsSupported : BaseTest() {
 				}
 			}
 			untilAsserted {
-				modelsEvents[models[0]]!! shouldEqualTo 1
-				modelsEvents[models[1]]!! shouldEqualTo 1
+				modelsEvents.get(models[0].id) shouldEqualTo 1
+				modelsEvents.get(models[1].id) shouldEqualTo 1
 				isNotSelectedCount shouldEqualTo 0
 			}
 		}
@@ -79,7 +80,7 @@ class WhenSelectionTypeMultipleSelectingMultipleItemIsSupported : BaseTest() {
         override fun isSelectionEnabled(model: TestModel): Boolean = true
 		override fun onSelected(model: TestModel, selected: Boolean) {
 			if (selected) {
-				modelsEvents[model] = modelsEvents[model]?.inc() ?: 0
+				modelsEvents.put(model.id, modelsEvents.get(model.id).inc())
 			} else {
 				isNotSelectedCount++
 			}

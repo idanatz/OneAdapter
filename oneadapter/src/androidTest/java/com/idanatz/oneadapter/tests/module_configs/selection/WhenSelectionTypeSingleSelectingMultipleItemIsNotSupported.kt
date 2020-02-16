@@ -1,6 +1,7 @@
 package com.idanatz.oneadapter.tests.module_configs.selection
 
 import android.graphics.Color
+import android.util.SparseArray
 import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.interfaces.Item
@@ -24,14 +25,14 @@ private const val IS_NOT_SELECTED_COUNT_INDEX = 1
 @RunWith(AndroidJUnit4::class)
 class WhenSelectionTypeSingleSelectingMultipleItemIsNotSupported : BaseTest() {
 
-	private val modelsEvents = hashMapOf<TestModel, IntArray>()
+	private val modelsEvents = SparseArray<IntArray>(2)
 
 	@Test
 	fun test() {
 		configure {
 			val models = modelGenerator.generateModels(2)
-			modelsEvents[models[0]] = IntArray(2)
-			modelsEvents[models[1]] = IntArray(2)
+			modelsEvents.put(models[0].id, IntArray(2))
+			modelsEvents.put(models[1].id, IntArray(2))
 
 			prepareOnActivity {
 				oneAdapter
@@ -59,9 +60,9 @@ class WhenSelectionTypeSingleSelectingMultipleItemIsNotSupported : BaseTest() {
 				}
 			}
 			untilAsserted {
-				modelsEvents[models[0]]!![IS_SELECTED_COUNT_INDEX] shouldEqualTo(1)
-				modelsEvents[models[0]]!![IS_NOT_SELECTED_COUNT_INDEX] shouldEqualTo(1)
-				modelsEvents[models[1]]!![IS_SELECTED_COUNT_INDEX] shouldEqualTo(1)
+				modelsEvents.get(models[0].id)[IS_SELECTED_COUNT_INDEX] shouldEqualTo 1
+				modelsEvents.get(models[0].id)[IS_NOT_SELECTED_COUNT_INDEX] shouldEqualTo 1
+				modelsEvents.get(models[1].id)[IS_SELECTED_COUNT_INDEX] shouldEqualTo 1
 			}
 		}
 	}
@@ -80,15 +81,8 @@ class WhenSelectionTypeSingleSelectingMultipleItemIsNotSupported : BaseTest() {
 	private inner class TestSelectionState : SelectionState<TestModel>() {
         override fun isSelectionEnabled(model: TestModel): Boolean = true
 		override fun onSelected(model: TestModel, selected: Boolean) {
-			if (selected) {
-				modelsEvents[model]?.let {
-					it[IS_SELECTED_COUNT_INDEX]++
-				}
-			} else {
-				modelsEvents[model]?.let {
-					it[IS_NOT_SELECTED_COUNT_INDEX]++
-				}
-			}
+			if (selected) { modelsEvents.get(model.id)[IS_SELECTED_COUNT_INDEX]++ }
+			else { modelsEvents.get(model.id)[IS_NOT_SELECTED_COUNT_INDEX]++ }
 		}
 	}
 

@@ -26,23 +26,21 @@ class TestBuilder(
 
 	fun assert(block: () -> Unit) = block()
 	fun untilAsserted(assertTimeout: Long = 3000L, assertDelay: Long = 0L, block: () -> Unit) {
+		handleDelay(assertDelay)
+
+		Awaitility.setDefaultTimeout(assertTimeout, TimeUnit.MILLISECONDS)
+		Awaitility.await().untilAsserted {
+			delayFlag shouldEqualTo false
+			block()
+		}
+	}
+
+	private fun handleDelay(assertDelay: Long) {
 		if (assertDelay != 0L) {
 			delayFlag = true
 			handler.postDelayed({
 				delayFlag = false
 			}, assertDelay)
-		}
-
-		Awaitility.setDefaultTimeout(assertTimeout, TimeUnit.MILLISECONDS)
-		Awaitility.await().untilAsserted {
-			delayFlag shouldEqualTo false
-
-			try { // the try catch here is to prevent the test from crashing when an exception is thrown before the timeout
-				block()
-			} catch (throwable: NullPointerException) {
-				// this line will act as a fail assertion, so the await will keep polling
-				throwable.should("test failed due to NullPointerException") { false }
-			}
 		}
 	}
 }

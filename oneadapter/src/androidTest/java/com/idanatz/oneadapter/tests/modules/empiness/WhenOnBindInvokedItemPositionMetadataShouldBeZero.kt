@@ -30,7 +30,7 @@ class WhenOnBindInvokedItemPositionMetadataShouldBeZero : BaseTest() {
     }
 
     inner class TestEmptinessModule : EmptinessModule() {
-        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_empty)
+        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig()
         override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
             position = item.metadata.position
         }

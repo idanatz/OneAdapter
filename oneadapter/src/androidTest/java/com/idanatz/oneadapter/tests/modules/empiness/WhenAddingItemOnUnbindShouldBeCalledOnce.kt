@@ -40,7 +40,7 @@ class WhenAddingItemOnUnbindShouldBeCalledOnce : BaseTest() {
     }
 
     inner class TestEmptinessModule : EmptinessModule() {
-        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig(R.layout.test_empty)
+        override fun provideModuleConfig() = modulesGenerator.generateValidEmptinessModuleConfig()
         override fun onUnbind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
             onUnbindCalls++
         }
