@@ -204,7 +204,7 @@ Click Hook can be attached in order to recieve click events on an item.
 #### 1. Implement Click Event Hook
 ```kotlin
 class MessageClickEvent : ClickEventHook<MessageModel>() {
-    override fun onClick(model: MessageModel, viewBinder: ViewBinder) {
+    override fun onClick(item: Item<MessageModel>, viewBinder: ViewBinder) {
         // place your on click logic here.
     }
 }
@@ -212,7 +212,7 @@ class MessageClickEvent : ClickEventHook<MessageModel>() {
 #### 2. Attach To ItemModule
 ```kotlin
 val oneAdapter = OneAdapter(recyclerView)
-    .attachItemModule(MessageModule()).addEventHook(MessageClickEvent())
+    .attachItemModule(MessageModule().addEventHook(MessageClickEvent()))
     ...
 ```
 
@@ -234,7 +234,7 @@ class MessageSwipeEvent : SwipeEventHook<MessageModel>() {
         // like painting the canvas red with a delete icon.
     }
 
-    override fun onSwipeComplete(model: MessageModel, direction: SwipeDirection, viewBinder: ViewBinder) {
+    override fun onSwipeComplete(item: Item<MessageModel>, direction: SwipeDirection, viewBinder: ViewBinder) {
         // place your swipe logic here.
         // like removing an item after it was swiped right.
     }

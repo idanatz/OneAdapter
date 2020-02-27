@@ -67,12 +67,12 @@ class SwipeEventHookActivity : BaseExampleActivity() {
             }
         }
 
-        override fun onSwipeComplete(model: MessageModel, direction: SwipeDirection, viewBinder: ViewBinder) {
+        override fun onSwipeComplete(item: Item<MessageModel>, direction: SwipeDirection, viewBinder: ViewBinder) {
             when (direction) {
-                SwipeDirection.Left -> oneAdapter.remove(model)
+                SwipeDirection.Left -> oneAdapter.remove(item.model)
                 SwipeDirection.Right -> {
-                    Toast.makeText(this@SwipeEventHookActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
-                    oneAdapter.update(model) // for resetting the view back into place
+                    Toast.makeText(this@SwipeEventHookActivity, "${item.model.title} snoozed", Toast.LENGTH_SHORT).show()
+                    oneAdapter.update(item.model) // for resetting the view back into place
                 }
             }
         }

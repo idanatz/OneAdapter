@@ -20,7 +20,6 @@ import org.junit.Rule
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-@RunWith(AndroidJUnit4::class)
 open class BaseTest {
 
     protected lateinit var oneAdapter: OneAdapter

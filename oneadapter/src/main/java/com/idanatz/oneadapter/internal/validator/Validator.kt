@@ -26,9 +26,9 @@ internal class Validator {
             }
         }
 
-        fun validateItemModuleAgainstRegisteredModules(itemModulesMap: MutableMap<Class<*>, ItemModule<*>>, dataClass: Class<*>) {
-            if (itemModulesMap.containsKey(dataClass)) {
-                throw MultipleModuleConflictException("ItemModule with model class ${dataClass.simpleName} already attached")
+        fun validateItemModuleAgainstRegisteredModules(itemModulesMap: MutableMap<Class<*>, ItemModule<*>>, modelClass: Class<*>) {
+            if (itemModulesMap.containsKey(modelClass)) {
+                throw MultipleModuleConflictException("ItemModule with model class ${modelClass.simpleName} already attached")
             }
         }
 

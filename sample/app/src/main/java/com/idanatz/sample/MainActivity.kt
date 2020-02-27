@@ -68,6 +68,6 @@ class MainActivity : BaseExampleActivity() {
     }
 
     inner class ActivityClickHook : ClickEventHook<ActivityModel>() {
-        override fun onClick(model: ActivityModel, viewBinder: ViewBinder) = startActivity(model.intent)
+        override fun onClick(item: Item<ActivityModel>, viewBinder: ViewBinder) = startActivity(item.model.intent)
     }
 }

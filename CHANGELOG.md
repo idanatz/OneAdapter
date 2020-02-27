@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 1.5.1
+-------------
+* Fixed Bug: recycler view crash due to race condition with background and ui threads while request multiple diffing quickly
+* Breaking Changes:
+    * Wrapped event hooks models with Item object in order to get additional information like item position, isSelected, etc... (using the Metadata object)
+
+
 Version 1.5.0
 -------------
 * Fixed Bug: clear() not triggering onBind of emptiness module when the adapter was already empty

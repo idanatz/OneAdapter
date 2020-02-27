@@ -1,6 +1,6 @@
 package com.idanatz.oneadapter.internal.holders_creators
 
-import com.idanatz.oneadapter.external.UnsupportedClassException
+import com.idanatz.oneadapter.external.MissingModuleDefinitionException
 import com.idanatz.oneadapter.external.interfaces.Diffable
 
 internal class ViewHolderCreatorsStore {
@@ -15,7 +15,7 @@ internal class ViewHolderCreatorsStore {
 
     fun getCreatorUniqueIndex(clazz: Class<Diffable>): Int {
         if (!dataTypes.contains(clazz)) {
-            throw UnsupportedClassException("${clazz.simpleName} not registered as an Module data type.")
+            throw MissingModuleDefinitionException("${clazz.simpleName} not registered as an Module data type.")
         }
         return dataTypes.indexOf(clazz)
     }

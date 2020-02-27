@@ -119,12 +119,16 @@ class OneAdapter(recyclerView: RecyclerView) {
         return internalAdapter.holderVisibilityResolver.getItems(ofClass, requiredVisibilityPercentage)
     }
 
+    /**
+     * Retrieves the view type of an item with a given position.
+     * @throws IndexOutOfBoundsException if the position is >= itemCount
+     */
     fun getItemViewType(position: Int): Int {
         return internalAdapter.getItemViewType(position)
     }
 
     /**
-     * Retrieves the view type of an item with a given class.
+     * Retrieves the view type associated with the items of the given class.
      * Note that this class must implement the Diffable interface and the adapter must contain items of that class.
      * @throws UnsupportedClassException if the class does not implement the Diffable interface
      * or is not registered as an Module data type.

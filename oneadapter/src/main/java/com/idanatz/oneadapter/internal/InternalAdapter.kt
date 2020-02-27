@@ -1,42 +1,42 @@
 package com.idanatz.oneadapter.internal
 
+import android.graphics.Canvas
 import android.os.Handler
 import android.os.Looper
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.selection.StorageStrategy
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListUpdateCallback
-import com.idanatz.oneadapter.external.interfaces.*
-import com.idanatz.oneadapter.internal.diffing.OneDiffUtil
+import androidx.recyclerview.widget.RecyclerView
+import com.idanatz.oneadapter.external.MissingConfigArgumentException
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 import com.idanatz.oneadapter.external.holders.EmptyIndicator
 import com.idanatz.oneadapter.external.holders.LoadingIndicator
-import com.idanatz.oneadapter.internal.holders.OneViewHolder
-import com.idanatz.oneadapter.internal.interfaces.DiffUtilCallback
-import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreator
-import com.idanatz.oneadapter.internal.paging.LoadMoreObserver
-import com.idanatz.oneadapter.internal.paging.EndlessScrollListener
+import com.idanatz.oneadapter.external.interfaces.Diffable
+import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.oneadapter.internal.animations.AnimationPositionHandler
+import com.idanatz.oneadapter.internal.diffing.OneDiffUtil
+import com.idanatz.oneadapter.internal.holders.Metadata
+import com.idanatz.oneadapter.internal.holders.OneViewHolder
+import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreator
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreatorsStore
-import com.idanatz.oneadapter.internal.selection.ItemSelectionActions
-import com.idanatz.oneadapter.internal.selection.OneItemDetailLookup
-import com.idanatz.oneadapter.internal.selection.OneItemKeyProvider
-import com.idanatz.oneadapter.internal.selection.SelectionTrackerObserver
-import com.idanatz.oneadapter.internal.selection.SelectionObserver
+import com.idanatz.oneadapter.internal.interfaces.DiffUtilCallback
+import com.idanatz.oneadapter.internal.paging.EndlessScrollListener
+import com.idanatz.oneadapter.internal.paging.LoadMoreObserver
+import com.idanatz.oneadapter.internal.selection.*
 import com.idanatz.oneadapter.internal.swiping.OneItemTouchHelper
+import com.idanatz.oneadapter.internal.threading.IdentifiableFuture
 import com.idanatz.oneadapter.internal.threading.OneSingleThreadPoolExecutor
-import com.idanatz.oneadapter.internal.utils.*
-import com.idanatz.oneadapter.internal.utils.extensions.*
+import com.idanatz.oneadapter.internal.utils.Logger
+import com.idanatz.oneadapter.internal.utils.extensions.createMutableCopyAndApply
 import com.idanatz.oneadapter.internal.utils.extensions.isClassExists
 import com.idanatz.oneadapter.internal.utils.extensions.let2
 import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
-import com.idanatz.oneadapter.external.MissingConfigArgumentException
-import com.idanatz.oneadapter.internal.holders.Metadata
+import com.idanatz.oneadapter.internal.utils.extractGenericClass
 import com.idanatz.oneadapter.internal.validator.Validator
-import java.util.concurrent.Future
 
 private const val UPDATE_DATA_DELAY_MILLIS = 100L
 
@@ -53,6 +53,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     private val viewHolderCreatorsStore = ViewHolderCreatorsStore()
     private val animationPositionHandler = AnimationPositionHandler()
+    private val logger = Logger(this)
 
     // Paging
     private var endlessScrollListener: EndlessScrollListener? = null
@@ -61,27 +62,28 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     private var selectionTracker: SelectionTracker<Long>? = null
     private var itemKeyProvider: OneItemKeyProvider? = null
 
-    // Threading
+    // Threads Executors
     private val backgroundExecutor = OneSingleThreadPoolExecutor()
     private val uiHandler = Handler(Looper.getMainLooper())
 
     // Diffing
-    private var currentSetItemFuture: Future<*>? = null
+    private var updateDataInvocationNum = 0
+    private var currentSetItemFuture: IdentifiableFuture<*>? = null
     private val listUpdateCallback = object : ListUpdateCallback {
         override fun onInserted(position: Int, count: Int) {
-            Logger.logd(this@InternalAdapter) { "onInserted -> position: $position, count: $count" }
+            logger.logd { "onInserted -> position: $position, count: $count" }
             notifyItemRangeInserted(position, count)
         }
         override fun onRemoved(position: Int, count: Int) {
-            Logger.logd(this@InternalAdapter) { "onRemoved -> position: $position, count: $count" }
+            logger.logd { "onRemoved -> position: $position, count: $count" }
             notifyItemRangeRemoved(position, count)
         }
         override fun onMoved(fromPosition: Int, toPosition: Int) {
-            Logger.logd(this@InternalAdapter) { "onRemoved -> fromPosition: $fromPosition, toPosition: $toPosition" }
+            logger.logd { "onRemoved -> fromPosition: $fromPosition, toPosition: $toPosition" }
             notifyItemMoved(fromPosition, toPosition)
         }
         override fun onChanged(position: Int, count: Int, payload: Any?) {
-            Logger.logd(this@InternalAdapter) { "onChanged -> position: $position, count: $count, payload: $payload" }
+            logger.logd { "onChanged -> position: $position, count: $count, payload: $payload" }
             notifyItemRangeChanged(position, count, payload)
         }
     }
@@ -103,7 +105,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OneViewHolder<Diffable> {
         val oneViewHolder = viewHolderCreatorsStore.getCreator(viewType)?.create(parent)
         oneViewHolder?.onCreateViewHolder() ?: throw RuntimeException("OneViewHolder creation failed")
-        Logger.logd(this) { "onCreateViewHolder -> classDataType: ${viewHolderCreatorsStore.getClassDataType(viewType)}" }
+        logger.logd { "onCreateViewHolder -> classDataType: ${viewHolderCreatorsStore.getClassDataType(viewType)}" }
         return oneViewHolder
     }
 
@@ -111,21 +113,13 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
         val model = data[position]
         val shouldAnimateBind = holder.firstBindAnimation != null && animationPositionHandler.shouldAnimateBind(holder.itemViewType, position)
         val metadata = Metadata(position, isItemSelected(position), shouldAnimateBind)
-        Logger.logd(this) { "onBindViewHolder -> holder: $holder, model: $model, metadata: $metadata" }
-
-        when (model) {
-            is EmptyIndicator, is LoadingIndicator -> holder.onBindViewHolder(null, metadata)
-            else -> holder.onBindViewHolder(model, metadata)
-        }
+        logger.logd { "onBindViewHolder -> holder: $holder, model: $model, metadata: $metadata" }
+        holder.onBindViewHolder(model, metadata)
     }
 
     private fun onBindSelection(holder: OneViewHolder<Diffable>, position: Int, selected: Boolean) {
-        val model =
-            when (val model = data[position]) {
-                is EmptyIndicator, is LoadingIndicator -> null
-                else -> model
-            }
-        Logger.logd(this) { "onBindSelection -> holder: $holder, position: $position, model: $model, selected: $selected" }
+        val model = data[position]
+        logger.logd { "onBindSelection -> holder: $holder, position: $position, model: $model, selected: $selected" }
         holder.onBindSelection(model, selected)
     }
 
@@ -151,19 +145,38 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     //endregion
 
     fun updateData(incomingData: MutableList<Diffable>) {
-        Logger.logd(this) { "updateData -> incomingData: $incomingData" }
+        val currentUpdateDataInvocationNum = ++updateDataInvocationNum
+        logger.logd { "updateData -> diffing request (#$currentUpdateDataInvocationNum) with incomingData: $incomingData" }
 
-        // handle cases where no diffing is required
-        if (incomingData.isEmpty() && data.contains(EmptyIndicator)) {
-            Logger.logd(this) { "updateData -> no diffing required, refreshing EmptyModule" }
-            notifyItemChanged(0)
-            return
+        // handle the fast and simple cases where no diffing is required
+        when {
+            data.isEmpty() -> {
+                Validator.validateItemsAgainstRegisteredModules(modules.itemModules, incomingData)
+                uiHandler.post {
+                    logger.logd { "updateData -> no diffing required, inserting all incoming data" }
+                    data = incomingData
+                    listUpdateCallback.onInserted(0, incomingData.size)
+                }
+                return
+            }
+            incomingData.isEmpty() && data.contains(EmptyIndicator) -> {
+                uiHandler.post {
+                    logger.logd { "updateData -> no diffing required, refreshing EmptyModule" }
+                    listUpdateCallback.onChanged(0, 1, null)
+                }
+                return
+            }
         }
 
-        // clear the last (maybe running) diffing runnable
-        if (currentSetItemFuture?.isDone == false) currentSetItemFuture?.cancel(true)
+        // cancel the last (maybe running) diffing executor
+        if (currentSetItemFuture?.isDone == false) {
+            logger.logd { "updateData -> canceling old diffing executor (#${currentSetItemFuture?.id})" }
+            currentSetItemFuture?.cancel(true)
+        }
 
-        currentSetItemFuture = backgroundExecutor.submit {
+        currentSetItemFuture = backgroundExecutor.submit(currentUpdateDataInvocationNum, Runnable {
+            logger.logd { "updateData -> executing on background (#$currentUpdateDataInvocationNum)" }
+
             Validator.validateItemsAgainstRegisteredModules(modules.itemModules, incomingData)
 
             // modify the incomingData if needed
@@ -184,24 +197,28 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
             val diffResult = DiffUtil.calculateDiff(OneDiffUtil(data, incomingData, diffCallback))
 
             uiHandler.post {
-                Logger.logd(this) { "updateData -> dispatching update with incomingData: $incomingData" }
-                data = incomingData
-                diffResult.dispatchUpdatesTo(listUpdateCallback)
+                if (currentUpdateDataInvocationNum == updateDataInvocationNum) {
+                    logger.logd { "updateData -> dispatching update (#$currentUpdateDataInvocationNum) with incomingData: $incomingData" }
+                    data = incomingData
+                    diffResult.dispatchUpdatesTo(listUpdateCallback)
+                } else {
+                    logger.logd { "updateData -> discarding old diffing result (#$currentUpdateDataInvocationNum)" }
+                }
             }
-        }
+        })
     }
 
     //region Item Module
     fun <M : Diffable> register(itemModule: ItemModule<M>) {
         val moduleConfig = itemModule.provideModuleConfig()
         val layoutResourceId = moduleConfig.withLayoutResource()
-        val dataClass = extractGenericClass(itemModule.javaClass) as? Class<Diffable> ?: throw MissingConfigArgumentException("ItemModuleConfig missing model class")
+        val modelClass = extractGenericClass(itemModule.javaClass) as? Class<Diffable> ?: throw MissingConfigArgumentException("ItemModuleConfig missing model class")
 
-        Validator.validateItemModuleAgainstRegisteredModules(modules.itemModules, dataClass)
+        Validator.validateItemModuleAgainstRegisteredModules(modules.itemModules, modelClass)
         Validator.validateLayoutExists(context, layoutResourceId)
 
-        modules.itemModules[dataClass] = itemModule
-        viewHolderCreatorsStore.addCreator(dataClass, object : ViewHolderCreator<M> {
+        modules.itemModules[modelClass] = itemModule
+        viewHolderCreatorsStore.addCreator(modelClass, object : ViewHolderCreator<M> {
             override fun create(parent: ViewGroup): OneViewHolder<M> {
                 return object : OneViewHolder<M>(
                         parent = parent,
@@ -210,9 +227,13 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         statesHooksMap = itemModule.statesMap,
                         eventsHooksMap = itemModule.eventHooksMap
                 ) {
-                    override fun onCreated() { itemModule.onCreated(viewBinder) }
-                    override fun onBind(model: M?) { model?.let { itemModule.onBind(Item(it, metadata), viewBinder) } }
-                    override fun onUnbind(model: M?) { model?.let { itemModule.onUnbind(Item(it, metadata), viewBinder) } }
+                    override fun onCreated() = itemModule.onCreated(viewBinder)
+                    override fun onBind(model: M) { itemModule.onBind(Item(model, metadata), viewBinder) }
+                    override fun onUnbind(model: M) { itemModule.onUnbind(Item(model, metadata), viewBinder) }
+                    override fun onClicked(model: M) { itemModule.eventHooksMap.getClickEventHook()?.onClick(Item(model, metadata), viewBinder) }
+                    override fun onSwipe(canvas: Canvas, xAxisOffset: Float) { itemModule.eventHooksMap.getSwipeEventHook()?.onSwipe(canvas, xAxisOffset, viewBinder) }
+                    override fun onSwipeComplete(model: M, swipeDirection: SwipeEventHook.SwipeDirection) { itemModule.eventHooksMap.getSwipeEventHook()?.onSwipeComplete(Item(model, metadata), swipeDirection, viewBinder) }
+                    override fun onSelected(model: M, selected: Boolean) { itemModule.statesMap.getSelectionState()?.onSelected(model, selected) }
                 }
             }
         } as ViewHolderCreator<Diffable>)
@@ -235,9 +256,13 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         layoutResourceId = layoutResourceId,
                         firstBindAnimation = moduleConfig.withFirstBindAnimation()
                 ) {
-                    override fun onCreated() { emptinessModule.onCreated(viewBinder) }
-                    override fun onBind(model: Diffable?) = emptinessModule.onBind(Item(EmptyIndicator, metadata), viewBinder)
-                    override fun onUnbind(model: Diffable?) = emptinessModule.onUnbind(Item(EmptyIndicator, metadata), viewBinder)
+                    override fun onCreated() = emptinessModule.onCreated(viewBinder)
+                    override fun onBind(model: Diffable) = emptinessModule.onBind(Item(EmptyIndicator, metadata), viewBinder)
+                    override fun onUnbind(model: Diffable) = emptinessModule.onUnbind(Item(EmptyIndicator, metadata), viewBinder)
+                    override fun onClicked(model: Diffable) {}
+                    override fun onSwipe(canvas: Canvas, xAxisOffset: Float) {}
+                    override fun onSwipeComplete(model: Diffable, swipeDirection: SwipeEventHook.SwipeDirection) {}
+                    override fun onSelected(model: Diffable, selected: Boolean) {}
                 }
             }
         })
@@ -268,9 +293,13 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                         layoutResourceId = layoutResourceId,
                         firstBindAnimation = moduleConfig.withFirstBindAnimation()
                 ) {
-                    override fun onCreated() { pagingModule.onCreated(viewBinder) }
-                    override fun onBind(model: Diffable?) = pagingModule.onBind(Item(LoadingIndicator, metadata), viewBinder)
-                    override fun onUnbind(model: Diffable?) = pagingModule.onUnbind(Item(LoadingIndicator, metadata), viewBinder)
+                    override fun onCreated() = pagingModule.onCreated(viewBinder)
+                    override fun onBind(model: Diffable) = pagingModule.onBind(Item(LoadingIndicator, metadata), viewBinder)
+                    override fun onUnbind(model: Diffable) = pagingModule.onUnbind(Item(LoadingIndicator, metadata), viewBinder)
+                    override fun onClicked(model: Diffable) {}
+                    override fun onSwipe(canvas: Canvas, xAxisOffset: Float) {}
+                    override fun onSwipeComplete(model: Diffable, swipeDirection: SwipeEventHook.SwipeDirection) {}
+                    override fun onSelected(model: Diffable, selected: Boolean) {}
                 }
             }
         })
@@ -283,19 +312,18 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                     layoutManager = layoutManager,
                     visibleThreshold = pagingModule.provideModuleConfig().withVisibleThreshold(),
                     includeEmptyState = modules.emptinessModule != null,
-                    loadMoreObserver = this@InternalAdapter
+                    loadMoreObserver = this@InternalAdapter,
+                    logger = logger
             ).also { recyclerView.addOnScrollListener(it) }
         }
     }
 
     override fun onLoadingStateChanged(loading: Boolean) {
-        if (loading) {
-            data.isClassExists(LoadingIndicator.javaClass).takeIf { it == false }?.let {
-                data.add(data.size, LoadingIndicator)
+        if (loading && !data.isClassExists(LoadingIndicator.javaClass)) {
+            data.add(data.size, LoadingIndicator)
 
-                // post it to the UI handler because the recycler crashes when calling notify from an onScroll callback
-                uiHandler.post { notifyItemInserted(data.size) }
-            }
+            // post it to the UI handler because the recycler crashes when calling notify from an onScroll callback
+            uiHandler.post { notifyItemInserted(data.size) }
         }
     }
 

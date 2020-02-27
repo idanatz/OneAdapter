@@ -148,7 +148,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     }
 
     private class MessageClickHook : ClickEventHook<MessageModel>() {
-        override fun onClick(model: MessageModel, viewBinder: ViewBinder) = Toast.makeText(viewBinder.rootView.context, "${model.title} clicked", Toast.LENGTH_SHORT).show()
+        override fun onClick(item: Item<MessageModel>, viewBinder: ViewBinder) = Toast.makeText(viewBinder.rootView.context, "${item.model.title} clicked", Toast.LENGTH_SHORT).show()
     }
 
     private class StoriesItem : ItemModule<StoriesModel>() {
@@ -273,12 +273,12 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             }
         }
 
-        override fun onSwipeComplete(model: MessageModel, direction: SwipeDirection, viewBinder: ViewBinder) {
+        override fun onSwipeComplete(item: Item<MessageModel>, direction: SwipeDirection, viewBinder: ViewBinder) {
             when (direction) {
-                SwipeDirection.Left -> viewModel.onSwipeToDeleteItem(model)
+                SwipeDirection.Left -> viewModel.onSwipeToDeleteItem(item.model)
                 SwipeDirection.Right -> {
-                    Toast.makeText(this@CompleteKotlinExampleActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
-                    oneAdapter.update(model)
+                    Toast.makeText(this@CompleteKotlinExampleActivity, "${item.model.title} snoozed", Toast.LENGTH_SHORT).show()
+                    oneAdapter.update(item.model)
                 }
             }
         }

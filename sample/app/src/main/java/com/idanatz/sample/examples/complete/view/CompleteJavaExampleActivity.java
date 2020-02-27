@@ -185,8 +185,8 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
 
     private static class MessageClickHook extends ClickEventHook<MessageModel> {
         @Override
-        public void onClick(@NotNull MessageModel model, @NotNull ViewBinder viewBinder) {
-            Toast.makeText(viewBinder.getRootView().getContext(), model.title + " clicked", Toast.LENGTH_SHORT).show();
+        public void onClick(@NotNull Item<MessageModel> item, @NotNull ViewBinder viewBinder) {
+            Toast.makeText(viewBinder.getRootView().getContext(), item.getModel().title + " clicked", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -356,14 +356,14 @@ public class CompleteJavaExampleActivity extends BaseExampleActivity {
         }
 
         @Override
-        public void onSwipeComplete(@NotNull MessageModel model, @NotNull SwipeDirection direction, @NotNull ViewBinder viewBinder) {
+        public void onSwipeComplete(@NotNull Item<MessageModel> item, @NotNull SwipeDirection direction, @NotNull ViewBinder viewBinder) {
             switch (direction) {
                 case Right:
-                    Toast.makeText(CompleteJavaExampleActivity.this, model.title + " snoozed", Toast.LENGTH_SHORT).show();
-                    oneAdapter.update(model);
+                    Toast.makeText(CompleteJavaExampleActivity.this, item.getModel().title + " snoozed", Toast.LENGTH_SHORT).show();
+                    oneAdapter.update(item.getModel());
                     break;
                 case Left:
-                    viewModel.onSwipeToDeleteItem(model);
+                    viewModel.onSwipeToDeleteItem(item.getModel());
                     break;
             }
         }

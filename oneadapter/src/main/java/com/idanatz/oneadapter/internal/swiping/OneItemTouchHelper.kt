@@ -6,19 +6,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 import com.idanatz.oneadapter.internal.utils.extensions.toOneViewHolder
 
-internal class OneItemTouchHelper : ItemTouchHelper(OneItemTouchHelperCallback()) {
+private const val DISABLE_VALUE = 0
+private const val SWIPING_STATE_EXTRA_DELAY_MILLIS = 250L
 
-    companion object {
-        const val DISABLE_VALUE = 0
-        const val SWIPING_STATE_EXTRA_DELAY_MILLIS = 250L
-    }
+internal class OneItemTouchHelper : ItemTouchHelper(OneItemTouchHelperCallback()) {
 
     internal class OneItemTouchHelperCallback : ItemTouchHelper.SimpleCallback(DISABLE_VALUE, DISABLE_VALUE) {
 
         override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
 
         override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
-            return viewHolder.toOneViewHolder().getSwipeEventHook()?.let { swipeEventHook ->
+            return viewHolder.toOneViewHolder().eventsHooksMap?.getSwipeEventHook()?.let { swipeEventHook ->
                 swipeEventHook.provideHookConfig().withSwipeDirection().map { mapDirection(it) }.reduce { accumulator, current -> accumulator or current }
             } ?: super.getSwipeDirs(recyclerView, viewHolder)
         }
@@ -27,14 +25,14 @@ internal class OneItemTouchHelper : ItemTouchHelper(OneItemTouchHelperCallback()
          * Called when the view holder is completely swiped from the screen
          */
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            mapDirection(direction)?.let { viewHolder.toOneViewHolder().onSwipeComplete(it) }
+            mapDirection(direction)?.let { viewHolder.toOneViewHolder().onSwipeViewHolderComplete(it) }
         }
 
         /**
          * Called while the view holder is swiping
          */
         override fun onChildDraw(canvas: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
-            viewHolder.toOneViewHolder().onSwipe(canvas, dX)
+            viewHolder.toOneViewHolder().onSwipeViewHolder(canvas, dX)
             super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
         }
 

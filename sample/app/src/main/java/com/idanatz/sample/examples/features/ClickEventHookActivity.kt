@@ -43,6 +43,6 @@ class ClickEventHookActivity : BaseExampleActivity() {
     }
 
     private class MessageClickHook : ClickEventHook<MessageModel>() {
-        override fun onClick(model: MessageModel, viewBinder: ViewBinder) = Toast.makeText(viewBinder.rootView.context, "${model.title} clicked", Toast.LENGTH_SHORT).show()
+        override fun onClick(item: Item<MessageModel>, viewBinder: ViewBinder) = Toast.makeText(viewBinder.rootView.context, "${item.model.title} clicked", Toast.LENGTH_SHORT).show()
     }
 }

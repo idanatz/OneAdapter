@@ -10,7 +10,8 @@ internal class EndlessScrollListener (
         private val layoutManager: RecyclerView.LayoutManager,
         private var visibleThreshold: Int = 0, // The minimum amount of items to have below your current scroll position before loading more.
         private val includeEmptyState: Boolean,
-        private val loadMoreObserver: LoadMoreObserver
+        private val loadMoreObserver: LoadMoreObserver,
+        private val logger: Logger
 ) : RecyclerView.OnScrollListener() {
 
     private var currentPage = 0 // The current offset index of data you have loaded
@@ -72,7 +73,7 @@ internal class EndlessScrollListener (
             loading -> LoadingState.MidLoading
             else -> LoadingState.Normal
         }.also {
-            if (it != LoadingState.Normal) Logger.logd { "onScrolled -> loading state: $it" }
+            if (it != LoadingState.Normal) logger.logd { "onScrolled -> loading state: $it" }
         }
     }
 
