@@ -1,6 +1,7 @@
 package com.idanatz.sample.examples.features
 
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -35,7 +36,15 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
                 .attachItemModule(MessageItem().addState(MessageSelectionState()))
                 .attachItemSelectionModule(ItemSelectionModuleImpl())
 
-        oneAdapter.setItems(modelGenerator.generateFirstMessages())
+        oneAdapter.setItems(modelGenerator.generateMessages(10))
+    }
+
+    override fun onBackPressed() {
+        if (oneAdapter.modules.itemSelectionModule?.actions?.isSelectionActive() == true) {
+            oneAdapter.modules.itemSelectionModule?.actions?.clearSelection()
+        } else {
+            super.onBackPressed()
+        }
     }
 
     private inner class MessageItem : ItemModule<MessageModel>() {
@@ -74,19 +83,24 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
             override fun withSelectionType() = SelectionType.Multiple
         }
 
+        override fun onSelectionStarted() {
+            setToolbarColor(ColorDrawable(ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.dark_gray)))
+            toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = false
+        }
+
+        override fun onSelectionEnded() {
+            setToolbarText(getString(R.string.app_name))
+            toolbarMenu?.findItem(R.id.action_delete)?.isVisible = false
+            toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = true
+            setToolbarColor(ColorDrawable(ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.colorPrimary)))
+        }
+
         override fun onSelectionUpdated(selectedCount: Int) {
-            if (selectedCount == 0) {
-                setToolbarText(getString(R.string.app_name))
-                toolbarMenu?.findItem(R.id.action_delete)?.isVisible = false
-            } else {
+            if (oneAdapter.modules.itemSelectionModule?.actions?.isSelectionActive() == true) {
                 setToolbarText("$selectedCount selected")
                 toolbarMenu?.findItem(R.id.action_delete)?.isVisible = true
             }
         }
-    }
-
-    private fun setToolbarText(text: String) {
-        supportActionBar?.title = text
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -96,11 +110,16 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-        if (id == R.id.action_delete) {
-            oneAdapter.modules.itemSelectionModule?.actions?.removeSelectedItems()
-            return true
+        return when (item.itemId) {
+            R.id.action_delete -> {
+                oneAdapter.modules.itemSelectionModule?.actions?.removeSelectedItems()
+                return true
+            }
+            R.id.action_start_selection -> {
+                oneAdapter.modules.itemSelectionModule?.actions?.startSelection()
+                return true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
     }
 }

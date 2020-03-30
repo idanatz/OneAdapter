@@ -67,7 +67,7 @@ class EmptinessModuleActivity : BaseExampleActivity(), ActionsListener {
     }
 
     override fun onSetAllClicked() {
-        oneAdapter.setItems(modelGenerator.generateFirstMessages())
+        oneAdapter.setItems(modelGenerator.generateMessages(10))
     }
 
     override fun onClearAllClicked() {

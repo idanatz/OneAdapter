@@ -11,8 +11,7 @@ import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.examples.BaseExampleActivity
-import com.idanatz.sample.examples.complete.view.CompleteJavaExampleActivity
-import com.idanatz.sample.examples.complete.view.CompleteKotlinExampleActivity
+import com.idanatz.sample.examples.complete.CompleteExampleActivity
 import com.idanatz.sample.examples.binding.ButterKnifeActivity
 import com.idanatz.sample.examples.binding.data_binding.DataBindingActivity
 import com.idanatz.sample.examples.features.*
@@ -29,7 +28,7 @@ class MainActivity : BaseExampleActivity() {
                 .attachItemModule(ActivityItem().addEventHook(ActivityClickHook()))
 
         oneAdapter.setItems(listOf(
-                HeaderModel("Features Examples"),
+                HeaderModel(0, "Features Examples"),
                 ActivityModel(getString(R.string.single_item_module_example), Intent(this@MainActivity, SingleItemModuleActivity::class.java)),
                 ActivityModel(getString(R.string.multiple_item_modules_example), Intent(this@MainActivity, MultipleItemModuleActivity::class.java)),
                 ActivityModel(getString(R.string.emptiness_module_example), Intent(this@MainActivity, EmptinessModuleActivity::class.java)),
@@ -38,12 +37,11 @@ class MainActivity : BaseExampleActivity() {
                 ActivityModel(getString(R.string.click_event_hook_example), Intent(this@MainActivity, ClickEventHookActivity::class.java)),
                 ActivityModel(getString(R.string.swipe_event_hook_example), Intent(this@MainActivity, SwipeEventHookActivity::class.java)),
                 ActivityModel(getString(R.string.first_bind_animation_example), Intent(this@MainActivity, FirstBindAnimationActivity::class.java)),
-                HeaderModel("Binding Example"),
+                HeaderModel(1, "Binding Example"),
                 ActivityModel(getString(R.string.butterknife_example), Intent(this@MainActivity, ButterKnifeActivity::class.java)),
                 ActivityModel(getString(R.string.data_binding_example), Intent(this@MainActivity, DataBindingActivity::class.java)),
-                HeaderModel("Complete Examples"),
-                ActivityModel(getString(R.string.complete_kotlin_example), Intent(this@MainActivity, CompleteKotlinExampleActivity::class.java)),
-                ActivityModel(getString(R.string.complete_java_example), Intent(this@MainActivity, CompleteJavaExampleActivity::class.java))
+                HeaderModel(2, "Complete Example"),
+                ActivityModel(getString(R.string.complete_example), Intent(this@MainActivity, CompleteExampleActivity::class.java))
         ))
     }
 

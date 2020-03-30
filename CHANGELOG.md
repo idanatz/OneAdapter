@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 1.5.2
+-------------
+* Improved ItemSelectionModule with the ability to:
+    * start manual selection
+    * onSelectionStarted, onSelectionEnded callbacks
+    * query for isSelectionActive & isPositionSelected
+
 Version 1.5.1
 -------------
 * Fixed Bug: recycler view crash due to race condition with background and ui threads while request multiple diffing quickly

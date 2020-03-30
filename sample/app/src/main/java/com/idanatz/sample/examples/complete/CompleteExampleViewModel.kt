@@ -1,4 +1,4 @@
-package com.idanatz.sample.examples.complete.view_model
+package com.idanatz.sample.examples.complete
 
 import androidx.lifecycle.ViewModel
 import android.os.Handler
@@ -48,7 +48,7 @@ class CompleteExampleViewModel : ViewModel(), ActionsDialog.ActionsListener {
 
     override fun onSetAllClicked() {
         compositeDisposable.add(
-                Single.fromCallable { RoomDB.instance.messageDao().insert(modelProvider.generateFirstMessages()) }
+                Single.fromCallable { RoomDB.instance.messageDao().insert(modelProvider.generateMessages(10)) }
                         .subscribeOn(Schedulers.io())
                         .subscribe()
         )
@@ -65,7 +65,7 @@ class CompleteExampleViewModel : ViewModel(), ActionsDialog.ActionsListener {
     override fun onAddItemClicked(id: Int) {
         compositeDisposable.add(
                 Single.fromCallable {
-                    val newItem = modelProvider.generateMessage(id, findClosestHeaderForId(id))
+                    val newItem = modelProvider.generateAddedMessage(id, findClosestHeaderForId(id))
                     RoomDB.instance.messageDao().insert(newItem)
                 }
                 .subscribeOn(Schedulers.io())
@@ -144,7 +144,7 @@ class CompleteExampleViewModel : ViewModel(), ActionsDialog.ActionsListener {
 
     fun onLoadMore() {
         Handler().postDelayed({
-            val loadMoreItems = modelProvider.generateLoadMoreMessages()
+            val loadMoreItems = modelProvider.generateMessages(10)
             compositeDisposable.add(
                     Single.fromCallable { RoomDB.instance.messageDao().insert(loadMoreItems) }
                             .subscribeOn(Schedulers.io())

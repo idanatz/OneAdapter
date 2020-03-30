@@ -24,7 +24,7 @@ class ClickEventHookActivity : BaseExampleActivity() {
         val oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(MessageItem().addEventHook(MessageClickHook()))
 
-        oneAdapter.setItems(modelGenerator.generateFirstMessages())
+        oneAdapter.setItems(modelGenerator.generateMessages(10))
     }
 
     private class MessageItem : ItemModule<MessageModel>() {

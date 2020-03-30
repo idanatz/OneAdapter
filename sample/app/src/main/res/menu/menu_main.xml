@@ -5,6 +5,14 @@
     tools:context=".MainActivity1">
 
     <item
+        android:id="@+id/action_start_selection"
+        android:orderInCategory="300"
+        android:title="Start Selection"
+        android:visible="false"
+        android:icon="@drawable/ic_check_box_white_24dp"
+        app:showAsAction="ifRoom"/>
+
+    <item
         android:id="@+id/action_delete"
         android:orderInCategory="300"
         android:title="Delete"

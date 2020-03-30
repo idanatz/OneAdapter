@@ -27,7 +27,7 @@ class PagingModuleActivity : BaseExampleActivity() {
                 .attachItemModule(MessageItem())
                 .attachPagingModule(PagingModuleImpl())
 
-        oneAdapter.setItems(modelGenerator.generateFirstMessages())
+        oneAdapter.setItems(modelGenerator.generateMessages(10))
     }
 
     private class MessageItem : ItemModule<MessageModel>() {
@@ -53,7 +53,7 @@ class PagingModuleActivity : BaseExampleActivity() {
 
         override fun onLoadMore(currentPage: Int) {
             handler.postDelayed({
-                oneAdapter.add(modelGenerator.generateLoadMoreMessages())
+                oneAdapter.add(modelGenerator.generateMessages(10))
             }, 1000)
         }
     }

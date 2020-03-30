@@ -28,7 +28,7 @@ class FirstBindAnimationActivity : BaseExampleActivity() {
                 .attachItemModule(HeaderItem())
 
         val items = modelGenerator.addHeadersFromMessages(
-                messages = modelGenerator.generateFirstMessages() + modelGenerator.generateLoadMoreMessages(),
+                messages = modelGenerator.generateMessages(20),
                 checkable = false
         )
         oneAdapter.setItems(items)

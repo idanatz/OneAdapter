@@ -10,6 +10,8 @@ abstract class ItemSelectionModule :
     var actions: ItemSelectionActions? = null
 
     // functionality
+    open fun onSelectionStarted() {}
+    open fun onSelectionEnded() {}
     open fun onSelectionUpdated(selectedCount: Int) {}
 }
 

@@ -1,6 +1,8 @@
 package com.idanatz.sample.examples
 
 import android.annotation.SuppressLint
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
@@ -35,6 +37,14 @@ open class BaseExampleActivity : AppCompatActivity(), ActionsDialog.ActionsListe
         actionButton.setOnClickListener { actionsDialog.show(supportFragmentManager, ActionsDialog::class.java.simpleName) }
 
         return actionsDialog
+    }
+
+    protected fun setToolbarText(text: String) {
+        supportActionBar?.title = text
+    }
+
+    protected fun setToolbarColor(color: ColorDrawable) {
+        supportActionBar?.setBackgroundDrawable(color)
     }
 
     override fun onAddItemClicked(id: Int) {}

@@ -22,7 +22,7 @@ class SingleItemModuleActivity : BaseExampleActivity() {
         val oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(MessageItem())
 
-        oneAdapter.setItems(modelGenerator.generateFirstMessages())
+        oneAdapter.setItems(modelGenerator.generateMessages(10))
     }
 
     private class MessageItem : ItemModule<MessageModel>() {

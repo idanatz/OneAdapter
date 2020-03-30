@@ -25,7 +25,7 @@ class ButterKnifeActivity : BaseExampleActivity() {
         val oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(MessageItemModule())
 
-        oneAdapter.setItems(modelGenerator.generateFirstMessages())
+        oneAdapter.setItems(modelGenerator.generateMessages(10))
     }
 
     // Note: a class must be declared in order for ButterKnife to work.

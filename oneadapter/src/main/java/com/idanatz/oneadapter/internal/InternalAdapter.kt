@@ -4,9 +4,6 @@ import android.graphics.Canvas
 import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup
-import androidx.recyclerview.selection.SelectionPredicates
-import androidx.recyclerview.selection.SelectionTracker
-import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListUpdateCallback
 import androidx.recyclerview.widget.RecyclerView
@@ -59,8 +56,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     private var endlessScrollListener: EndlessScrollListener? = null
 
     // Item Selection
-    private var selectionTracker: SelectionTracker<Long>? = null
-    private var itemKeyProvider: OneItemKeyProvider? = null
+    private var oneSelectionHandler: OneSelectionHandler? = null
 
     // Threads Executors
     private val backgroundExecutor = OneSingleThreadPoolExecutor()
@@ -112,7 +108,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     override fun onBindViewHolder(holder: OneViewHolder<Diffable>, position: Int) {
         val model = data[position]
         val shouldAnimateBind = holder.firstBindAnimation != null && animationPositionHandler.shouldAnimateBind(holder.itemViewType, position)
-        val metadata = Metadata(position, isItemSelected(position), shouldAnimateBind)
+        val metadata = Metadata(position, isPositionSelected(position), shouldAnimateBind)
         logger.logd { "onBindViewHolder -> holder: $holder, model: $model, metadata: $metadata" }
         holder.onBindViewHolder(model, metadata)
     }
@@ -159,7 +155,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                 }
                 return
             }
-            incomingData.isEmpty() && data.contains(EmptyIndicator) -> {
+            (incomingData.isEmpty() || incomingData.contains(EmptyIndicator)) && data.contains(EmptyIndicator) -> {
                 uiHandler.post {
                     logger.logd { "updateData -> no diffing required, refreshing EmptyModule" }
                     listUpdateCallback.onChanged(0, 1, null)
@@ -336,51 +332,47 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     fun enableSelection(itemSelectionModule: ItemSelectionModule) {
         itemSelectionModule.actions = this
         modules.itemSelectionModule = itemSelectionModule
-        configureItemSelectionModule()
+        oneSelectionHandler = OneSelectionHandler(itemSelectionModule, recyclerView).also { it.observer = this }
     }
 
-    private fun configureItemSelectionModule() {
-        modules.itemSelectionModule?.let { selectionModule ->
-            selectionTracker = SelectionTracker.Builder(
-                    recyclerView.id.toString(),
-                    recyclerView,
-                    OneItemKeyProvider(recyclerView).also { itemKeyProvider = it },
-                    OneItemDetailLookup(recyclerView),
-                    StorageStrategy.createLongStorage()
-            )
-            .withSelectionPredicate(when (selectionModule.provideModuleConfig().withSelectionType()) {
-                ItemSelectionModuleConfig.SelectionType.Single -> SelectionPredicates.createSelectSingleAnything()
-                ItemSelectionModuleConfig.SelectionType.Multiple -> SelectionPredicates.createSelectAnything()
-            })
-            .build()
-            .also { it.addObserver(SelectionTrackerObserver(this@InternalAdapter)) }
-        }
+    override fun onItemStateChanged(holder: OneViewHolder<Diffable>, position: Int, selected: Boolean) {
+        onBindSelection(holder, position, selected)
     }
 
-    override fun onItemStateChanged(key: Long, selected: Boolean) {
-        let2(recyclerView, itemKeyProvider) { recyclerView, itemKeyProvider ->
-            recyclerView.findViewHolderForItemId(key)?.let { holder ->
-                onBindSelection(holder as OneViewHolder<Diffable>, itemKeyProvider.getPosition(key), selected)
-            }
-        }
+    override fun onSelectionStarted() {
+        modules.itemSelectionModule?.onSelectionStarted()
     }
 
-    override fun onSelectionStateChanged() {
-        selectionTracker?.let {
-            modules.itemSelectionModule?.onSelectionUpdated(it.selection.size())
-        }
+    override fun onSelectionEnded() {
+        modules.itemSelectionModule?.onSelectionEnded()
+    }
+
+    override fun onSelectionUpdated(selectedCount: Int) {
+        modules.itemSelectionModule?.onSelectionUpdated(selectedCount)
+    }
+
+    override fun startSelection() {
+        oneSelectionHandler?.startSelection()
+    }
+
+    override fun clearSelection(): Boolean {
+        return oneSelectionHandler?.clearSelection() ?: false
+    }
+
+    override fun getSelectedPositions(): List<Int> {
+        return oneSelectionHandler?.getSelectedPositions() ?: emptyList()
     }
 
     override fun getSelectedItems(): List<Diffable> {
-        return let2(selectionTracker, itemKeyProvider) { selectionTracker, itemKeyProvider ->
-            selectionTracker.selection?.map { key -> itemKeyProvider.getPosition(key) }?.filter { it >= 0 }?.map { position -> data[position] } ?: emptyList()
-        } ?: emptyList()
+        return oneSelectionHandler?.getSelectedPositions()?.map { position -> data[position] } ?: emptyList()
     }
 
-    override fun isItemSelected(position: Int): Boolean {
-        return let2(selectionTracker, itemKeyProvider) { selectionTracker, itemKeyProvider ->
-            selectionTracker.isSelected(itemKeyProvider.getKey(position))
-        } ?: false
+    override fun isSelectionActive(): Boolean {
+        return oneSelectionHandler?.inSelectionActive() ?: false
+    }
+
+    override fun isPositionSelected(position: Int): Boolean {
+        return oneSelectionHandler?.isPositionSelected(position) ?: false
     }
 
     override fun removeSelectedItems() {
@@ -389,8 +381,6 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
         uiHandler.postDelayed({ clearSelection() }, UPDATE_DATA_DELAY_MILLIS)
     }
-
-    override fun clearSelection() = selectionTracker?.clearSelection()
     //endregion
 
     //region RecyclerView

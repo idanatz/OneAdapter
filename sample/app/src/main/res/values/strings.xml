@@ -19,9 +19,8 @@
     <string name="butterknife_example">ButterKnife Example</string>
     <string name="data_binding_example">Data Binding Example</string>
 
-    // full examples
-    <string name="complete_java_example">Complete example using MVVM with RxJava and Room\nWritten in Java</string>
-    <string name="complete_kotlin_example">Complete example using MVVM with RxJava and Room\nWritten in Kotlin</string>
+    // complete example
+    <string name="complete_example">Complete example using MVVM with RxJava and Room</string>
 
     <string name="launch">Launch</string>
     <string name="message_model_id">id: %d</string>

@@ -15,7 +15,7 @@ https://medium.com/@idanatsmon/adapting-your-recyclerview-the-2019-approach-e47e
 - Modular approach for more reusable and testable code
 - Built-in support for DiffUtil (using [Diffable](#2-implement-diffable))
 - Optimized performance - internal processing done on a background thread
-- 100% written in Kotlin
+- 100% written in Kotlin for Kotlin & Java use
 - [Modules:](#modules)
   - [Item Module](#basic-usage)
   - [Paging Module](#paging-module)
@@ -42,7 +42,7 @@ Please see the changes in the CHANGELOG file before upgrading.
 
 # Preview
 ## Example
-You can try out the [example project](https://github.com/idanatz/OneAdapter/tree/develop/sample) that includes basic and advanced usage both in Java and Kotlin.
+You can try out the [example project](https://github.com/idanatz/OneAdapter/tree/develop/sample) that includes basic and advanced usage in Kotlin.
 ## Screenshots
 <img src="DEV/screenshot_1.jpg" width="210" height="420"> <img src="DEV/screenshot_2.jpg" width="210" height="420"> <img src="DEV/screenshot_3.jpg" width="210" height="420"> <img src="DEV/screenshot_4.jpg" width="210" height="420">
 

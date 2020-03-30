@@ -4,8 +4,17 @@ import com.idanatz.oneadapter.external.interfaces.Diffable
 
 interface ItemSelectionActions {
 
-    fun getSelectedItems(): List<Diffable>
-    fun isItemSelected(position: Int): Boolean
-    fun removeSelectedItems()
+    fun startSelection()
     fun clearSelection(): Boolean?
+
+    fun getSelectedItems(): List<Diffable>
+    fun getSelectedPositions(): List<Int>
+
+    /**
+     * returns True if selection is currently active after calling startSelection or by selecting an item, otherwise false.
+     */
+    fun isSelectionActive(): Boolean
+    fun isPositionSelected(position: Int): Boolean
+
+    fun removeSelectedItems()
 }

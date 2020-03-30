@@ -11,13 +11,13 @@ public class HeaderModel implements Diffable {
     public boolean checkable;
     public boolean checked;
 
-    public HeaderModel(String name) {
+    public HeaderModel(int id, String name) {
+        this.id = id;
         this.name = name;
     }
 
     public HeaderModel(int id, String name, boolean checkable) {
-        this.id = id;
-        this.name = name;
+        this(id, name);
         this.checked = true;
         this.checkable = checkable;
     }

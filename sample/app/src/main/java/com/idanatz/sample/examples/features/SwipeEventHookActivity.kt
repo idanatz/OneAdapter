@@ -36,7 +36,7 @@ class SwipeEventHookActivity : BaseExampleActivity() {
         oneAdapter = OneAdapter(recyclerView)
                 .attachItemModule(MessageItem().addEventHook(MessageSwipeHook()))
 
-        oneAdapter.setItems(modelGenerator.generateFirstMessages())
+        oneAdapter.setItems(modelGenerator.generateMessages(10))
     }
 
     private class MessageItem : ItemModule<MessageModel>() {

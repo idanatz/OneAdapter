@@ -12,7 +12,7 @@ class DataBindingViewModel : ViewModel(), ActionsDialog.ActionsListener {
     var itemsSubject: BehaviorSubject<List<ObservableMessageModel>> = BehaviorSubject.createDefault(listOf())
 
     init {
-        val models = modelProvider.generateFirstMessages().map { ObservableMessageModel(it) }
+        val models = modelProvider.generateMessages(10).map { ObservableMessageModel(it) }
         itemsSubject.onNext(models)
     }
 

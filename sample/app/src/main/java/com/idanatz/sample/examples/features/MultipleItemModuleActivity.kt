@@ -26,7 +26,7 @@ class MultipleItemModuleActivity : BaseExampleActivity() {
                 .attachItemModule(HeaderItem())
 
         val items = modelGenerator.addHeadersFromMessages(
-                messages = modelGenerator.generateFirstMessages(),
+                messages = modelGenerator.generateMessages(10),
                 checkable = false
         )
         oneAdapter.setItems(items)

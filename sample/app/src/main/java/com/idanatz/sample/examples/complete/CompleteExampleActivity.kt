@@ -1,4 +1,4 @@
-package com.idanatz.sample.examples.complete.view
+package com.idanatz.sample.examples.complete
 
 import android.animation.Animator
 import android.animation.AnimatorInflater
@@ -21,7 +21,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.lottie.LottieAnimationView
 import com.idanatz.sample.models.HeaderModel
 import com.idanatz.sample.models.MessageModel
-import com.idanatz.sample.examples.complete.view_model.CompleteExampleViewModel
 import com.idanatz.oneadapter.OneAdapter
 import com.idanatz.oneadapter.external.event_hooks.ClickEventHook
 import com.idanatz.oneadapter.external.states.SelectionState
@@ -40,7 +39,7 @@ import com.idanatz.sample.models.StoryModel
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 
-class CompleteKotlinExampleActivity : BaseExampleActivity() {
+class CompleteExampleActivity : BaseExampleActivity() {
 
     companion object {
         const val ICON_MARGIN = 50
@@ -79,10 +78,19 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
         compositeDisposable.dispose()
     }
 
+    override fun onBackPressed() {
+        if (oneAdapter.modules.itemSelectionModule?.actions?.isSelectionActive() == true) {
+            oneAdapter.modules.itemSelectionModule?.actions?.clearSelection()
+        } else {
+            super.onBackPressed()
+        }
+    }
+
     private fun observeViewModel() {
         compositeDisposable.add(
                 viewModel.itemsSubject
                         .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext { if (it.isNotEmpty()) toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = true }
                         .subscribe { items -> oneAdapter.setItems(items) }
         )
     }
@@ -116,7 +124,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             override fun withLayoutResource() = R.layout.message_model
             override fun withFirstBindAnimation(): Animator {
                 // can be implemented by inflating Animator Xml
-                return AnimatorInflater.loadAnimator(this@CompleteKotlinExampleActivity, R.animator.item_animation_example)
+                return AnimatorInflater.loadAnimator(this@CompleteExampleActivity, R.animator.item_animation_example)
             }
         }
 
@@ -135,7 +143,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
 		    // selected UI
 		    avatarImage.alpha = if (item.metadata.isSelected) 0.5f else 1f
 		    selectedLayer.visibility = if (item.metadata.isSelected) View.VISIBLE else View.GONE
-		    viewBinder.rootView.setBackgroundColor(if (item.metadata.isSelected) ContextCompat.getColor(this@CompleteKotlinExampleActivity, R.color.light_gray) else Color.WHITE)	    }
+		    viewBinder.rootView.setBackgroundColor(if (item.metadata.isSelected) ContextCompat.getColor(this@CompleteExampleActivity, R.color.light_gray) else Color.WHITE)	    }
     }
 
     private inner class MessageSelectionState : SelectionState<MessageModel>() {
@@ -143,7 +151,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
 
         override fun onSelected(model: MessageModel, selected: Boolean) {
             val message = "${model.title} " + if (selected) "selected" else "unselected"
-            Toast.makeText(this@CompleteKotlinExampleActivity, message, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@CompleteExampleActivity, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -228,19 +236,24 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             override fun withSelectionType() = SelectionType.Multiple
         }
 
+        override fun onSelectionStarted() {
+            setToolbarColor(ColorDrawable(ContextCompat.getColor(this@CompleteExampleActivity, R.color.dark_gray)))
+            toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = false
+        }
+
+        override fun onSelectionEnded() {
+            setToolbarText(getString(R.string.app_name))
+            toolbarMenu?.findItem(R.id.action_delete)?.isVisible = false
+            toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = true
+            setToolbarColor(ColorDrawable(ContextCompat.getColor(this@CompleteExampleActivity, R.color.colorPrimary)))
+        }
+
         override fun onSelectionUpdated(selectedCount: Int) {
-            if (selectedCount == 0) {
-                setToolbarText(getString(R.string.app_name))
-                toolbarMenu?.findItem(R.id.action_delete)?.isVisible = false
-            } else {
+            if (oneAdapter.modules.itemSelectionModule?.actions?.isSelectionActive() == true) {
                 setToolbarText("$selectedCount selected")
                 toolbarMenu?.findItem(R.id.action_delete)?.isVisible = true
             }
         }
-    }
-
-    private fun setToolbarText(text: String) {
-        supportActionBar?.title = text
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -250,15 +263,17 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-        if (id == R.id.action_delete) {
-            oneAdapter.modules.itemSelectionModule?.actions?.let { itemSelectionActions ->
-                viewModel.onDeleteItemsClicked(itemSelectionActions.getSelectedItems())
-                itemSelectionActions.clearSelection()
+        return when (item.itemId) {
+            R.id.action_delete -> {
+                oneAdapter.modules.itemSelectionModule?.actions?.removeSelectedItems()
+                return true
             }
-            return true
+            R.id.action_start_selection -> {
+                oneAdapter.modules.itemSelectionModule?.actions?.startSelection()
+                return true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
     }
 
     private inner class MessageSwipeHook : SwipeEventHook<MessageModel>() {
@@ -277,7 +292,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
             when (direction) {
                 SwipeDirection.Left -> viewModel.onSwipeToDeleteItem(item.model)
                 SwipeDirection.Right -> {
-                    Toast.makeText(this@CompleteKotlinExampleActivity, "${item.model.title} snoozed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@CompleteExampleActivity, "${item.model.title} snoozed", Toast.LENGTH_SHORT).show()
                     oneAdapter.update(item.model)
                 }
             }
@@ -285,7 +300,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     }
 
     private fun paintSwipeRight(canvas: Canvas, xAxisOffset: Float, rootView: View) {
-        val icon = ContextCompat.getDrawable(this@CompleteKotlinExampleActivity, R.drawable.ic_snooze_white_24dp)
+        val icon = ContextCompat.getDrawable(this@CompleteExampleActivity, R.drawable.ic_snooze_white_24dp)
         val colorDrawable = ColorDrawable(Color.DKGRAY)
 
         icon?.let {
@@ -307,7 +322,7 @@ class CompleteKotlinExampleActivity : BaseExampleActivity() {
     }
 
     private fun paintSwipeLeft(canvas: Canvas, xAxisOffset: Float, rootView: View) {
-        val icon = ContextCompat.getDrawable(this@CompleteKotlinExampleActivity, R.drawable.ic_delete_white_24dp)
+        val icon = ContextCompat.getDrawable(this@CompleteExampleActivity, R.drawable.ic_delete_white_24dp)
         val colorDrawable = ColorDrawable(Color.RED)
 
         icon?.let {
