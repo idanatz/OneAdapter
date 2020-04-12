@@ -261,7 +261,10 @@ class MessageModule : ItemModule<MessageModel>() {
         override fun withLayoutResource() = R.layout.message_model
         
         override fun withFirstBindAnimation(): Animator {
-            // or can be implemented by constructing ObjectAnimator
+            // can be implemented by inflating Animator Xml
+            return AnimatorInflater.loadAnimator(context, R.animator.item_animation_example);
+            
+            // or by constructing ObjectAnimator
             return ObjectAnimator().apply {
                  propertyName = "translationX"
                  setFloatValues(-1080f, 0f)
