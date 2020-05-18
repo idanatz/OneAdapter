@@ -1,6 +1,7 @@
 package com.idanatz.oneadapter.internal.swiping
 
 import android.graphics.Canvas
+import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
@@ -25,7 +26,7 @@ internal class OneItemTouchHelper : ItemTouchHelper(OneItemTouchHelperCallback()
          * Called when the view holder is completely swiped from the screen
          */
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            mapDirection(direction)?.let { viewHolder.toOneViewHolder().onSwipeViewHolderComplete(it) }
+            mapDirection(direction, ViewCompat.getLayoutDirection(viewHolder.itemView))?.let { viewHolder.toOneViewHolder().onSwipeViewHolderComplete(it) }
         }
 
         /**
@@ -49,15 +50,19 @@ internal class OneItemTouchHelper : ItemTouchHelper(OneItemTouchHelperCallback()
             if (actionState == ACTION_STATE_SWIPE) viewHolder?.toOneViewHolder()?.isSwiping = true
         }
 
-        private fun mapDirection(itemTouchHelperDirection: Int): SwipeEventHook.SwipeDirection? = when (itemTouchHelperDirection) {
-            RIGHT -> SwipeEventHook.SwipeDirection.Right
-            LEFT -> SwipeEventHook.SwipeDirection.Left
+        private fun mapDirection(itemTouchHelperDirection: Int, layoutDirection: Int): SwipeEventHook.SwipeDirection? = when (convertToRelativeDirection(itemTouchHelperDirection, layoutDirection)) {
+            START -> SwipeEventHook.SwipeDirection.Start
+            END -> SwipeEventHook.SwipeDirection.End
+            UP -> SwipeEventHook.SwipeDirection.Up
+            DOWN -> SwipeEventHook.SwipeDirection.Down
             else -> null
         }
 
         private fun mapDirection(swipeDirection: SwipeEventHook.SwipeDirection): Int = when (swipeDirection) {
-            SwipeEventHook.SwipeDirection.Right -> RIGHT
-            SwipeEventHook.SwipeDirection.Left -> LEFT
+            SwipeEventHook.SwipeDirection.Start -> START
+            SwipeEventHook.SwipeDirection.End -> END
+            SwipeEventHook.SwipeDirection.Up -> UP
+            SwipeEventHook.SwipeDirection.Down -> DOWN
         }
     }
 }

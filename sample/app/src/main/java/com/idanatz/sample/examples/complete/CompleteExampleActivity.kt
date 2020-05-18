@@ -278,7 +278,7 @@ class CompleteExampleActivity : BaseExampleActivity() {
 
     private inner class MessageSwipeHook : SwipeEventHook<MessageModel>() {
         override fun provideHookConfig(): SwipeEventHookConfig = object : SwipeEventHookConfig() {
-            override fun withSwipeDirection() = listOf(SwipeDirection.Left, SwipeDirection.Right)
+            override fun withSwipeDirection() = listOf(SwipeDirection.Start, SwipeDirection.End)
         }
 
         override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
@@ -290,8 +290,8 @@ class CompleteExampleActivity : BaseExampleActivity() {
 
         override fun onSwipeComplete(item: Item<MessageModel>, direction: SwipeDirection, viewBinder: ViewBinder) {
             when (direction) {
-                SwipeDirection.Left -> viewModel.onSwipeToDeleteItem(item.model)
-                SwipeDirection.Right -> {
+                SwipeDirection.Start -> viewModel.onSwipeToDeleteItem(item.model)
+                SwipeDirection.End -> {
                     Toast.makeText(this@CompleteExampleActivity, "${item.model.title} snoozed", Toast.LENGTH_SHORT).show()
                     oneAdapter.update(item.model)
                 }

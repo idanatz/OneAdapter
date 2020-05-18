@@ -25,11 +25,11 @@ abstract class SwipeEventHook<M : Diffable>
 		val TAG: String = SwipeEventHook::class.java.simpleName
 	}
 
-	abstract fun onSwipe(canvas: Canvas, xAxisOffset: Float, @NotNull viewBinder: ViewBinder)
+	open fun onSwipe(canvas: Canvas, xAxisOffset: Float, @NotNull viewBinder: ViewBinder) {}
 	abstract fun onSwipeComplete(@NotNull item: Item<M>, @NotNull direction: SwipeDirection, @NotNull viewBinder: ViewBinder)
 
 	enum class SwipeDirection {
-		Right, Left
+		Start, End, Up, Down
 	}
 }
 

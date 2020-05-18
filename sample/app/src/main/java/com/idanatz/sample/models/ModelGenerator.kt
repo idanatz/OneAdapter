@@ -47,7 +47,7 @@ class ModelGenerator {
 
 	private fun generateMessage(): MessageModel {
 		val (person, quote) = quotes[modelNumber % quotes.size]
-		val messageModel = MessageModel(modelNumber * 2, headerNumber, images[modelNumber % images.size], person, quote)
+		val messageModel = MessageModel(modelNumber * 3, headerNumber, images[modelNumber % images.size], person, quote)
 		modelNumber++
 
 		headerCount = (headerCount + 1) % 5

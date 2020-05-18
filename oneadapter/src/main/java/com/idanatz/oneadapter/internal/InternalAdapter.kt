@@ -155,7 +155,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                 }
                 return
             }
-            (incomingData.isEmpty() || incomingData.contains(EmptyIndicator)) && data.contains(EmptyIndicator) -> {
+            incomingData.isEmpty() && data.contains(EmptyIndicator) -> {
                 uiHandler.post {
                     logger.logd { "updateData -> no diffing required, refreshing EmptyModule" }
                     listUpdateCallback.onChanged(0, 1, null)

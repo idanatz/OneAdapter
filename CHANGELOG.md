@@ -4,9 +4,12 @@ Changelog
 Version 1.5.2
 -------------
 * Improved ItemSelectionModule with the ability to:
-    * start manual selection
-    * onSelectionStarted, onSelectionEnded callbacks
-    * query for isSelectionActive & isPositionSelected
+    * Start manual selection
+    * New callbacks: onSelectionStarted, onSelectionEnded
+    * New queries: isSelectionActive & isPositionSelected
+* Improved SwipeEventHook with Up and Down swipe direction support
+* Breaking Changes:
+    * Right and Left swiping direction changed to Start and End for better support LTR and RTL
 
 Version 1.5.1
 -------------
