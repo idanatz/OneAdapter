@@ -23,10 +23,14 @@ internal fun <T : Diffable> MutableList<T>.removeAllItems(itemsToRemove: List<T>
     itemsToRemove.forEach { removeAt(getIndexOfItem(it)) }
 }
 
+internal fun <T : Diffable> MutableList<T>.updateAllItems(itemsToUpdate: List<T>) {
+    itemsToUpdate.forEach { set(getIndexOfItem(it), it) }
+}
+
 internal fun <T : Diffable> List<T>.getIndexOfItem(itemToFind: T): Int {
     return indexOfFirst { item ->
         when (item.javaClass == itemToFind.javaClass) {
-            true -> item.getUniqueIdentifier() == itemToFind.getUniqueIdentifier()
+            true -> item.uniqueIdentifier == itemToFind.uniqueIdentifier
             false -> false
         }
     }

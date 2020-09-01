@@ -2,11 +2,8 @@ package com.idanatz.oneadapter.tests.module_configs.layout_module_config
 
 import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
-import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
-import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.internal.utils.extensions.inflateLayout
 import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.test.R
@@ -39,11 +36,13 @@ class ValidLayoutResourceShouldInflateSuccessfully : BaseTest() {
     }
 
     inner class TestItemModule : ItemModule<TestModel>() {
-        override fun provideModuleConfig() = object : ItemModuleConfig() {
-            override fun withLayoutResource() = testedLayoutResource
-        }
-        override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {
-            rootView = viewBinder.rootView
+        init {
+            config {
+                layoutResource = testedLayoutResource
+            }
+            onBind { _, viewBinder, _ ->
+                rootView = viewBinder.rootView
+            }
         }
     }
 }

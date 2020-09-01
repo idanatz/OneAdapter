@@ -1,19 +1,44 @@
 package com.idanatz.oneadapter.external.modules
 
-import com.idanatz.oneadapter.external.holders.EmptyIndicator
+import android.animation.Animator
+import com.idanatz.oneadapter.external.*
 import com.idanatz.oneadapter.external.interfaces.*
-import org.jetbrains.annotations.NotNull
-import com.idanatz.oneadapter.internal.holders.ViewBinder
 
-abstract class EmptinessModule :
-        LayoutModuleConfigurable<EmptinessModuleConfig>,
-        Creatable, Bindable<EmptyIndicator>, Unbindable<EmptyIndicator>
-{
+open class EmptinessModule {
 
-    // lifecycle
-    override fun onCreated(@NotNull viewBinder: ViewBinder) {}
-    override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {}
-    override fun onUnbind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {}
+	internal var config: EmptinessModuleConfig by SingleAssignmentDelegate(DefaultEmptinessModuleConfig())
+	internal var onCreate: OnCreated? = null
+	internal var onBind: OnBinded? = null
+	internal var onUnbind: OnUnbinded? = null
+
+	fun config(block: EmptinessModuleConfigDsl.() -> Unit) {
+		EmptinessModuleConfigDsl(config).apply(block).build().also { config = it }
+	}
+
+	fun onCreate(block: OnCreated) {
+		onCreate = block
+	}
+
+	fun onBind(block: OnBinded) {
+		onBind = block
+	}
+
+	fun onUnbind(block: OnUnbinded) {
+		onUnbind = block
+	}
 }
 
-abstract class EmptinessModuleConfig : LayoutModuleConfig
+interface EmptinessModuleConfig : LayoutModuleConfig
+
+class EmptinessModuleConfigDsl internal constructor(defaultConfig: EmptinessModuleConfig) : EmptinessModuleConfig by defaultConfig {
+
+	fun build(): EmptinessModuleConfig = object : EmptinessModuleConfig {
+		override var layoutResource: Int? = this@EmptinessModuleConfigDsl.layoutResource
+		override var firstBindAnimation: Animator? = this@EmptinessModuleConfigDsl.firstBindAnimation
+	}
+}
+
+private class DefaultEmptinessModuleConfig : EmptinessModuleConfig {
+	override var layoutResource: Int? = null
+	override var firstBindAnimation: Animator? = null
+}

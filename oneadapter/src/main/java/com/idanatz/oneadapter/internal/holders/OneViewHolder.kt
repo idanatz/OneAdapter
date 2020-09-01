@@ -5,89 +5,111 @@ import android.graphics.Canvas
 import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
-import com.idanatz.oneadapter.internal.event_hooks.EventHooksMap
+import com.idanatz.oneadapter.external.event_hooks.EventHooksMap
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.internal.selection.OneItemDetail
-import com.idanatz.oneadapter.internal.states.StatesMap
+import com.idanatz.oneadapter.external.states.StatesMap
 import com.idanatz.oneadapter.internal.utils.extensions.inflateLayout
 
-@Suppress("NAME_SHADOWING")
-internal abstract class OneViewHolder<M : Diffable> (
-        parent: ViewGroup,
-        @LayoutRes layoutResourceId: Int,
-        val firstBindAnimation: Animator? = null,
-        val statesHooksMap: StatesMap<M>? = null, // Not all ViewHolders will have states configured
-        val eventsHooksMap: EventHooksMap<M>? = null // Not all ViewHolders will have events configured
+internal abstract class OneViewHolder<M : Diffable>(
+		parent: ViewGroup,
+		@LayoutRes layoutResourceId: Int,
+		firstBindAnimation: Animator? = null,
+		val statesHooksMap: StatesMap<M>? = null, // Not all ViewHolders will have states configured
+		val eventsHooksMap: EventHooksMap<M>? = null // Not all ViewHolders will have events configured
 ) : RecyclerView.ViewHolder(parent.context.inflateLayout(layoutResourceId, parent, false)) {
 
-    lateinit var viewBinder: ViewBinder
-    lateinit var metadata: Metadata
-    lateinit var model: M
+	lateinit var viewBinder: ViewBinder
+	lateinit var metadata: Metadata
+	lateinit var model: M
 
-    // internal flags
-    var isSwiping = false
+	val firstBindAnimation: Animator? = firstBindAnimation?.clone()
 
-    abstract fun onCreated()
-    abstract fun onBind(model: M)
-    abstract fun onUnbind(model: M)
-    abstract fun onClicked(model: M)
-    abstract fun onSwipe(canvas: Canvas, xAxisOffset: Float)
-    abstract fun onSwipeComplete(model: M, swipeDirection: SwipeEventHook.SwipeDirection)
-    abstract fun onSelected(model: M, selected: Boolean)
+	// internal flags
+	var isSwiping = false
 
-    fun onCreateViewHolder() {
-        this.viewBinder = ViewBinder(itemView)
-        onCreated()
-    }
+	abstract fun onCreated()
+	abstract fun onBind(model: M)
+	abstract fun onUnbind(model: M)
+	abstract fun onClicked(model: M)
+	abstract fun onSwipe(canvas: Canvas, xAxisOffset: Float)
+	abstract fun onSwipeComplete(model: M, swipeDirection: SwipeEventHook.SwipeDirection)
+	abstract fun onSelected(model: M, selected: Boolean)
 
-    fun onBindViewHolder(model: M, metadata: Metadata) {
-        this.model = model
-        this.metadata = metadata
+	fun onCreateViewHolder() {
+		this.viewBinder = ViewBinder(itemView)
+		metadata = Metadata()
+		onCreated()
+	}
 
-        handleAnimations(metadata.isAnimating)
-        handleEventHooks()
-        onBind(model)
-    }
+	fun onBindViewHolder(model: M, position: Int, shouldAnimateBind: Boolean?) {
+		this.model = model
+		metadata = metadata.copy(
+				position = position,
+				animationMetadata = shouldAnimateBind?.let {
+					object : AnimationMetadata {
+						override val isAnimating: Boolean = it
+					}
+				}
+		)
 
-    fun onBindSelection(model: M, selected: Boolean) {
-        if (statesHooksMap?.isSelectionStateConfigured() == true) {
-            onSelected(model, selected)
-        }
-    }
+		handleAnimations(shouldAnimateBind)
+		handleEventHooks()
+		onBind(model)
+	}
 
-    fun createItemLookupInformation(): OneItemDetail? {
-        if (isSwiping) // while swiping disable the option to select
-            return null
+	fun onBindSelection(model: M, selected: Boolean) {
+		if (statesHooksMap?.isSelectionStateConfigured() == true) {
+			metadata = metadata.copy(
+					selectionMetadata = object : SelectionMetadata {
+						override val isSelected: Boolean = selected
+					}
+			)
+			onSelected(model, selected)
+		}
+	}
 
-        return statesHooksMap?.getSelectionState()?.let {
-            if (it.isSelectionEnabled(model)) OneItemDetail(adapterPosition, itemId)
-            else null
-        }
-    }
+	fun createItemLookupInformation(): OneItemDetail? {
+		if (isSwiping) // while swiping disable the option to select
+			return null
 
-    fun onSwipeViewHolder(canvas: Canvas, xAxisOffset: Float) {
-        onSwipe(canvas, xAxisOffset)
-    }
+		return statesHooksMap?.getSelectionState()?.let {
+			if (it.config.enabled) OneItemDetail(adapterPosition, itemId)
+			else null
+		}
+	}
 
-    fun onSwipeViewHolderComplete(swipeDirection: SwipeEventHook.SwipeDirection) {
-        if (eventsHooksMap?.isSwipeEventHookConfigured() == true) {
-            onSwipeComplete(model, swipeDirection)
-        }
-    }
+	fun onSwipeViewHolder(canvas: Canvas, xAxisOffset: Float) {
+		onSwipe(canvas, xAxisOffset)
+	}
 
-    private fun handleAnimations(shouldAnimate: Boolean) {
-        if (shouldAnimate) {
-            firstBindAnimation?.setTarget(itemView)
-            firstBindAnimation?.start()
-        } else {
-            firstBindAnimation?.end()
-        }
-    }
+	fun onSwipeViewHolderComplete(swipeDirection: SwipeEventHook.SwipeDirection) {
+		if (eventsHooksMap?.isSwipeEventHookConfigured() == true) {
+			metadata = metadata.copy(
+					swipeMetadata = object : SwipeMetadata {
+						override val swipeDirection: SwipeEventHook.SwipeDirection = swipeDirection
+					}
+			)
+			onSwipeComplete(model, swipeDirection)
+		}
+	}
 
-    private fun handleEventHooks() {
-        if (eventsHooksMap?.isClickEventHookConfigured() == true) {
-            itemView.setOnClickListener { onClicked(model) }
-        }
-    }
+	private fun handleAnimations(shouldAnimate: Boolean?) {
+		if (shouldAnimate == null)
+			return
+
+		if (shouldAnimate) {
+			firstBindAnimation?.setTarget(itemView)
+			firstBindAnimation?.start()
+		} else {
+			firstBindAnimation?.end()
+		}
+	}
+
+	private fun handleEventHooks() {
+		if (eventsHooksMap?.isClickEventHookConfigured() == true) {
+			itemView.setOnClickListener { onClicked(model) }
+		}
+	}
 }

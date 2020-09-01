@@ -1,10 +1,8 @@
 package com.idanatz.oneadapter.tests.modules.item
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.helpers.BaseTest
-import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
@@ -38,10 +36,11 @@ class WhenItemLeavesTheScreenOnUnbindShouldBeCalledOnce : BaseTest() {
     }
 
     inner class TestItemModule : ItemModule<TestModel>() {
-        override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(testedLayoutResource)
-        override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {}
-        override fun onUnbind(item: Item<TestModel>, viewBinder: ViewBinder) {
-            item.model.onUnbindCalls++
+        init {
+            config = modulesGenerator.generateValidItemModuleConfig(testedLayoutResource)
+            onUnbind { model, _, _ ->
+                model.onUnbindCalls++
+            }
         }
     }
 }

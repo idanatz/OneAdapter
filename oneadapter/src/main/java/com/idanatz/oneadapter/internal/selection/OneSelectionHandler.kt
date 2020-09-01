@@ -27,7 +27,7 @@ internal class OneSelectionHandler(
 			OneItemDetailLookup(recyclerView),
 			StorageStrategy.createLongStorage()
 	)
-	.withSelectionPredicate(when (selectionModule.provideModuleConfig().withSelectionType()) {
+	.withSelectionPredicate(when (selectionModule.config!!.selectionType) {
 		ItemSelectionModuleConfig.SelectionType.Single -> SelectionPredicates.createSelectSingleAnything()
 		ItemSelectionModuleConfig.SelectionType.Multiple -> SelectionPredicates.createSelectAnything()
 	})

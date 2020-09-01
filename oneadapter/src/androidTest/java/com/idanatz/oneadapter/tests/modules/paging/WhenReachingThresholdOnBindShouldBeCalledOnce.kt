@@ -1,13 +1,8 @@
 package com.idanatz.oneadapter.tests.modules.paging
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.idanatz.oneadapter.external.holders.LoadingIndicator
-import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.PagingModule
-import com.idanatz.oneadapter.external.modules.PagingModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
-import com.idanatz.oneadapter.internal.holders.Metadata
-import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
 import org.junit.Test
@@ -40,10 +35,11 @@ class WhenReachingThresholdOnBindShouldBeCalledOnce : BaseTest() {
     }
 
     inner class TestPagingModule : PagingModule() {
-        override fun provideModuleConfig(): PagingModuleConfig = modulesGenerator.generateValidPagingModuleConfig()
-        override fun onLoadMore(currentPage: Int) {}
-        override fun onBind(item: Item<LoadingIndicator>, viewBinder: ViewBinder) {
-            onBindCalls++
+        init {
+        	config = modulesGenerator.generateValidPagingModuleConfig()
+            onBind { _, _ ->
+                onBindCalls++
+            }
         }
     }
 }

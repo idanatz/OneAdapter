@@ -1,39 +1,68 @@
 package com.idanatz.oneadapter.external.event_hooks
 
-import android.graphics.Canvas
-import com.idanatz.oneadapter.external.interfaces.BehaviorHookConfig
-import com.idanatz.oneadapter.external.interfaces.BehaviourHookConfigurable
+import com.idanatz.oneadapter.external.OnClicked
 import com.idanatz.oneadapter.external.interfaces.Diffable
-import com.idanatz.oneadapter.external.interfaces.Item
-import com.idanatz.oneadapter.internal.holders.ViewBinder
-import org.jetbrains.annotations.NotNull
+import com.idanatz.oneadapter.external.OnSwiped
+import com.idanatz.oneadapter.external.OnSwipedCompleted
+import com.idanatz.oneadapter.external.SingleAssignmentDelegate
+import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook.*
+import com.idanatz.oneadapter.external.interfaces.Config
 
 sealed class EventHook<M : Diffable>
 
-abstract class ClickEventHook<M : Diffable> : EventHook<M>() {
+open class ClickEventHook<M : Diffable> : EventHook<M>() {
+
+	internal var onClick: OnClicked<M>? = null
+
+	fun onClick(block: OnClicked<M>) {
+		onClick = block
+	}
+
 	companion object {
 		val TAG: String = ClickEventHook::class.java.simpleName
 	}
-
-	abstract fun onClick(@NotNull item: Item<M>, @NotNull viewBinder: ViewBinder)
 }
 
-abstract class SwipeEventHook<M : Diffable>
-	: EventHook<M>(), BehaviourHookConfigurable<SwipeEventHookConfig> {
+open class SwipeEventHook<M : Diffable> : EventHook<M>() {
+
+	internal var config: SwipeEventHookConfig by SingleAssignmentDelegate(DefaultSwipeEventHookConfig())
+	internal var onSwipe: OnSwiped? = null
+	internal var onSwipeComplete: OnSwipedCompleted<M>? = null
+
+	fun config(block: SwipeEventHookConfigDsl.() -> Unit) {
+		SwipeEventHookConfigDsl(config).apply(block).build().also { config = it }
+	}
+
+	fun onSwipe(block: OnSwiped) {
+		onSwipe = block
+	}
+
+	fun onSwipeComplete(block: OnSwipedCompleted<M>) {
+		onSwipeComplete = block
+	}
 
 	companion object {
 		val TAG: String = SwipeEventHook::class.java.simpleName
 	}
 
-	open fun onSwipe(canvas: Canvas, xAxisOffset: Float, @NotNull viewBinder: ViewBinder) {}
-	abstract fun onSwipeComplete(@NotNull item: Item<M>, @NotNull direction: SwipeDirection, @NotNull viewBinder: ViewBinder)
-
 	enum class SwipeDirection {
-		Start, End, Up, Down
+		Start, End, Up, Down, None
 	}
 }
 
-abstract class SwipeEventHookConfig : BehaviorHookConfig {
+interface SwipeEventHookConfig : Config {
+	val swipeDirection: List<SwipeDirection>
+}
 
-	abstract fun withSwipeDirection(): List<SwipeEventHook.SwipeDirection>
+class SwipeEventHookConfigDsl internal constructor(defaultConfig: SwipeEventHookConfig) : SwipeEventHookConfig {
+
+	override var swipeDirection: List<SwipeDirection> = defaultConfig.swipeDirection
+
+	fun build(): SwipeEventHookConfig = object : SwipeEventHookConfig {
+		override val swipeDirection: List<SwipeDirection> = this@SwipeEventHookConfigDsl.swipeDirection
+	}
+}
+
+private class DefaultSwipeEventHookConfig : SwipeEventHookConfig {
+	override val swipeDirection: List<SwipeDirection> = listOf(SwipeDirection.Start, SwipeDirection.End, SwipeDirection.Up, SwipeDirection.Down)
 }

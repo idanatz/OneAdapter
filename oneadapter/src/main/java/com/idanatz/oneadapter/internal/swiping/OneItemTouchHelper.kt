@@ -18,7 +18,7 @@ internal class OneItemTouchHelper : ItemTouchHelper(OneItemTouchHelperCallback()
 
         override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
             return viewHolder.toOneViewHolder().eventsHooksMap?.getSwipeEventHook()?.let { swipeEventHook ->
-                swipeEventHook.provideHookConfig().withSwipeDirection().map { mapDirection(it) }.reduce { accumulator, current -> accumulator or current }
+                swipeEventHook.config!!.swipeDirection.map { mapDirection(it) }.reduce { accumulator, current -> accumulator or current }
             } ?: super.getSwipeDirs(recyclerView, viewHolder)
         }
 
@@ -63,6 +63,7 @@ internal class OneItemTouchHelper : ItemTouchHelper(OneItemTouchHelperCallback()
             SwipeEventHook.SwipeDirection.End -> END
             SwipeEventHook.SwipeDirection.Up -> UP
             SwipeEventHook.SwipeDirection.Down -> DOWN
+            else -> 0
         }
     }
 }

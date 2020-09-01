@@ -2,14 +2,11 @@ package com.idanatz.oneadapter.tests.modules.selection.state
 
 import android.graphics.Color
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemSelectionModule
-import com.idanatz.oneadapter.external.modules.ItemSelectionModuleConfig
 import com.idanatz.oneadapter.external.states.SelectionState
 import com.idanatz.oneadapter.helpers.getViewLocationOnScreen
 import com.idanatz.oneadapter.helpers.BaseTest
-import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
@@ -27,19 +24,20 @@ class WhenSelectingItemOnSelectedShouldBeCalledOnce : BaseTest() {
 	fun test() {
 		configure {
 			prepareOnActivity {
-				oneAdapter
-						.attachItemModule(TestItemModule().addState(TestSelectionState()))
-						.attachItemSelectionModule(TestItemSelectionModule())
+				oneAdapter.apply {
+					attachItemModule(TestItemModule())
+					attachItemSelectionModule(ItemSelectionModule())
+					oneAdapter.internalAdapter.data = mutableListOf(modelGenerator.generateModel())
+				}
 			}
 			actOnActivity {
-				oneAdapter.add(modelGenerator.generateModel())
 				runWithDelay {
 					val holderRootView = recyclerView.findViewHolderForAdapterPosition(0)?.itemView
 					holderRootView?.post {
 						val (x, y) = holderRootView.getViewLocationOnScreen()
 
-						touchSimulator.simulateLongTap(recyclerView, x, y)
-						runWithDelay(100) { touchSimulator.simulateTap(recyclerView, x, y) }
+						touchSimulator.simulateLongTouch(recyclerView, x, y)
+						runWithDelay(100) { touchSimulator.simulateTouch(recyclerView, x, y) }
 					}
 				}
 			}
@@ -52,25 +50,19 @@ class WhenSelectingItemOnSelectedShouldBeCalledOnce : BaseTest() {
 	}
 
 	inner class TestItemModule : ItemModule<TestModel>() {
-		override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(R.layout.test_model_large)
-		override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {
-			if (item.metadata.isSelected) viewBinder.rootView.setBackgroundColor(Color.parseColor("#C7226E"))
-			else viewBinder.rootView.setBackgroundColor(Color.parseColor("#ffffff"))
-		}
-	}
-
-	private inner class TestSelectionState : SelectionState<TestModel>() {
-        override fun isSelectionEnabled(model: TestModel): Boolean = true
-        override fun onSelected(model: TestModel, selected: Boolean) {
-	        onSelectedCalls++
-	        if (selected) isSelectedCount++
-	        else isNotSelectedCount++
-        }
-    }
-
-	private class TestItemSelectionModule : ItemSelectionModule() {
-		override fun provideModuleConfig(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig() {
-			override fun withSelectionType() = SelectionType.Single
+		init {
+			config = modulesGenerator.generateValidItemModuleConfig(R.layout.test_model_large)
+			onBind { _, viewBinder, metadata ->
+				if (metadata.isSelected) viewBinder.rootView.setBackgroundColor(Color.parseColor("#C7226E"))
+				else viewBinder.rootView.setBackgroundColor(Color.parseColor("#ffffff"))
+			}
+			states += SelectionState<TestModel>().apply {
+				onSelected { _, selected ->
+					onSelectedCalls++
+					if (selected) isSelectedCount++
+					else isNotSelectedCount++
+				}
+			}
 		}
 	}
 }

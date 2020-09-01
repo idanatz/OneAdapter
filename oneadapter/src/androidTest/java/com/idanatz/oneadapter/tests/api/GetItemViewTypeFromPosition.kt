@@ -2,12 +2,8 @@ package com.idanatz.oneadapter.tests.api
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.holders.EmptyIndicator
-import com.idanatz.oneadapter.external.holders.LoadingIndicator
-import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.helpers.BaseTest
-import com.idanatz.oneadapter.internal.holders.ViewBinder
-import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.models.TestModel1
 import com.idanatz.oneadapter.models.TestModel2
 import com.idanatz.oneadapter.test.R
@@ -40,12 +36,14 @@ class GetItemViewTypeFromPosition : BaseTest() {
     }
 
     inner class TestItemModule1 : ItemModule<TestModel1>() {
-        override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(R.layout.test_model_small)
-        override fun onBind(item: Item<TestModel1>, viewBinder: ViewBinder) {}
+        init {
+            config = modulesGenerator.generateValidItemModuleConfig(R.layout.test_model_small)
+        }
     }
 
     inner class TestItemModule2 : ItemModule<TestModel2>() {
-        override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(R.layout.test_model_small)
-        override fun onBind(item: Item<TestModel2>, viewBinder: ViewBinder) {}
+        init {
+            config = modulesGenerator.generateValidItemModuleConfig(R.layout.test_model_small)
+        }
     }
 }

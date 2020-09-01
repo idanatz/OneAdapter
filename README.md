@@ -11,11 +11,15 @@ With multiple modules and hooks, you don't have to think about writing an adapte
 For better understanding what drove me to write this library and what use cases it solves best, please refer to my Medium post:
 https://medium.com/@idanatsmon/adapting-your-recyclerview-the-2019-approach-e47edf2fc4f3
 
+## What's new:
+Version 2.0.0 is out with a brand new Kotlin API!<br/>
+Check the example below or sample project for reference
+
 ## Features:
 - Modular approach for more reusable and testable code
 - Built-in support for DiffUtil (using [Diffable](#2-implement-diffable))
 - Optimized performance - internal processing done on a background thread
-- 100% written in Kotlin for Kotlin & Java use
+- 100% written in Kotlin with Kotlin friendly API using DSLs
 - [Modules:](#modules)
   - [Item Module](#basic-usage)
   - [Paging Module](#paging-module)
@@ -53,17 +57,17 @@ Item Modules are used for the creation and binding of all ViewHolders for you. I
 
 ```kotlin
 class MessageModule : ItemModule<MessageModel>() {
-    override fun provideModuleConfig() = object : ItemModuleConfig() {
-        override fun withLayoutResource() = R.layout.message_model
-    }
-
-    override fun onBind(item: Item<MessageModel>, viewBinder: ViewBinder) {
-        val title = viewBinder.findViewById<TextView>(R.id.title)
-        title.text = item.model.title
-    }
-
-    override fun onUnbind(item: Item<MessageModel>, viewBinder: ViewBinder) {
-        // unbind logic like stop animation, release webview resources, etc.
+    init {
+        config {
+            layoutResource = R.layout.message_model
+        }
+        onBind { model, viewBinder, metadata ->
+            val title = viewBinder.findViewById<TextView>(R.id.title)
+            title.text = model.title
+        }
+        onUnbind { model, viewBinder, metadata ->
+            // unbind logic like stop animation, release webview resources, etc.
+        }
     }
 }
 ```
@@ -71,18 +75,18 @@ class MessageModule : ItemModule<MessageModel>() {
 The Adapter is calculating the difference between its current data and the modified data on a background thread and posting the result to the main thread. In order for this magic to work without writing tons of DiffUtil.Callback, your models need to implement one simple interface:
 ```kotlin
 class MessageModel : Diffable {
-    private val id: Int = 0
+    private val id: Long = 0L
     private val title: String? = null
 
-    override fun getUniqueIdentifier(): Long = id.toLong()
+    override val uniqueIdentifier: Long = id
     override fun areContentTheSame(other: Any): Boolean = other is MessageModel && title == other.title
 }
 ```
 ### 3. Attach To OneAdapter & Use
 ```kotlin
-val oneAdapter = OneAdapter(recyclerView)
-    .attachItemModule(MessageModule())
-    
+val oneAdapter = OneAdapter(recyclerView) {
+    itemModule += MessageModule()
+} 
 oneAdapter.setItems(...) 
 ```
 
@@ -98,10 +102,11 @@ class StoryModule : ItemModule<StoryModel> { ... }
 ```
 #### 2. Attach To OneAdapter
 ```kotlin
-val oneAdapter = OneAdapter(recyclerView)
-    .attachItemModule(MessageModule())
-    .attachItemModule(StoryModule())
+val oneAdapter = OneAdapter(recyclerView) {
+    itemModule += MessageModule()
+    itemModule += StoryModule()
     ...
+}
 ```
 
 <br/><br/>
@@ -113,21 +118,23 @@ Paging Module is used for creating and binding a specific ViewHolder at the end 
 #### 1. Implement Paging Modules
 ```kotlin
 class PagingModuleImpl : PagingModule() {
-    override fun provideModuleConfig() = object : PagingModuleConfig() {
-        override fun withLayoutResource() = R.layout.load_more // can be some spinner animation
-        override fun withVisibleThreshold() = 3 // invoke onLoadMore 3 items before the end
-    }
-
-    override fun onLoadMore(currentPage: Int) {
-        // place your load more logic here, like asking the ViewModel to load the next page of data.
+    init {
+        config {
+            layoutResource = R.layout.load_more // can be some spinner animation
+            visibleThreshold = 3 // invoke onLoadMore 3 items before the end
+        }
+        onLoadMore { currentPage ->
+            // place your load more logic here, like asking the ViewModel to load the next page of data.
+        }
     }
 }
 ```
 #### 2. Attach To OneAdapter
 ```kotlin
-val oneAdapter = OneAdapter(recyclerView)
-    .attachPagingModule(PagingModuleImpl())
-    ...
+val oneAdapter = OneAdapter(recyclerView) {
+    // itemModule += ...
+    pagingModule = PagingModuleImpl()
+}
 ```
 
 <br/><br/>
@@ -139,20 +146,21 @@ Emptiness Module is used for creating and binding a specific ViewHolder when the
 #### 1. Implement Emptiness Modules
 ```kotlin
 class EmptinessModuleImpl : EmptinessModule() {
-    override fun provideModuleConfig(): EmptinessModuleConfig = object : EmptinessModuleConfig() {
-        override fun withLayoutResource() = R.layout.empty_state
+    init {
+    	config {
+            layoutResource = R.layout.empty_state
+        }
+        onBind { viewBinder, metadata -> ... }
+        onUnbind { viewBinder, metadata -> ... }
     }
-
-    override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) { ... }
-
-    override fun onUnbind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) { ... }
 }
 ```
 #### 2. Attach To OneAdapter
 ```kotlin
-val oneAdapter = OneAdapter(recyclerView)
-    .attachEmptinessModule(EmptinessModuleImpl())
-    ...
+val oneAdapter = OneAdapter(recyclerView) {
+    // itemModule += ...
+    emptinessModule = EmptinessModuleImpl()
+}
 ```
 
 <br/><br/>
@@ -164,32 +172,42 @@ Selection Module is used for enabling single or multiple selection on Items.
 #### 1. Implement Selection Modules
 ```kotlin
 class ItemSelectionModuleImpl : ItemSelectionModule() {
-    override fun provideModuleConfig(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig() {
-        override fun withSelectionType() = SelectionType.Multiple // Or SelectionType.Single
-    }
-
-    override fun onSelectionUpdated(selectedCount: Int) {
-        // place your general selection logic here, like changing the toolbar text to indicate the selected count.
+    init {
+    	config {
+            selectionType = SelectionType.Multiple // Or SelectionType.Single
+        }
+        onStartSelection {
+            // place your general selection logic here, like changing the toolbar text to indicate the selected count.
+        } 
+        onUpdateSelection { selectedCount -> ... }
+        onEndSelection { ... }
     }
 }
 ```
 #### 2. Implement Selection State
 ```kotlin
-class SelectionStateImpl : SelectionState<MessageModel>() {
-    override fun isSelectionEnabled(model: MessageModel) = true
-
-    override fun onSelected(model: MessageModel, selected: Boolean) {
-        // insert your selected logic here. 
-        // right after this call you will receive an onBind call in order to reflect your changes on the relevant Item Module.
+class MessageModule : ItemModule<MessageModel>() {
+    init {
+        // config, onBind, etc...
+        
+        states += SelectionState<MessageModel>().apply {
+            config {
+                enabled = true // decide if the selection should be enabled for this model, true by default
+            }
+            onSelected { model, selected ->
+                // insert your selected logic here. 
+                // right after this call you will receive an onBind call in order to reflect your changes on the relevant Item Module.
+            }
+        }
     }
 }
 ```
-#### 3. Attach To ItemModule & OneAdapter
+#### 3. Attach To OneAdapter
 ```kotlin
-val oneAdapter = OneAdapter(recyclerView)
-    .attachItemModule(MessageModule()).addState(SelectionStateImpl())
-    .attachItemSelectionModule(ItemSelectionModuleImpl())
-    ...
+val oneAdapter = OneAdapter(recyclerView) {
+    itemModule += MessageModule()
+    itemSelectionModule = ItemSelectionModuleImpl()
+}
 ```
 
 <br/><br/><br/>
@@ -203,17 +221,23 @@ Click Hook can be attached in order to recieve click events on an item.
 <br/>
 #### 1. Implement Click Event Hook
 ```kotlin
-class MessageClickEvent : ClickEventHook<MessageModel>() {
-    override fun onClick(item: Item<MessageModel>, viewBinder: ViewBinder) {
-        // place your on click logic here.
+class MessageModule : ItemModule<MessageModel>() {
+    init {
+        // config, onBind, etc...
+        
+        eventHooks += ClickEventHook<MessageModel>().apply {
+            onClick { model, viewBinder, metadata -> 
+                // place your on click logic here. 
+            }
+        }
     }
 }
 ```
-#### 2. Attach To ItemModule
+#### 2. Attach To OneAdapter
 ```kotlin
-val oneAdapter = OneAdapter(recyclerView)
-    .attachItemModule(MessageModule().addEventHook(MessageClickEvent()))
-    ...
+val oneAdapter = OneAdapter(recyclerView) {
+    itemModule += MessageModule()
+}
 ```
 
 <br/><br/>
@@ -224,27 +248,31 @@ Swipe Hook can be attached in order to receive swiping (during and when complete
 <br/>
 #### 1. Implement Swipe Event Hook
 ```kotlin
-class MessageSwipeEvent : SwipeEventHook<MessageModel>() {
-    override fun provideHookConfig(): SwipeEventHookConfig = object : SwipeEventHookConfig() {
-        override fun withSwipeDirection() = listOf(SwipeDirection.Left, SwipeDirection.Right)
-    }
-
-    override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
-        // draw your swipe UI here.
-        // like painting the canvas red with a delete icon.
-    }
-
-    override fun onSwipeComplete(item: Item<MessageModel>, direction: SwipeDirection, viewBinder: ViewBinder) {
-        // place your swipe logic here.
-        // like removing an item after it was swiped right.
+class MessageModule : ItemModule<MessageModel>() {
+    init {
+        // config, onBind, etc...
+        
+        eventHooks += SwipeEventHook<MessageModel>().apply {
+            config {
+                swipeDirection = listOf(SwipeEventHook.SwipeDirection.Start, SwipeEventHook.SwipeDirection.End)
+            }
+            onSwipe { canvas, xAxisOffset, viewBinder ->
+                // draw your swipe UI here.
+                // like painting the canvas red with a delete icon.
+            }
+            onSwipeComplete { model, viewBinder, metadata ->
+                // place your swipe logic here.
+                // like removing an item after it was swiped right.
+            }
+        }
     }
 }
 ```
-#### 2. Attach To ItemModule
+#### 2. Attach To OneAdapter
 ```kotlin
-val oneAdapter = OneAdapter(recyclerView)
-    .attachItemModule(MessageModule()).addEventHook(MessageSwipeEvent())
-    ...
+val oneAdapter = OneAdapter(recyclerView) {
+    itemModule += MessageModule()
+}
 ```
 
 <br/><br/><br/>
@@ -257,23 +285,22 @@ The provided Animator will be animated on the first bind of the corresponding It
 <br/>
 ```kotlin
 class MessageModule : ItemModule<MessageModel>() {
-    override fun provideModuleConfig() = object : ItemModuleConfig() {
-        override fun withLayoutResource() = R.layout.message_model
-        
-        override fun withFirstBindAnimation(): Animator {
-            // can be implemented by inflating Animator Xml
-            return AnimatorInflater.loadAnimator(context, R.animator.item_animation_example);
+    init {
+        config {
+            layoutResource = R.layout.message_model
             
-            // or by constructing ObjectAnimator
-            return ObjectAnimator().apply {
-                 propertyName = "translationX"
-                 setFloatValues(-1080f, 0f)
-                 duration = 750
+            // can be implemented by inflating Animator Xml
+			firstBindAnimation = AnimatorInflater.loadAnimator(this@FirstBindAnimationActivity, R.animator.item_animation_example)
+			
+			// or can be implemented by constructing ObjectAnimator
+            firstBindAnimation = ObjectAnimator().apply {
+                propertyName = "translationX"
+                setFloatValues(-1080f, 0f)
+                duration = 750
             }
         }
+        onBind { model, viewBinder, metadata -> ... }
     }
-
-    override fun onBind(item: Item<MessageModel>, viewBinder: ViewBinder) { ... }
 }
 ```
 
@@ -282,15 +309,16 @@ Built in support for Android Data Binding (https://developer.android.com/topic/l
 Full example is provided in the example project.
 ```kotlin
 class MessageModule : ItemModule<ObservableMessageModel>() {
-    override fun provideModuleConfig() = object : ItemModuleConfig() {
-        override fun withLayoutResource() = R.layout.message_model_data_binding
-    }
-
-    override fun onBind(item: Item<ObservableMessageModel>, viewBinder: ViewBinder) {
-        viewBinder.dataBinding?.run {
-            setVariable(BR.messageModel, item.model)
-            lifecycleOwner = this@DataBindingActivity
-            executePendingBindings()
+    init {
+        config {
+            layoutResource = R.layout.message_model
+        }
+        onBind { model, viewBinder, metadata ->
+            viewBinder.dataBinding?.run {
+                setVariable(BR.messageModel, model)
+                lifecycleOwner = this@DataBindingActivity
+                executePendingBindings()
+            }
         }
     }
 }

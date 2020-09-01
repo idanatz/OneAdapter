@@ -1,6 +1,6 @@
 package com.idanatz.oneadapter.external.interfaces
 
 interface Diffable {
-    fun getUniqueIdentifier(): Long
+    val uniqueIdentifier: Long
     fun areContentTheSame(other: Any): Boolean
 }

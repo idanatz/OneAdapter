@@ -1,26 +1,32 @@
 Changelog
 =========
 
+Version 2.0.0
+-------------
+* Breaking Changes: Kotlin is now the first priority of this library and as such comes a full API change, every Module, Hook and State is now created using dedicated DSLs
+* Added: more "update" function to OneAdapter API
+* Added: more tests to cover the new APIs
+
 Version 1.5.2
 -------------
-* Improved ItemSelectionModule with the ability to:
+* Improved: ItemSelectionModule new abilities:
     * Start manual selection
     * New callbacks: onSelectionStarted, onSelectionEnded
     * New queries: isSelectionActive & isPositionSelected
-* Improved SwipeEventHook with Up and Down swipe direction support
+* Improved: SwipeEventHook with Up and Down swipe direction support
 * Breaking Changes:
     * Right and Left swiping direction changed to Start and End for better support LTR and RTL
 
 Version 1.5.1
 -------------
-* Fixed Bug: recycler view crash due to race condition with background and ui threads while request multiple diffing quickly
+* Fixed: recycler view crash due to race condition with background and ui threads while request multiple diffing quickly
 * Breaking Changes:
     * Wrapped event hooks models with Item object in order to get additional information like item position, isSelected, etc... (using the Metadata object)
 
 
 Version 1.5.0
 -------------
-* Fixed Bug: clear() not triggering onBind of emptiness module when the adapter was already empty
+* Fixed: clear() not triggering onBind of emptiness module when the adapter was already empty
 * Breaking Changes: 
     * Wrapped each model with Item object in all module's OnBind and onUnbind call in order to get additional information like item position, isSelected, etc... (using the Metadata object) 
     * Removed modules actions class, each module now holds its own actions
@@ -28,15 +34,15 @@ Version 1.5.0
 
 Version 1.4.1
 -------------
-* Added the ability to get view types from the adapter to support GridLayoutManager.SpanSizeLookup 
-* Added more tests to cover paging
+* Added: ability to get view types from the adapter to support GridLayoutManager.SpanSizeLookup
+* Added: more tests to cover paging
 
 
 Version 1.4.0
 -------------
-* Added support for ButterKnife and DataBinding
-* Added more utility functions like item visibility
-* Added examples for nested RecyclerView, ButterKnife and DataBinding in the sample project
+* Added: support for ButterKnife and DataBinding
+* Added: more utility functions like item visibility
+* Added: examples for nested RecyclerView, ButterKnife and DataBinding in the sample project
 * Fixed Bug: Sync issues with background and ui threads when using nested RecyclerViews with OneAdapter
 * Breaking Changes: 
     * ViewBinder getRootView function changed to a property
@@ -45,9 +51,9 @@ Version 1.4.0
 
 Version 1.3.0
 -------------
-* Added First Bind Animation Config
-* Improved threading mechanism
-* Added common UI tests
+* Added: First Bind Animation Config
+* Improved: threading mechanism
+* Added: common UI tests
 * Breaking Changes: 
     * RecyclerView is now a constructor parameter instead of an attachment function
     * OnUnbind functions now includes the model as a parameter

@@ -49,7 +49,7 @@ apply from: rootProject.file('gradle/android_mvn_push.gradle')
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KOTLIN_VERSION"
     implementation "androidx.recyclerview:recyclerview:$RECYCLER_VIEW_VERSION"
-    implementation "androidx.recyclerview:recyclerview-selection:$RECYCLER_VIEW_VERSION"
+    implementation "androidx.recyclerview:recyclerview-selection:$RECYCLER_VIEW_SELECTION_VERSION"
 
     // Testing
     androidTestImplementation "androidx.test.ext:junit-ktx:$JUNIT_KTX_VERSION"

@@ -5,7 +5,7 @@ import com.idanatz.oneadapter.external.interfaces.Diffable
 
 data class ActivityModel(val text: String, val intent: Intent) : Diffable {
 
-    override fun getUniqueIdentifier() = intent.hashCode().toLong()
+    override val uniqueIdentifier = intent.component?.className.hashCode().toLong()
 
     override fun areContentTheSame(other: Any) = other is ActivityModel &&
             text == other.text &&

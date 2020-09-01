@@ -7,7 +7,7 @@ open class TestModel(var id: Int,
                  var onBindCalls: Int = 0,
                  var onUnbindCalls: Int = 0) : Diffable {
 
-    override fun getUniqueIdentifier(): Long = id.toLong()
+    override val uniqueIdentifier: Long = id.toLong()
 
     override fun areContentTheSame(other: Any): Boolean =
             other is TestModel1 && content == other.content

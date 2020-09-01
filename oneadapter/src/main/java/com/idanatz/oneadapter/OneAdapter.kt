@@ -24,6 +24,11 @@ class OneAdapter(recyclerView: RecyclerView) {
     val itemCount: Int
         get() = internalAdapter.itemCount
 
+
+    constructor(recyclerView: RecyclerView, block: OneAdapterDslBuilder.() -> Unit) : this(recyclerView) {
+        OneAdapterDslBuilder().apply(block).build()
+    }
+
     /**
      * Sets the adapter's item list to the given list.
      * @throws MissingModuleDefinitionException if any of the given items are missing an ItemModule.
@@ -41,15 +46,30 @@ class OneAdapter(recyclerView: RecyclerView) {
         internalAdapter.updateData(mutableListOf())
     }
 
+    /**
+     * Appends the specified item to the end of the adapter's list.
+     * @throws MissingModuleDefinitionException if any of the given items are missing an ItemModule.
+     */
     fun add(item: Diffable) {
         add(internalItems.size, item)
     }
 
+    /**
+     * Inserts the specified item at the specified position to the adapter's list.
+     * Shifts the element currently at that position (if any) and any subsequent elements to the right (adds one to their indices).
+     * @param index - index at which the specified item is to be inserted
+     * @param item - item to be inserted
+     * @throws MissingModuleDefinitionException if any of the given items are missing an ItemModule.
+     */
     fun add(index: Int, item: Diffable) {
         val modifiedList = internalItems.createMutableCopyAndApply { add(index, item) }
         internalAdapter.updateData(modifiedList)
     }
 
+    /**
+     * Appends the specified items list to the end of the adapter's list.
+     * @throws MissingModuleDefinitionException if any of the given items are missing an ItemModule.
+     */
     fun add(items: List<Diffable>) {
         val modifiedList = internalItems.createMutableCopyAndApply { addAll(items) }
         internalAdapter.updateData(modifiedList)
@@ -72,11 +92,23 @@ class OneAdapter(recyclerView: RecyclerView) {
         internalAdapter.updateData(modifiedList)
     }
 
+    fun update(index: Int) {
+        if (index in 0 until itemCount) {
+            internalAdapter.notifyItemChanged(index)
+        }
+    }
+
     fun update(item: Diffable) {
         val indexToSet = internalItems.getIndexOfItem(item)
         if (indexToSet != -1) {
-            internalAdapter.notifyItemChanged(indexToSet)
+            val modifiedList = internalItems.createMutableCopyAndApply { set(indexToSet, item) }
+            internalAdapter.updateData(modifiedList)
         }
+    }
+
+    fun update(items: List<Diffable>) {
+        val modifiedList = internalItems.createMutableCopyAndApply { updateAllItems(items) }
+        internalAdapter.updateData(modifiedList)
     }
 
     /**
@@ -84,8 +116,13 @@ class OneAdapter(recyclerView: RecyclerView) {
      * This will add the ability to process items of the ItemModule type.
      * @throws MultipleModuleConflictException if an ItemModule of the same type already exists.
      */
-    fun <M : Diffable> attachItemModule(itemModule: ItemModule<M>): OneAdapter {
+    fun <M : Diffable> attachItemModule(itemModule: ItemModule<out M>): OneAdapter {
         internalAdapter.register(itemModule)
+        return this
+    }
+
+    fun <M : Diffable> attachItemModules(vararg itemModules: ItemModule<out M>): OneAdapter {
+        itemModules.forEach { attachItemModule(it) }
         return this
     }
 
@@ -135,5 +172,25 @@ class OneAdapter(recyclerView: RecyclerView) {
      */
     fun getItemViewTypeFromClass(clazz: Class<*>): Int {
         return internalAdapter.getItemViewTypeFromClass(clazz)
+    }
+
+    inner class OneAdapterDslBuilder {
+        var itemModules = ItemModulesMap()
+        var pagingModule: PagingModule? = null
+        var emptinessModule: EmptinessModule? = null
+        var itemSelectionModule: ItemSelectionModule? = null
+
+        fun build() {
+            attachItemModules(*itemModules.values.toTypedArray())
+            pagingModule?.let { attachPagingModule(it) }
+            emptinessModule?.let { attachEmptinessModule(it) }
+            itemSelectionModule?.let { attachItemSelectionModule(it) }
+        }
+
+        inner class ItemModulesMap : HashMap<String?, ItemModule<out Diffable>>() {
+            operator fun plusAssign(itemModule: ItemModule<out Diffable>) {
+                put(itemModule.javaClass.name, itemModule)
+            }
+        }
     }
 }

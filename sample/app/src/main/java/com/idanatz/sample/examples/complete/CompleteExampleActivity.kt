@@ -1,6 +1,5 @@
 package com.idanatz.sample.examples.complete
 
-import android.animation.Animator
 import android.animation.AnimatorInflater
 import android.animation.ObjectAnimator
 import android.graphics.Canvas
@@ -24,14 +23,11 @@ import com.idanatz.sample.models.MessageModel
 import com.idanatz.oneadapter.OneAdapter
 import com.idanatz.oneadapter.external.event_hooks.ClickEventHook
 import com.idanatz.oneadapter.external.states.SelectionState
-import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.bumptech.glide.Glide
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
-import com.idanatz.oneadapter.external.event_hooks.SwipeEventHookConfig
-import com.idanatz.oneadapter.external.holders.EmptyIndicator
-import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.*
+import com.idanatz.oneadapter.external.modules.ItemSelectionModuleConfig.*
 import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.examples.ActionsDialog.*
 import com.idanatz.sample.models.StoriesModel
@@ -56,17 +52,14 @@ class CompleteExampleActivity : BaseExampleActivity() {
         compositeDisposable = CompositeDisposable()
         viewModel = ViewModelProviders.of(this).get(CompleteExampleViewModel::class.java)
 
-        oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(StoriesItem())
-                .attachItemModule(HeaderItem())
-                .attachItemModule(MessageItem()
-                        .addState(MessageSelectionState())
-                        .addEventHook(MessageClickHook())
-                        .addEventHook(MessageSwipeHook())
-                )
-                .attachEmptinessModule(EmptinessModuleImpl())
-                .attachPagingModule(PagingModuleImpl())
-                .attachItemSelectionModule(ItemSelectionModuleImpl())
+        oneAdapter = OneAdapter(recyclerView) {
+            itemModules += StoriesItem()
+            itemModules += HeaderItem()
+            itemModules += MessageItem()
+            emptinessModule = EmptinessModuleImpl()
+            pagingModule = PagingModuleImpl()
+            itemSelectionModule = ItemSelectionModuleImpl()
+        }
 
         initActionsDialog(*Action.values()).setListener(viewModel)
 
@@ -96,162 +89,179 @@ class CompleteExampleActivity : BaseExampleActivity() {
     }
 
     private inner class HeaderItem : ItemModule<HeaderModel>() {
-        override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
-            override fun withLayoutResource() = R.layout.header_model
-            override fun withFirstBindAnimation(): Animator {
+        init {
+            config {
+                layoutResource = R.layout.header_model
                 // can be implemented by constructing ObjectAnimator
-                return ObjectAnimator().apply {
+                firstBindAnimation = ObjectAnimator().apply {
                     propertyName = "translationX"
                     setFloatValues(-1080f, 0f)
                     duration = 750
                 }
             }
+            onBind { model, viewBinder, _ ->
+                val headerTitle = viewBinder.findViewById<TextView>(R.id.header_title)
+                val headerSwitch = viewBinder.findViewById<SwitchCompat>(R.id.header_switch)
+
+                headerTitle.text = model.name
+                headerSwitch.visibility = if (model.checkable) View.VISIBLE else View.GONE
+                headerSwitch.isChecked = model.checked
+                headerSwitch.setOnCheckedChangeListener { _, isChecked -> viewModel.headerCheckedChanged(model, isChecked) }
+            }
         }
-
-	    override fun onBind(item: Item<HeaderModel>, viewBinder: ViewBinder) {
-		    val headerTitle = viewBinder.findViewById<TextView>(R.id.header_title)
-		    val headerSwitch = viewBinder.findViewById<SwitchCompat>(R.id.header_switch)
-
-		    headerTitle.text = item.model.name
-		    headerSwitch.visibility = if (item.model.checkable) View.VISIBLE else View.GONE
-		    headerSwitch.isChecked = item.model.checked
-		    headerSwitch.setOnCheckedChangeListener { _, isChecked -> viewModel.headerCheckedChanged(item.model, isChecked) }
-	    }
     }
 
     private inner class MessageItem : ItemModule<MessageModel>() {
-        override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
-            override fun withLayoutResource() = R.layout.message_model
-            override fun withFirstBindAnimation(): Animator {
+        init {
+            config {
+                layoutResource = R.layout.message_model
                 // can be implemented by inflating Animator Xml
-                return AnimatorInflater.loadAnimator(this@CompleteExampleActivity, R.animator.item_animation_example)
+                firstBindAnimation = AnimatorInflater.loadAnimator(this@CompleteExampleActivity, R.animator.item_animation_example)
+            }
+            onBind { model, viewBinder, metadata ->
+                val id = viewBinder.findViewById<TextView>(R.id.id)
+                val title = viewBinder.findViewById<TextView>(R.id.title)
+                val body = viewBinder.findViewById<TextView>(R.id.body)
+                val avatarImage = viewBinder.findViewById<ImageView>(R.id.avatarImage)
+                val selectedLayer = viewBinder.findViewById<ImageView>(R.id.selected_layer)
+
+                id.text = getString(R.string.message_model_id).format(model.id)
+                title.text = model.title
+                body.text = model.body
+                Glide.with(viewBinder.rootView).load(model.avatarImageId).into(avatarImage)
+
+                // selected UI
+                avatarImage.alpha = if (metadata.isSelected) 0.5f else 1f
+                selectedLayer.visibility = if (metadata.isSelected) View.VISIBLE else View.GONE
+                viewBinder.rootView.setBackgroundColor(if (metadata.isSelected) ContextCompat.getColor(this@CompleteExampleActivity, R.color.light_gray) else Color.WHITE)
+            }
+            eventHooks += ClickEventHook<MessageModel>().apply {
+                onClick { model, viewBinder, _ ->
+                    Toast.makeText(viewBinder.rootView.context, "${model.title} clicked", Toast.LENGTH_SHORT).show()
+                }
+            }
+            eventHooks += SwipeEventHook<MessageModel>().apply {
+                config {
+                    swipeDirection = listOf(SwipeEventHook.SwipeDirection.Start, SwipeEventHook.SwipeDirection.End)
+                }
+                onSwipe { canvas, xAxisOffset, viewBinder ->
+                    when {
+                        xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.rootView)
+                        xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.rootView)
+                    }
+                }
+                onSwipeComplete { model, _, metadata ->
+                    when (metadata.swipeDirection) {
+                        SwipeEventHook.SwipeDirection.Start -> viewModel.onSwipeToDeleteItem(model)
+                        SwipeEventHook.SwipeDirection.End -> {
+                            Toast.makeText(this@CompleteExampleActivity, "${model.title} snoozed", Toast.LENGTH_SHORT).show()
+                            oneAdapter.update(metadata.position) // for resetting the view back into place
+                        }
+                    }
+                }
+            }
+            states += SelectionState<MessageModel>().apply {
+                onSelected { model, selected ->
+                    val message = "${model.title} " + if (selected) "selected" else "unselected"
+                    Toast.makeText(this@CompleteExampleActivity, message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
-
-	    override fun onBind(item: Item<MessageModel>, viewBinder: ViewBinder) {
-		    val id = viewBinder.findViewById<TextView>(R.id.id)
-		    val title = viewBinder.findViewById<TextView>(R.id.title)
-		    val body = viewBinder.findViewById<TextView>(R.id.body)
-		    val avatarImage = viewBinder.findViewById<ImageView>(R.id.avatarImage)
-		    val selectedLayer = viewBinder.findViewById<ImageView>(R.id.selected_layer)
-
-		    id.text = getString(R.string.message_model_id).format(item.model.id)
-		    title.text = item.model.title
-		    body.text = item.model.body
-		    Glide.with(viewBinder.rootView).load(item.model.avatarImageId).into(avatarImage)
-
-		    // selected UI
-		    avatarImage.alpha = if (item.metadata.isSelected) 0.5f else 1f
-		    selectedLayer.visibility = if (item.metadata.isSelected) View.VISIBLE else View.GONE
-		    viewBinder.rootView.setBackgroundColor(if (item.metadata.isSelected) ContextCompat.getColor(this@CompleteExampleActivity, R.color.light_gray) else Color.WHITE)	    }
-    }
-
-    private inner class MessageSelectionState : SelectionState<MessageModel>() {
-        override fun isSelectionEnabled(model: MessageModel): Boolean = true
-
-        override fun onSelected(model: MessageModel, selected: Boolean) {
-            val message = "${model.title} " + if (selected) "selected" else "unselected"
-            Toast.makeText(this@CompleteExampleActivity, message, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private class MessageClickHook : ClickEventHook<MessageModel>() {
-        override fun onClick(item: Item<MessageModel>, viewBinder: ViewBinder) = Toast.makeText(viewBinder.rootView.context, "${item.model.title} clicked", Toast.LENGTH_SHORT).show()
     }
 
     private class StoriesItem : ItemModule<StoriesModel>() {
         private var oneAdapter: OneAdapter? = null
 
-        override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
-            override fun withLayoutResource(): Int = R.layout.recycler_view
-        }
+        init {
+            config {
+                layoutResource = R.layout.recycler_view
+            }
+            onCreate { viewBinder ->
+                val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
+                val layoutManager = LinearLayoutManager(viewBinder.rootView.context, LinearLayoutManager.HORIZONTAL, false)
+                nestedRecyclerView.layoutManager = layoutManager
 
-        override fun onCreated(viewBinder: ViewBinder) {
-            val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
-            val layoutManager = LinearLayoutManager(viewBinder.rootView.context, LinearLayoutManager.HORIZONTAL, false)
-            nestedRecyclerView.layoutManager = layoutManager
+                oneAdapter = OneAdapter(nestedRecyclerView)
+                        .attachItemModule(StoryItem())
+            }
+            onBind { model, viewBinder, _ ->
+                oneAdapter?.setItems(model.stories)
 
-            oneAdapter = OneAdapter(nestedRecyclerView)
-                    .attachItemModule(StoryItem())
-        }
-
-        override fun onBind(item: Item<StoriesModel>, viewBinder: ViewBinder) {
-            oneAdapter?.setItems(item.model.stories)
-
-            // restore scroll state
-            val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
-            val layoutManager = nestedRecyclerView.layoutManager as LinearLayoutManager?
-            layoutManager?.onRestoreInstanceState(item.model.scrollPosition)
-        }
-
-        override fun onUnbind(item: Item<StoriesModel>, viewBinder: ViewBinder) {
-            // save scroll state
-            val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
-            val layoutManager = nestedRecyclerView.layoutManager as LinearLayoutManager?
-            item.model.scrollPosition = layoutManager?.onSaveInstanceState()
+                // restore scroll state
+                val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
+                val layoutManager = nestedRecyclerView.layoutManager as LinearLayoutManager?
+                layoutManager?.onRestoreInstanceState(model.scrollPosition)
+            }
+            onUnbind { model, viewBinder, _ ->
+                // save scroll state
+                val nestedRecyclerView = viewBinder.findViewById<RecyclerView>(R.id.recycler)
+                val layoutManager = nestedRecyclerView.layoutManager as LinearLayoutManager?
+                model.scrollPosition = layoutManager?.onSaveInstanceState()
+            }
         }
 
         private class StoryItem : ItemModule<StoryModel>() {
-            override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
-                override fun withLayoutResource(): Int = R.layout.story_model
-            }
-
-            override fun onBind(item: Item<StoryModel>, viewBinder: ViewBinder) {
-                val story = viewBinder.findViewById<ImageView>(R.id.story)
-                Glide.with(viewBinder.rootView).load(item.model.storyImageId).into(story)
+            init {
+                config {
+                    layoutResource = R.layout.story_model
+                }
+                onBind { model, viewBinder, _ ->
+                    val story = viewBinder.findViewById<ImageView>(R.id.story)
+                    Glide.with(viewBinder.rootView).load(model.storyImageId).into(story)
+                }
             }
         }
     }
 
     private class EmptinessModuleImpl : EmptinessModule() {
-        override fun provideModuleConfig(): EmptinessModuleConfig = object : EmptinessModuleConfig() {
-            override fun withLayoutResource() = R.layout.empty_state
-        }
-
-        override fun onBind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
-            val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
-            animation.setAnimation(R.raw.empty_list)
-            animation.playAnimation()
-        }
-
-        override fun onUnbind(item: Item<EmptyIndicator>, viewBinder: ViewBinder) {
-            val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
-            animation.pauseAnimation()
+        init {
+            config {
+                layoutResource = R.layout.empty_state
+            }
+            onBind { viewBinder, _ ->
+                val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
+                animation.setAnimation(R.raw.empty_list)
+                animation.playAnimation()
+            }
+            onUnbind { viewBinder, _ ->
+                val animation = viewBinder.findViewById<LottieAnimationView>(R.id.animation_view)
+                animation.pauseAnimation()
+            }
         }
     }
 
     private inner class PagingModuleImpl : PagingModule() {
-        override fun provideModuleConfig(): PagingModuleConfig = object : PagingModuleConfig() {
-            override fun withLayoutResource() = R.layout.load_more
-            override fun withVisibleThreshold() = 3
-        }
-
-        override fun onLoadMore(currentPage: Int) {
-            viewModel.onLoadMore()
+        init {
+            config {
+                layoutResource = R.layout.load_more
+                visibleThreshold = 3
+            }
+            onLoadMore {
+                viewModel.onLoadMore()
+            }
         }
     }
 
     private inner class ItemSelectionModuleImpl : ItemSelectionModule() {
-        override fun provideModuleConfig(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig() {
-            override fun withSelectionType() = SelectionType.Multiple
-        }
-
-        override fun onSelectionStarted() {
-            setToolbarColor(ColorDrawable(ContextCompat.getColor(this@CompleteExampleActivity, R.color.dark_gray)))
-            toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = false
-        }
-
-        override fun onSelectionEnded() {
-            setToolbarText(getString(R.string.app_name))
-            toolbarMenu?.findItem(R.id.action_delete)?.isVisible = false
-            toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = true
-            setToolbarColor(ColorDrawable(ContextCompat.getColor(this@CompleteExampleActivity, R.color.colorPrimary)))
-        }
-
-        override fun onSelectionUpdated(selectedCount: Int) {
-            if (oneAdapter.modules.itemSelectionModule?.actions?.isSelectionActive() == true) {
-                setToolbarText("$selectedCount selected")
-                toolbarMenu?.findItem(R.id.action_delete)?.isVisible = true
+        init {
+            config {
+                selectionType = SelectionType.Multiple
+            }
+            onStartSelection {
+                setToolbarColor(ColorDrawable(ContextCompat.getColor(this@CompleteExampleActivity, R.color.dark_gray)))
+                toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = false
+            }
+            onUpdateSelection { selectedCount ->
+                if (oneAdapter.modules.itemSelectionModule?.actions?.isSelectionActive() == true) {
+                    setToolbarText("$selectedCount selected")
+                    toolbarMenu?.findItem(R.id.action_delete)?.isVisible = true
+                }
+            }
+            onEndSelection {
+                setToolbarText(getString(R.string.app_name))
+                toolbarMenu?.findItem(R.id.action_delete)?.isVisible = false
+                toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = true
+                setToolbarColor(ColorDrawable(ContextCompat.getColor(this@CompleteExampleActivity, R.color.colorPrimary)))
             }
         }
     }
@@ -273,29 +283,6 @@ class CompleteExampleActivity : BaseExampleActivity() {
                 return true
             }
             else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    private inner class MessageSwipeHook : SwipeEventHook<MessageModel>() {
-        override fun provideHookConfig(): SwipeEventHookConfig = object : SwipeEventHookConfig() {
-            override fun withSwipeDirection() = listOf(SwipeDirection.Start, SwipeDirection.End)
-        }
-
-        override fun onSwipe(canvas: Canvas, xAxisOffset: Float, viewBinder: ViewBinder) {
-            when {
-                xAxisOffset < 0 -> paintSwipeLeft(canvas, xAxisOffset, viewBinder.rootView)
-                xAxisOffset > 0 -> paintSwipeRight(canvas, xAxisOffset, viewBinder.rootView)
-            }
-        }
-
-        override fun onSwipeComplete(item: Item<MessageModel>, direction: SwipeDirection, viewBinder: ViewBinder) {
-            when (direction) {
-                SwipeDirection.Start -> viewModel.onSwipeToDeleteItem(item.model)
-                SwipeDirection.End -> {
-                    Toast.makeText(this@CompleteExampleActivity, "${item.model.title} snoozed", Toast.LENGTH_SHORT).show()
-                    oneAdapter.update(item.model)
-                }
-            }
         }
     }
 

@@ -1,42 +1,52 @@
 package com.idanatz.oneadapter.external.modules
 
-import org.jetbrains.annotations.NotNull
-import com.idanatz.oneadapter.external.event_hooks.ClickEventHook
-import com.idanatz.oneadapter.external.event_hooks.EventHook
-import com.idanatz.oneadapter.internal.event_hooks.EventHooksMap
-import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
+import android.animation.Animator
+import com.idanatz.oneadapter.external.SingleAssignmentDelegate
+import com.idanatz.oneadapter.external.OnModelBinded
+import com.idanatz.oneadapter.external.OnCreated
+import com.idanatz.oneadapter.external.OnModelUnbinded
 import com.idanatz.oneadapter.external.interfaces.*
-import com.idanatz.oneadapter.internal.holders.ViewBinder
-import com.idanatz.oneadapter.external.states.SelectionState
-import com.idanatz.oneadapter.external.states.State
-import com.idanatz.oneadapter.internal.holders.Metadata
-import com.idanatz.oneadapter.internal.states.StatesMap
+import com.idanatz.oneadapter.external.event_hooks.EventHooksMap
+import com.idanatz.oneadapter.external.states.StatesMap
 
-abstract class ItemModule<M : Diffable> :
-        LayoutModuleConfigurable<ItemModuleConfig>,
-        Creatable, Bindable<M>, Unbindable<M>
-{
-    internal val statesMap = StatesMap<M>()
-    internal val eventHooksMap = EventHooksMap<M>()
+abstract class ItemModule<M : Diffable> {
 
-    // lifecycle
-    override fun onCreated(@NotNull viewBinder: ViewBinder) {}
-    override fun onUnbind(item: Item<M>, viewBinder: ViewBinder) {}
+    internal var config: ItemModuleConfig by SingleAssignmentDelegate(DefaultItemModuleConfig())
+    internal var onCreate: OnCreated? = null
+    internal var onBind: OnModelBinded<M>? = null
+    internal var onUnbind: OnModelUnbinded<M>? = null
 
-    fun addState(state: State<M>): ItemModule<M> {
-        when (state) {
-            is SelectionState -> statesMap.putSelectionState(state)
-        }
-        return this
+    val states = StatesMap<M>()
+    val eventHooks = EventHooksMap<M>()
+
+    fun config(block: ItemModuleConfigDsl.() -> Unit) {
+        ItemModuleConfigDsl(config).apply(block).build().also { config = it }
     }
 
-    fun addEventHook(eventHook: EventHook<M>): ItemModule<M> {
-        when (eventHook) {
-            is ClickEventHook -> eventHooksMap.putClickEventHook(eventHook)
-            is SwipeEventHook -> eventHooksMap.putSwipeEventHook(eventHook)
-        }
-        return this
+    fun onCreate(block: OnCreated) {
+        onCreate = block
+    }
+
+    fun onBind(block: OnModelBinded<M>) {
+        onBind = block
+    }
+
+    fun onUnbind(block: OnModelUnbinded<M>) {
+        onUnbind = block
     }
 }
 
-abstract class ItemModuleConfig : LayoutModuleConfig
+interface ItemModuleConfig : LayoutModuleConfig
+
+class ItemModuleConfigDsl internal constructor(defaultConfig: ItemModuleConfig) : ItemModuleConfig by defaultConfig {
+
+    fun build(): ItemModuleConfig = object : ItemModuleConfig {
+        override var layoutResource: Int? = this@ItemModuleConfigDsl.layoutResource
+        override var firstBindAnimation: Animator? = this@ItemModuleConfigDsl.firstBindAnimation
+    }
+}
+
+private class DefaultItemModuleConfig : ItemModuleConfig {
+    override var layoutResource: Int? = null
+    override var firstBindAnimation: Animator? = null
+}

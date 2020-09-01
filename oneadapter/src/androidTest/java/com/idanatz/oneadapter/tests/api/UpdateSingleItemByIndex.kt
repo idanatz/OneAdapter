@@ -1,10 +1,8 @@
 package com.idanatz.oneadapter.tests.api
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.helpers.BaseTest
-import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.models.TestModel
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldBeEqualTo
@@ -12,10 +10,10 @@ import org.amshove.kluent.shouldEqualTo
 import org.junit.Test
 import org.junit.runner.RunWith
 
-private const val updatedValue = "updated"
+private const val UPDATED_VALUE = "updated"
 
 @RunWith(AndroidJUnit4::class)
-class UpdateSingleItem : BaseTest() {
+class UpdateSingleItemByIndex : BaseTest() {
 
     @Test
     fun test() {
@@ -31,24 +29,26 @@ class UpdateSingleItem : BaseTest() {
                 }
             }
             actOnActivity {
-                modelToUpdate.content = updatedValue
-                oneAdapter.update(modelToUpdate)
+                modelToUpdate.content = UPDATED_VALUE
+                oneAdapter.update(0)
             }
             untilAsserted {
                 val newItemCount = oneAdapter.itemCount
-                val newContent = (oneAdapter.internalAdapter.data[0] as TestModel).content
+                val model = (oneAdapter.internalAdapter.data[0] as TestModel)
 
-                newContent shouldBeEqualTo updatedValue
-                modelToUpdate.onBindCalls shouldEqualTo 1
+                model.content shouldBeEqualTo UPDATED_VALUE
+                model.onBindCalls shouldEqualTo 1
                 newItemCount shouldEqualTo oldItemCount
             }
         }
     }
 
     inner class TestItemModule : ItemModule<TestModel>() {
-        override fun provideModuleConfig() = modulesGenerator.generateValidItemModuleConfig(R.layout.test_model_large)
-        override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {
-            item.model.onBindCalls++
+        init {
+        	config = modulesGenerator.generateValidItemModuleConfig(R.layout.test_model_large)
+            onBind { model, _, _ ->
+                model.onBindCalls++
+            }
         }
     }
 }

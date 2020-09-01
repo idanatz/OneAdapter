@@ -5,9 +5,7 @@ import java.util.*
 
 sealed class OneInternalHolderModel : Diffable {
 
-    private val uniqueId = UUID.randomUUID().mostSignificantBits
-
-    override fun getUniqueIdentifier() = uniqueId
+    override val uniqueIdentifier: Long = UUID.randomUUID().mostSignificantBits
     override fun areContentTheSame(other: Any) = true
 }
 

@@ -40,9 +40,11 @@ class WhenReachingThresholdOnLoadMoreShouldBeCalledOnce : BaseTest() {
     }
 
     inner class TestPagingModule : PagingModule() {
-        override fun provideModuleConfig(): PagingModuleConfig = modulesGenerator.generateValidPagingModuleConfig(pagingVisibleThreshold)
-        override fun onLoadMore(currentPage: Int) {
-            onLoadMoreCalls++
+        init {
+        	config = modulesGenerator.generateValidPagingModuleConfig(pagingVisibleThreshold)
+            onLoadMore {
+                onLoadMoreCalls++
+            }
         }
     }
 }

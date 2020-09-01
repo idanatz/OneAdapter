@@ -13,13 +13,10 @@ import androidx.core.content.ContextCompat
 
 import com.bumptech.glide.Glide
 import com.idanatz.oneadapter.OneAdapter
-import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.ItemModule
-import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.external.modules.ItemSelectionModule
-import com.idanatz.oneadapter.external.modules.ItemSelectionModuleConfig
+import com.idanatz.oneadapter.external.modules.ItemSelectionModuleConfig.*
 import com.idanatz.oneadapter.external.states.SelectionState
-import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.models.MessageModel
 import com.idanatz.sample.examples.BaseExampleActivity
@@ -32,9 +29,10 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        oneAdapter = OneAdapter(recyclerView)
-                .attachItemModule(MessageItem().addState(MessageSelectionState()))
-                .attachItemSelectionModule(ItemSelectionModuleImpl())
+        oneAdapter = OneAdapter(recyclerView) {
+            itemModules += MessageItem()
+            itemSelectionModule = ItemSelectionModuleImpl()
+        }
 
         oneAdapter.setItems(modelGenerator.generateMessages(10))
     }
@@ -48,57 +46,54 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
     }
 
     private inner class MessageItem : ItemModule<MessageModel>() {
-        override fun provideModuleConfig(): ItemModuleConfig = object : ItemModuleConfig() {
-            override fun withLayoutResource(): Int = R.layout.message_model
-        }
+        init {
+            config {
+                layoutResource = R.layout.message_model
+            }
+            onBind { model, viewBinder, metadata ->
+                val title = viewBinder.findViewById<TextView>(R.id.title)
+                val body = viewBinder.findViewById<TextView>(R.id.body)
+                val avatarImage = viewBinder.findViewById<ImageView>(R.id.avatarImage)
+                val selectedLayer = viewBinder.findViewById<ImageView>(R.id.selected_layer)
 
-        override fun onBind(item: Item<MessageModel>, viewBinder: ViewBinder) {
-            val title = viewBinder.findViewById<TextView>(R.id.title)
-            val body = viewBinder.findViewById<TextView>(R.id.body)
-            val avatarImage = viewBinder.findViewById<ImageView>(R.id.avatarImage)
-            val selectedLayer = viewBinder.findViewById<ImageView>(R.id.selected_layer)
+                title.text = model.title
+                body.text = model.body
+                Glide.with(viewBinder.rootView).load(model.avatarImageId).into(avatarImage)
 
-            title.text = item.model.title
-            body.text = item.model.body
-            Glide.with(viewBinder.rootView).load(item.model.avatarImageId).into(avatarImage)
-
-            // selected UI
-            avatarImage.alpha = if (item.metadata.isSelected) 0.5f else 1f
-            selectedLayer.visibility = if (item.metadata.isSelected) View.VISIBLE else View.GONE
-            viewBinder.rootView.setBackgroundColor(if (item.metadata.isSelected) ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.light_gray) else Color.WHITE)
-        }
-    }
-
-    private inner class MessageSelectionState : SelectionState<MessageModel>() {
-        override fun isSelectionEnabled(model: MessageModel): Boolean = true
-
-        override fun onSelected(model: MessageModel, selected: Boolean) {
-            val message = "${model.title} " + if (selected) "selected" else "unselected"
-            Toast.makeText(this@ItemSelectionModuleActivity, message, Toast.LENGTH_SHORT).show()
+                // selected UI
+                avatarImage.alpha = if (metadata.isSelected) 0.5f else 1f
+                selectedLayer.visibility = if (metadata.isSelected) View.VISIBLE else View.GONE
+                viewBinder.rootView.setBackgroundColor(if (metadata.isSelected) ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.light_gray) else Color.WHITE)
+            }
+            states += SelectionState<MessageModel>().apply {
+                onSelected { model, selected ->
+                    val message = "${model.title} " + if (selected) "selected" else "unselected"
+                    Toast.makeText(this@ItemSelectionModuleActivity, message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
     private inner class ItemSelectionModuleImpl : ItemSelectionModule() {
-        override fun provideModuleConfig(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig() {
-            override fun withSelectionType() = SelectionType.Multiple
-        }
-
-        override fun onSelectionStarted() {
-            setToolbarColor(ColorDrawable(ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.dark_gray)))
-            toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = false
-        }
-
-        override fun onSelectionEnded() {
-            setToolbarText(getString(R.string.app_name))
-            toolbarMenu?.findItem(R.id.action_delete)?.isVisible = false
-            toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = true
-            setToolbarColor(ColorDrawable(ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.colorPrimary)))
-        }
-
-        override fun onSelectionUpdated(selectedCount: Int) {
-            if (oneAdapter.modules.itemSelectionModule?.actions?.isSelectionActive() == true) {
-                setToolbarText("$selectedCount selected")
-                toolbarMenu?.findItem(R.id.action_delete)?.isVisible = true
+        init {
+            config {
+                selectionType = SelectionType.Multiple
+            }
+            onStartSelection {
+                setToolbarColor(ColorDrawable(ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.dark_gray)))
+                toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = false
+            }
+            onUpdateSelection { selectedCount ->
+                if (oneAdapter.modules.itemSelectionModule?.actions?.isSelectionActive() == true) {
+                    setToolbarText("$selectedCount selected")
+                    toolbarMenu?.findItem(R.id.action_delete)?.isVisible = true
+                }
+            }
+            onEndSelection {
+                setToolbarText(getString(R.string.app_name))
+                toolbarMenu?.findItem(R.id.action_delete)?.isVisible = false
+                toolbarMenu?.findItem(R.id.action_start_selection)?.isVisible = true
+                setToolbarColor(ColorDrawable(ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.colorPrimary)))
             }
         }
     }

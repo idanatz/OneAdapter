@@ -7,16 +7,13 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListUpdateCallback
 import androidx.recyclerview.widget.RecyclerView
-import com.idanatz.oneadapter.external.MissingConfigArgumentException
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 import com.idanatz.oneadapter.external.holders.EmptyIndicator
 import com.idanatz.oneadapter.external.holders.LoadingIndicator
 import com.idanatz.oneadapter.external.interfaces.Diffable
-import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.oneadapter.internal.animations.AnimationPositionHandler
 import com.idanatz.oneadapter.internal.diffing.OneDiffUtil
-import com.idanatz.oneadapter.internal.holders.Metadata
 import com.idanatz.oneadapter.internal.holders.OneViewHolder
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreator
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreatorsStore
@@ -30,10 +27,10 @@ import com.idanatz.oneadapter.internal.threading.OneSingleThreadPoolExecutor
 import com.idanatz.oneadapter.internal.utils.Logger
 import com.idanatz.oneadapter.internal.utils.extensions.createMutableCopyAndApply
 import com.idanatz.oneadapter.internal.utils.extensions.isClassExists
-import com.idanatz.oneadapter.internal.utils.extensions.let2
 import com.idanatz.oneadapter.internal.utils.extensions.removeAllItems
 import com.idanatz.oneadapter.internal.utils.extractGenericClass
 import com.idanatz.oneadapter.internal.validator.Validator
+import java.lang.IllegalStateException
 
 private const val UPDATE_DATA_DELAY_MILLIS = 100L
 
@@ -84,7 +81,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
         }
     }
     private val diffCallback = object : DiffUtilCallback {
-        override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.getUniqueIdentifier() == newItem.getUniqueIdentifier()
+        override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.uniqueIdentifier == newItem.uniqueIdentifier
         override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.areContentTheSame(newItem)
     }
 
@@ -107,10 +104,11 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     override fun onBindViewHolder(holder: OneViewHolder<Diffable>, position: Int) {
         val model = data[position]
-        val shouldAnimateBind = holder.firstBindAnimation != null && animationPositionHandler.shouldAnimateBind(holder.itemViewType, position)
-        val metadata = Metadata(position, isPositionSelected(position), shouldAnimateBind)
-        logger.logd { "onBindViewHolder -> holder: $holder, model: $model, metadata: $metadata" }
-        holder.onBindViewHolder(model, metadata)
+        val shouldAnimateBind = if (holder.firstBindAnimation != null) {
+            animationPositionHandler.shouldAnimateBind(holder.itemViewType, position)
+        } else null
+        logger.logd { "onBindViewHolder -> holder: $holder, model: $model" }
+        holder.onBindViewHolder(model, position, shouldAnimateBind)
     }
 
     private fun onBindSelection(holder: OneViewHolder<Diffable>, position: Int, selected: Boolean) {
@@ -124,7 +122,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     override fun getItemId(position: Int): Long  {
         val item = data[position]
         // javaClass is used for lettings different Diffable models share the same unique identifier
-        return item.javaClass.name.hashCode() + item.getUniqueIdentifier()
+        return item.javaClass.name.hashCode() + item.uniqueIdentifier
     }
 
     override fun getItemViewType(position: Int) = viewHolderCreatorsStore.getCreatorUniqueIndex(data[position].javaClass)
@@ -206,12 +204,13 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     //region Item Module
     fun <M : Diffable> register(itemModule: ItemModule<M>) {
-        val moduleConfig = itemModule.provideModuleConfig()
-        val layoutResourceId = moduleConfig.withLayoutResource()
-        val modelClass = extractGenericClass(itemModule.javaClass) as? Class<Diffable> ?: throw MissingConfigArgumentException("ItemModuleConfig missing model class")
+        val moduleConfig = itemModule.config
+        val modelClass = extractGenericClass(itemModule.javaClass) as? Class<Diffable> ?: throw IllegalStateException("Unable to extract generic class from ItemModule")
 
+        Validator.validateLayoutExists(context, itemModule.javaClass, moduleConfig.layoutResource)
         Validator.validateItemModuleAgainstRegisteredModules(modules.itemModules, modelClass)
-        Validator.validateLayoutExists(context, layoutResourceId)
+
+        val layoutResourceId = moduleConfig.layoutResource!!
 
         modules.itemModules[modelClass] = itemModule
         viewHolderCreatorsStore.addCreator(modelClass, object : ViewHolderCreator<M> {
@@ -219,17 +218,17 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                 return object : OneViewHolder<M>(
                         parent = parent,
                         layoutResourceId = layoutResourceId,
-                        firstBindAnimation = moduleConfig.withFirstBindAnimation(),
-                        statesHooksMap = itemModule.statesMap,
-                        eventsHooksMap = itemModule.eventHooksMap
+                        firstBindAnimation = moduleConfig.firstBindAnimation,
+                        statesHooksMap = itemModule.states,
+                        eventsHooksMap = itemModule.eventHooks
                 ) {
-                    override fun onCreated() = itemModule.onCreated(viewBinder)
-                    override fun onBind(model: M) { itemModule.onBind(Item(model, metadata), viewBinder) }
-                    override fun onUnbind(model: M) { itemModule.onUnbind(Item(model, metadata), viewBinder) }
-                    override fun onClicked(model: M) { itemModule.eventHooksMap.getClickEventHook()?.onClick(Item(model, metadata), viewBinder) }
-                    override fun onSwipe(canvas: Canvas, xAxisOffset: Float) { itemModule.eventHooksMap.getSwipeEventHook()?.onSwipe(canvas, xAxisOffset, viewBinder) }
-                    override fun onSwipeComplete(model: M, swipeDirection: SwipeEventHook.SwipeDirection) { itemModule.eventHooksMap.getSwipeEventHook()?.onSwipeComplete(Item(model, metadata), swipeDirection, viewBinder) }
-                    override fun onSelected(model: M, selected: Boolean) { itemModule.statesMap.getSelectionState()?.onSelected(model, selected) }
+                    override fun onCreated() = itemModule.onCreate?.invoke(viewBinder) ?: Unit
+                    override fun onBind(model: M) = itemModule.onBind?.invoke(model, viewBinder, metadata) ?: Unit
+                    override fun onUnbind(model: M) = itemModule.onUnbind?.invoke(model, viewBinder, metadata) ?: Unit
+                    override fun onClicked(model: M) = itemModule.eventHooks.getClickEventHook()?.onClick?.invoke(model, viewBinder, metadata) ?: Unit
+                    override fun onSwipe(canvas: Canvas, xAxisOffset: Float) = itemModule.eventHooks.getSwipeEventHook()?.onSwipe?.invoke(canvas, xAxisOffset, viewBinder) ?: Unit
+                    override fun onSwipeComplete(model: M, swipeDirection: SwipeEventHook.SwipeDirection) = itemModule.eventHooks.getSwipeEventHook()?.onSwipeComplete?.invoke(model, viewBinder, metadata) ?: Unit
+                    override fun onSelected(model: M, selected: Boolean) = itemModule.states.getSelectionState()?.onSelected?.invoke(model, selected) ?: Unit
                 }
             }
         } as ViewHolderCreator<Diffable>)
@@ -238,23 +237,24 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     //region Emptiness Module
     fun enableEmptiness(emptinessModule: EmptinessModule) {
-        val moduleConfig = emptinessModule.provideModuleConfig()
-        val layoutResourceId = moduleConfig.withLayoutResource()
-        val dataClass = EmptyIndicator.javaClass as Class<Diffable>
+        val moduleConfig = emptinessModule.config
+        val modelClass = EmptyIndicator.javaClass as Class<Diffable>
 
-        Validator.validateLayoutExists(context, layoutResourceId)
+        Validator.validateLayoutExists(context, emptinessModule.javaClass, moduleConfig.layoutResource)
+
+        val layoutResourceId = moduleConfig.layoutResource!!
 
         modules.emptinessModule = emptinessModule
-        viewHolderCreatorsStore.addCreator(dataClass, object : ViewHolderCreator<Diffable> {
+        viewHolderCreatorsStore.addCreator(modelClass, object : ViewHolderCreator<Diffable> {
             override fun create(parent: ViewGroup): OneViewHolder<Diffable> {
                 return object : OneViewHolder<Diffable>(
                         parent = parent,
                         layoutResourceId = layoutResourceId,
-                        firstBindAnimation = moduleConfig.withFirstBindAnimation()
+                        firstBindAnimation = moduleConfig.firstBindAnimation
                 ) {
-                    override fun onCreated() = emptinessModule.onCreated(viewBinder)
-                    override fun onBind(model: Diffable) = emptinessModule.onBind(Item(EmptyIndicator, metadata), viewBinder)
-                    override fun onUnbind(model: Diffable) = emptinessModule.onUnbind(Item(EmptyIndicator, metadata), viewBinder)
+                    override fun onCreated() = emptinessModule.onCreate?.invoke(viewBinder) ?: Unit
+                    override fun onBind(model: Diffable) = emptinessModule.onBind?.invoke(viewBinder, metadata) ?: Unit
+                    override fun onUnbind(model: Diffable) = emptinessModule.onUnbind?.invoke(viewBinder, metadata) ?: Unit
                     override fun onClicked(model: Diffable) {}
                     override fun onSwipe(canvas: Canvas, xAxisOffset: Float) {}
                     override fun onSwipeComplete(model: Diffable, swipeDirection: SwipeEventHook.SwipeDirection) {}
@@ -275,23 +275,24 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     //region Paging Module
     fun enablePaging(pagingModule: PagingModule) {
-        val moduleConfig = pagingModule.provideModuleConfig()
-        val layoutResourceId = moduleConfig.withLayoutResource()
-        val dataClass = LoadingIndicator.javaClass as Class<Diffable>
+        val moduleConfig = pagingModule.config
+        val modelClass = LoadingIndicator.javaClass as Class<Diffable>
 
-        Validator.validateLayoutExists(context, layoutResourceId)
+        Validator.validateLayoutExists(context, pagingModule.javaClass, moduleConfig.layoutResource)
+
+        val layoutResourceId = moduleConfig.layoutResource!!
 
         modules.pagingModule = pagingModule
-        viewHolderCreatorsStore.addCreator(dataClass, object : ViewHolderCreator<Diffable> {
+        viewHolderCreatorsStore.addCreator(modelClass, object : ViewHolderCreator<Diffable> {
             override fun create(parent: ViewGroup): OneViewHolder<Diffable> {
                 return object : OneViewHolder<Diffable>(
                         parent = parent,
                         layoutResourceId = layoutResourceId,
-                        firstBindAnimation = moduleConfig.withFirstBindAnimation()
+                        firstBindAnimation = moduleConfig.firstBindAnimation
                 ) {
-                    override fun onCreated() = pagingModule.onCreated(viewBinder)
-                    override fun onBind(model: Diffable) = pagingModule.onBind(Item(LoadingIndicator, metadata), viewBinder)
-                    override fun onUnbind(model: Diffable) = pagingModule.onUnbind(Item(LoadingIndicator, metadata), viewBinder)
+                    override fun onCreated() = pagingModule.onCreate?.invoke(viewBinder) ?: Unit
+                    override fun onBind(model: Diffable) = pagingModule.onBind?.invoke(viewBinder, metadata) ?: Unit
+                    override fun onUnbind(model: Diffable) = pagingModule.onUnbind?.invoke(viewBinder, metadata) ?: Unit
                     override fun onClicked(model: Diffable) {}
                     override fun onSwipe(canvas: Canvas, xAxisOffset: Float) {}
                     override fun onSwipeComplete(model: Diffable, swipeDirection: SwipeEventHook.SwipeDirection) {}
@@ -299,14 +300,11 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
                 }
             }
         })
-        configurePagingModule()
-    }
 
-    private fun configurePagingModule() {
-        let2(recyclerView.layoutManager, modules.pagingModule) { layoutManager, pagingModule ->
+        recyclerView.layoutManager?.let { layoutManager ->
             endlessScrollListener = EndlessScrollListener(
                     layoutManager = layoutManager,
-                    visibleThreshold = pagingModule.provideModuleConfig().withVisibleThreshold(),
+                    visibleThreshold = moduleConfig.visibleThreshold,
                     includeEmptyState = modules.emptinessModule != null,
                     loadMoreObserver = this@InternalAdapter,
                     logger = logger
@@ -324,7 +322,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     }
 
     override fun onLoadMore(currentPage: Int) {
-        modules.pagingModule?.onLoadMore(currentPage)
+        modules.pagingModule?.onLoadMore?.invoke(currentPage)
     }
     //endregion
 
@@ -340,15 +338,15 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     }
 
     override fun onSelectionStarted() {
-        modules.itemSelectionModule?.onSelectionStarted()
+        modules.itemSelectionModule?.onStartSelection?.invoke()
     }
 
     override fun onSelectionEnded() {
-        modules.itemSelectionModule?.onSelectionEnded()
+        modules.itemSelectionModule?.onEndSelection?.invoke()
     }
 
     override fun onSelectionUpdated(selectedCount: Int) {
-        modules.itemSelectionModule?.onSelectionUpdated(selectedCount)
+        modules.itemSelectionModule?.onUpdateSelection?.invoke(selectedCount)
     }
 
     override fun startSelection() {

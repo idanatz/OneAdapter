@@ -1,25 +1,54 @@
 package com.idanatz.oneadapter.external.modules
 
-import com.idanatz.oneadapter.external.interfaces.BehaviorModuleConfig
-import com.idanatz.oneadapter.external.interfaces.BehaviourModuleConfigurable
+import com.idanatz.oneadapter.external.OnSelectionEnded
+import com.idanatz.oneadapter.external.OnSelectionStarted
+import com.idanatz.oneadapter.external.OnSelectionUpdated
+import com.idanatz.oneadapter.external.SingleAssignmentDelegate
+import com.idanatz.oneadapter.external.interfaces.Config
 import com.idanatz.oneadapter.internal.selection.ItemSelectionActions
 
-abstract class ItemSelectionModule :
-        BehaviourModuleConfigurable<ItemSelectionModuleConfig> {
+open class ItemSelectionModule {
 
     var actions: ItemSelectionActions? = null
 
-    // functionality
-    open fun onSelectionStarted() {}
-    open fun onSelectionEnded() {}
-    open fun onSelectionUpdated(selectedCount: Int) {}
+    internal var config: ItemSelectionModuleConfig by SingleAssignmentDelegate(DefaultItemSelectionModuleConfig())
+    internal var onStartSelection: OnSelectionStarted? = null
+    internal var onUpdateSelection: OnSelectionUpdated? = null
+    internal var onEndSelection: OnSelectionEnded? = null
+
+    fun config(block: ItemSelectionModuleConfigDsl.() -> Unit) {
+        ItemSelectionModuleConfigDsl(config).apply(block).build().also { config = it }
+    }
+
+    fun onStartSelection(block: OnSelectionStarted) {
+        onStartSelection = block
+    }
+
+    fun onUpdateSelection(block: OnSelectionUpdated) {
+        onUpdateSelection = block
+    }
+
+    fun onEndSelection(block: OnSelectionEnded) {
+        onEndSelection = block
+    }
 }
 
-abstract class ItemSelectionModuleConfig : BehaviorModuleConfig {
+interface ItemSelectionModuleConfig : Config {
 
-    abstract fun withSelectionType(): SelectionType
+    var selectionType: SelectionType
 
     enum class SelectionType {
         Single, Multiple
     }
+}
+
+class ItemSelectionModuleConfigDsl internal constructor(defaultConfig: ItemSelectionModuleConfig) : ItemSelectionModuleConfig by defaultConfig {
+
+    fun build(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig {
+        override var selectionType: ItemSelectionModuleConfig.SelectionType = this@ItemSelectionModuleConfigDsl.selectionType
+    }
+}
+
+private class DefaultItemSelectionModuleConfig : ItemSelectionModuleConfig {
+    override var selectionType: ItemSelectionModuleConfig.SelectionType = ItemSelectionModuleConfig.SelectionType.Single
 }

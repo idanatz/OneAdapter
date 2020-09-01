@@ -2,11 +2,8 @@ package com.idanatz.oneadapter.tests.module_configs.layout_module_config
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.modules.ItemModule
-import com.idanatz.oneadapter.external.modules.ItemModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
-import com.idanatz.oneadapter.internal.holders.ViewBinder
 import com.idanatz.oneadapter.external.MissingConfigArgumentException
-import com.idanatz.oneadapter.external.interfaces.Item
 import com.idanatz.oneadapter.models.TestModel
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,10 +22,11 @@ class InvalidLayoutResourceShouldThrowException : BaseTest() {
         }
     }
 
-    inner class TestItemModule : ItemModule<TestModel>() {
-        override fun provideModuleConfig() = object : ItemModuleConfig() {
-            override fun withLayoutResource() = INVALID_RESOURCE
+    class TestItemModule : ItemModule<TestModel>() {
+        init {
+            config {
+                layoutResource = INVALID_RESOURCE
+            }
         }
-        override fun onBind(item: Item<TestModel>, viewBinder: ViewBinder) {}
     }
 }

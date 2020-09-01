@@ -2,7 +2,6 @@ package com.idanatz.oneadapter.tests.modules.selection.state
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.idanatz.oneadapter.external.modules.ItemSelectionModule
-import com.idanatz.oneadapter.external.modules.ItemSelectionModuleConfig
 import com.idanatz.oneadapter.external.states.SelectionState
 import com.idanatz.oneadapter.helpers.getViewLocationOnScreen
 import com.idanatz.oneadapter.helpers.BaseTest
@@ -20,18 +19,19 @@ class WhenIsSelectedFalseOnSelectedShouldNotBeCalled : BaseTest() {
 	fun test() {
 		configure {
 			prepareOnActivity {
-				oneAdapter
-						.attachItemModule(modulesGenerator.generateValidItemModule().addState(TestSelectionState()))
-						.attachItemSelectionModule(TestItemSelectionModule())
+				oneAdapter.apply {
+					attachItemModule(modulesGenerator.generateValidItemModule().apply { states += TestSelectionState() })
+					attachItemSelectionModule(ItemSelectionModule())
+					oneAdapter.internalAdapter.data = mutableListOf(modelGenerator.generateModel())
+				}
 			}
 			actOnActivity {
-				oneAdapter.add(modelGenerator.generateModel())
 				runWithDelay {
 					val holderRootView = recyclerView.findViewHolderForAdapterPosition(0)?.itemView
 					holderRootView?.post {
 						val (x, y) = holderRootView.getViewLocationOnScreen()
 
-						touchSimulator.simulateLongTap(recyclerView, x, y)
+						touchSimulator.simulateLongTouch(recyclerView, x, y)
 					}
 				}
 			}
@@ -42,15 +42,13 @@ class WhenIsSelectedFalseOnSelectedShouldNotBeCalled : BaseTest() {
 	}
 
 	private inner class TestSelectionState : SelectionState<TestModel>() {
-        override fun isSelectionEnabled(model: TestModel): Boolean = false
-        override fun onSelected(model: TestModel, selected: Boolean) {
-	        onSelectedCalls++
-        }
-    }
-
-	private class TestItemSelectionModule : ItemSelectionModule() {
-		override fun provideModuleConfig(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig() {
-			override fun withSelectionType() = SelectionType.Single
+		init {
+			config {
+				enabled = false
+			}
+			onSelected { _, _ ->
+				onSelectedCalls++
+			}
 		}
-	}
+    }
 }

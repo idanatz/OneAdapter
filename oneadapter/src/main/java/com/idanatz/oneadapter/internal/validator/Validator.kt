@@ -6,6 +6,7 @@ import com.idanatz.oneadapter.external.*
 import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.holders.OneInternalHolderModel
+
 import java.lang.NullPointerException
 
 internal class Validator {
@@ -14,15 +15,18 @@ internal class Validator {
 
         fun validateItemsAgainstRegisteredModules(itemModulesMap: MutableMap<Class<*>, ItemModule<*>>, items: List<Diffable>) {
             items.filterNot { it is OneInternalHolderModel }.find { !itemModulesMap.containsKey(it.javaClass) }?.let {
-                throw MissingModuleDefinitionException("did you forget to attach ItemModule? (model: ${it.javaClass})")
+                throw MissingModuleDefinitionException("Did you forget to attach an ItemModule? (model: ${it.javaClass.simpleName})")
             }
         }
 
-        fun validateLayoutExists(context: Context, layoutId: Int) {
+        fun validateLayoutExists(context: Context, clazz: Class<*>, layoutId: Int?) {
+            if (layoutId == null) {
+                throw MissingConfigArgumentException("Layout resource is null - Layout resource is mandatory for the creation of an ${clazz.simpleName}")
+            }
             try {
                 context.resources?.getResourceEntryName(layoutId) ?: throw NullPointerException()
             } catch (e: Exception) {
-                throw MissingConfigArgumentException("Layout resource id not found")
+                throw MissingConfigArgumentException("Layout resource id not found - Layout resource is mandatory for the creation of an ${clazz.simpleName}")
             }
         }
 
