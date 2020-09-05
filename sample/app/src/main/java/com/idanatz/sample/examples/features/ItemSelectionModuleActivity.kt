@@ -17,6 +17,7 @@ import com.idanatz.oneadapter.external.modules.ItemModule
 import com.idanatz.oneadapter.external.modules.ItemSelectionModule
 import com.idanatz.oneadapter.external.modules.ItemSelectionModuleConfig.*
 import com.idanatz.oneadapter.external.states.SelectionState
+import com.idanatz.oneadapter.external.states.SelectionStateConfig
 import com.idanatz.oneadapter.sample.R
 import com.idanatz.sample.models.MessageModel
 import com.idanatz.sample.examples.BaseExampleActivity
@@ -66,6 +67,10 @@ class ItemSelectionModuleActivity : BaseExampleActivity() {
                 viewBinder.rootView.setBackgroundColor(if (metadata.isSelected) ContextCompat.getColor(this@ItemSelectionModuleActivity, R.color.light_gray) else Color.WHITE)
             }
             states += SelectionState<MessageModel>().apply {
+                config {
+                    enabled = true
+                    selectionTrigger = SelectionStateConfig.SelectionTrigger.LongClick
+                }
                 onSelected { model, selected ->
                     val message = "${model.title} " + if (selected) "selected" else "unselected"
                     Toast.makeText(this@ItemSelectionModuleActivity, message, Toast.LENGTH_SHORT).show()

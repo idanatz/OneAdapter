@@ -5,6 +5,7 @@ import com.idanatz.oneadapter.external.OnSelectionStarted
 import com.idanatz.oneadapter.external.OnSelectionUpdated
 import com.idanatz.oneadapter.external.SingleAssignmentDelegate
 import com.idanatz.oneadapter.external.interfaces.Config
+import com.idanatz.oneadapter.external.modules.ItemSelectionModuleConfig.*
 import com.idanatz.oneadapter.internal.selection.ItemSelectionActions
 
 open class ItemSelectionModule {
@@ -45,10 +46,10 @@ interface ItemSelectionModuleConfig : Config {
 class ItemSelectionModuleConfigDsl internal constructor(defaultConfig: ItemSelectionModuleConfig) : ItemSelectionModuleConfig by defaultConfig {
 
     fun build(): ItemSelectionModuleConfig = object : ItemSelectionModuleConfig {
-        override var selectionType: ItemSelectionModuleConfig.SelectionType = this@ItemSelectionModuleConfigDsl.selectionType
+        override var selectionType: SelectionType = this@ItemSelectionModuleConfigDsl.selectionType
     }
 }
 
 private class DefaultItemSelectionModuleConfig : ItemSelectionModuleConfig {
-    override var selectionType: ItemSelectionModuleConfig.SelectionType = ItemSelectionModuleConfig.SelectionType.Single
+    override var selectionType: SelectionType = SelectionType.Single
 }

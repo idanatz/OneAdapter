@@ -187,7 +187,7 @@ class OneAdapter(recyclerView: RecyclerView) {
             itemSelectionModule?.let { attachItemSelectionModule(it) }
         }
 
-        inner class ItemModulesMap : HashMap<String?, ItemModule<out Diffable>>() {
+        inner class ItemModulesMap : HashMap<String, ItemModule<out Diffable>>() {
             operator fun plusAssign(itemModule: ItemModule<out Diffable>) {
                 put(itemModule.javaClass.name, itemModule)
             }

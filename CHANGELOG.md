@@ -4,8 +4,11 @@ Changelog
 Version 2.0.0
 -------------
 * Breaking Changes: Kotlin is now the first priority of this library and as such comes a full API change, every Module, Hook and State is now created using dedicated DSLs
-* Added: more "update" function to OneAdapter API
-* Added: more tests to cover the new APIs
+* Added:
+    * Ability to trigger selection with click and long click
+    * More "update" function to OneAdapter API
+    * More tests
+* Fixed: bug in paging threshold not calculated correctly
 
 Version 1.5.2
 -------------

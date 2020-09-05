@@ -5,6 +5,11 @@ import java.util.*
 
 class EventHooksMap<M : Diffable> : HashMap<String, EventHook<M>>() {
 
+    fun add(eventHook: EventHook<M>) {
+        plusAssign(eventHook)
+    }
+
+    @JvmSynthetic
     operator fun plusAssign(eventHook: EventHook<M>) {
         when (eventHook) {
             is ClickEventHook -> put(ClickEventHook.TAG, eventHook)

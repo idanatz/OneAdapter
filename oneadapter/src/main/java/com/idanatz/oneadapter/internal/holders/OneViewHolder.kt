@@ -74,8 +74,8 @@ internal abstract class OneViewHolder<M : Diffable>(
 		if (isSwiping) // while swiping disable the option to select
 			return null
 
-		return statesHooksMap?.getSelectionState()?.let {
-			if (it.config.enabled) OneItemDetail(adapterPosition, itemId)
+		return statesHooksMap?.getSelectionState()?.config?.let { selectionStateConfig ->
+			if (selectionStateConfig.enabled) OneItemDetail(adapterPosition, itemId, selectionStateConfig.selectionTrigger)
 			else null
 		}
 	}

@@ -3,6 +3,7 @@ package com.idanatz.oneadapter.external.states
 import com.idanatz.oneadapter.external.OnSelected
 import com.idanatz.oneadapter.external.SingleAssignmentDelegate
 import com.idanatz.oneadapter.external.interfaces.Config
+import com.idanatz.oneadapter.external.states.SelectionStateConfig.*
 
 sealed class State<M>
 
@@ -25,18 +26,24 @@ open class SelectionState<M> : State<M>() {
 }
 
 interface SelectionStateConfig : Config {
-    val enabled: Boolean
+
+    var enabled: Boolean
+    var selectionTrigger: SelectionTrigger
+
+    enum class SelectionTrigger {
+        Click, LongClick
+    }
 }
 
-class SelectionStateConfigDsl internal constructor(defaultConfig: SelectionStateConfig) : SelectionStateConfig {
-
-    override var enabled: Boolean = defaultConfig.enabled
+class SelectionStateConfigDsl internal constructor(defaultConfig: SelectionStateConfig) : SelectionStateConfig by defaultConfig {
 
     fun build(): SelectionStateConfig = object : SelectionStateConfig {
-        override val enabled: Boolean = this@SelectionStateConfigDsl.enabled
+        override var enabled: Boolean = this@SelectionStateConfigDsl.enabled
+        override var selectionTrigger: SelectionTrigger = this@SelectionStateConfigDsl.selectionTrigger
     }
 }
 
 private class DefaultSelectionStateConfig : SelectionStateConfig {
-    override val enabled: Boolean = true
+    override var enabled: Boolean = true
+    override var selectionTrigger: SelectionTrigger = SelectionTrigger.LongClick
 }

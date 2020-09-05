@@ -8,7 +8,7 @@ import com.idanatz.oneadapter.internal.utils.extensions.findLastVisibleItemPosit
 
 internal class EndlessScrollListener (
         private val layoutManager: RecyclerView.LayoutManager,
-        private var visibleThreshold: Int = 0, // The minimum amount of items to have below your current scroll position before loading more.
+        private var visibleThreshold: Int, // The minimum amount of items to have below your current scroll position before loading more.
         private val includeEmptyState: Boolean,
         private val loadMoreObserver: LoadMoreObserver,
         private val logger: Logger
@@ -60,22 +60,21 @@ internal class EndlessScrollListener (
     private fun isUserScrolled(view: RecyclerView) = view.scrollState != RecyclerView.SCROLL_STATE_IDLE
 
     private fun evaluateLoadingState(): LoadingState {
-        // inner functions
-        fun shouldStartLoading(lastVisibleItemPosition: Int, totalItemCount: Int) = !loading && lastVisibleItemPosition + visibleThreshold > totalItemCount
-        fun isLoadingFinished(totalItemCount: Int) = loading && totalItemCount > (previousTotalItemCount + 1) // + 1 for the loading holder
-
-        val totalItemCount = layoutManager.itemCount
-        val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+        val lastItemIndex = layoutManager.itemCount - 1
+        val lastVisibleItemIndex = layoutManager.findLastVisibleItemPosition()
 
         return when {
-            isLoadingFinished(totalItemCount) -> LoadingState.FinishLoading
-            shouldStartLoading(lastVisibleItemPosition, totalItemCount) -> LoadingState.LoadingStarted
+            isLoadingFinished(lastItemIndex) -> LoadingState.FinishLoading
+            shouldStartLoading(lastVisibleItemIndex, lastItemIndex) -> LoadingState.LoadingStarted
             loading -> LoadingState.MidLoading
             else -> LoadingState.Normal
         }.also {
             if (it != LoadingState.Normal) logger.logd { "onScrolled -> loading state: $it" }
         }
     }
+
+    private fun shouldStartLoading(lastVisibleItemIndex: Int, lastItemIndex: Int) = !loading && lastVisibleItemIndex + visibleThreshold >= lastItemIndex
+    private fun isLoadingFinished(lastItemIndex: Int) = loading && lastItemIndex > (previousTotalItemCount + 1) // + 1 for the loading holder
 
     enum class LoadingState {
         Normal, LoadingStarted, MidLoading, FinishLoading

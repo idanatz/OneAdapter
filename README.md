@@ -13,7 +13,8 @@ https://medium.com/@idanatsmon/adapting-your-recyclerview-the-2019-approach-e47e
 
 ## What's new:
 Version 2.0.0 is out with a brand new Kotlin API!<br/>
-Check the example below or sample project for reference
+Kotlin is now the first priority of this library and as such comes a full API change, every Module, Hook and State is now created using dedicated DSLs.<br/>
+Check the example below or sample project for reference for Kotlin & Java use.
 
 ## Features:
 - Modular approach for more reusable and testable code
@@ -193,6 +194,7 @@ class MessageModule : ItemModule<MessageModel>() {
         states += SelectionState<MessageModel>().apply {
             config {
                 enabled = true // decide if the selection should be enabled for this model, true by default
+                selectionTrigger = SelectionTrigger.LongClick // decide what trigger the selection, long or regular click
             }
             onSelected { model, selected ->
                 // insert your selected logic here. 

@@ -16,8 +16,8 @@ abstract class ItemModule<M : Diffable> {
     internal var onBind: OnModelBinded<M>? = null
     internal var onUnbind: OnModelUnbinded<M>? = null
 
-    val states = StatesMap<M>()
-    val eventHooks = EventHooksMap<M>()
+    @JvmField val states = StatesMap<M>()
+    @JvmField val eventHooks = EventHooksMap<M>()
 
     fun config(block: ItemModuleConfigDsl.() -> Unit) {
         ItemModuleConfigDsl(config).apply(block).build().also { config = it }
