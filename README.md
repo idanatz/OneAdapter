@@ -292,9 +292,9 @@ class MessageModule : ItemModule<MessageModel>() {
             layoutResource = R.layout.message_model
             
             // can be implemented by inflating Animator Xml
-			firstBindAnimation = AnimatorInflater.loadAnimator(this@FirstBindAnimationActivity, R.animator.item_animation_example)
+            firstBindAnimation = AnimatorInflater.loadAnimator(this@FirstBindAnimationActivity, R.animator.item_animation_example)
 			
-			// or can be implemented by constructing ObjectAnimator
+            // or can be implemented by constructing ObjectAnimator
             firstBindAnimation = ObjectAnimator().apply {
                 propertyName = "translationX"
                 setFloatValues(-1080f, 0f)
