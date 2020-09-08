@@ -16,18 +16,19 @@ import com.idanatz.sample.models.MessageModel;
 
 import androidx.annotation.Nullable;
 
-class BasicJavaExampleActivity
-		extends BaseExampleActivity {
+public class BasicJavaExampleActivity extends BaseExampleActivity {
+
+	private OneAdapter oneAdapter;
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		OneAdapter oneAdapter = new OneAdapter(recyclerView)
+		oneAdapter = new OneAdapter(recyclerView)
 				.attachItemModule(new MessageItem())
                 .attachEmptinessModule(new EmptinessModuleImpl());
 
-		oneAdapter.setItems(getModelGenerator().generateMessages(10));
+		initActionsDialog(ActionsDialog.Action.SetAll, ActionsDialog.Action.ClearAll).setListener(this);
 	}
 
 	private static class MessageItem extends ItemModule<MessageModel> {
@@ -77,5 +78,15 @@ class BasicJavaExampleActivity
 				return null;
 			});
 		}
+	}
+
+	@Override
+	public void onClearAllClicked() {
+		oneAdapter.clear();
+	}
+
+	@Override
+	public void onSetAllClicked() {
+		oneAdapter.setItems(getModelGenerator().generateMessages(10));
 	}
 }
