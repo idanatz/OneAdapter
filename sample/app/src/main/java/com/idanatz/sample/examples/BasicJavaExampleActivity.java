@@ -11,6 +11,7 @@ import com.idanatz.oneadapter.OneAdapter;
 import com.idanatz.oneadapter.external.event_hooks.ClickEventHook;
 import com.idanatz.oneadapter.external.modules.EmptinessModule;
 import com.idanatz.oneadapter.external.modules.ItemModule;
+import com.idanatz.oneadapter.external.modules.PagingModule;
 import com.idanatz.oneadapter.sample.R;
 import com.idanatz.sample.models.MessageModel;
 
@@ -26,7 +27,8 @@ public class BasicJavaExampleActivity extends BaseExampleActivity {
 
 		oneAdapter = new OneAdapter(recyclerView)
 				.attachItemModule(new MessageItem())
-                .attachEmptinessModule(new EmptinessModuleImpl());
+                .attachEmptinessModule(new EmptinessModuleImpl())
+				.attachPagingModule(new PagingModuleImpl());
 
 		initActionsDialog(ActionsDialog.Action.SetAll, ActionsDialog.Action.ClearAll).setListener(this);
 	}
@@ -75,6 +77,22 @@ public class BasicJavaExampleActivity extends BaseExampleActivity {
 			onUnbind((viewBinder, metadata) -> {
 				LottieAnimationView animation = viewBinder.findViewById(R.id.animation_view);
 				animation.pauseAnimation();
+				return null;
+			});
+		}
+	}
+
+	private class PagingModuleImpl extends PagingModule {
+
+		public PagingModuleImpl() {
+			config(builder -> {
+				builder.setLayoutResource(R.layout.load_more);
+				builder.setVisibleThreshold(3);
+				return null;
+			});
+
+			onLoadMore((currentPage) -> {
+				oneAdapter.add(getModelGenerator().generateMessages(10));
 				return null;
 			});
 		}
