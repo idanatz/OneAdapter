@@ -14,6 +14,7 @@ import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.external.modules.*
 import com.idanatz.oneadapter.internal.animations.AnimationPositionHandler
 import com.idanatz.oneadapter.internal.diffing.OneDiffUtil
+import com.idanatz.oneadapter.internal.holders.*
 import com.idanatz.oneadapter.internal.holders.OneViewHolder
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreator
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreatorsStore
@@ -104,11 +105,17 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     override fun onBindViewHolder(holder: OneViewHolder<Diffable>, position: Int) {
         val model = data[position]
-        val shouldAnimateBind = if (holder.firstBindAnimation != null) {
-            animationPositionHandler.shouldAnimateBind(holder.itemViewType, position)
-        } else null
-        logger.logd { "onBindViewHolder -> holder: $holder, model: $model" }
-        holder.onBindViewHolder(model, position, shouldAnimateBind)
+		val metadata = Metadata(
+				position = position,
+				animationMetadata = object : AnimationMetadata {
+					override val isAnimating: Boolean = if (holder.firstBindAnimation != null) animationPositionHandler.shouldAnimateBind(holder.itemViewType, position) else false
+				},
+				selectionMetadata = object : SelectionMetadata {
+					override val isSelected: Boolean = isPositionSelected(position)
+				}
+		)
+		logger.logd { "onBindViewHolder -> holder: $holder, model: $model, metadata: $metadata" }
+		holder.onBindViewHolder(model, metadata)
     }
 
     private fun onBindSelection(holder: OneViewHolder<Diffable>, position: Int, selected: Boolean) {

@@ -39,22 +39,14 @@ internal abstract class OneViewHolder<M : Diffable>(
 
 	fun onCreateViewHolder() {
 		this.viewBinder = ViewBinder(itemView)
-		metadata = Metadata()
 		onCreated()
 	}
 
-	fun onBindViewHolder(model: M, position: Int, shouldAnimateBind: Boolean?) {
+	fun onBindViewHolder(model: M,  metadata: Metadata) {
 		this.model = model
-		metadata = metadata.copy(
-				position = position,
-				animationMetadata = shouldAnimateBind?.let {
-					object : AnimationMetadata {
-						override val isAnimating: Boolean = it
-					}
-				}
-		)
+		this.metadata = metadata
 
-		handleAnimations(shouldAnimateBind)
+		handleAnimations()
 		handleEventHooks()
 		onBind(model)
 	}
@@ -95,11 +87,8 @@ internal abstract class OneViewHolder<M : Diffable>(
 		}
 	}
 
-	private fun handleAnimations(shouldAnimate: Boolean?) {
-		if (shouldAnimate == null)
-			return
-
-		if (shouldAnimate) {
+	private fun handleAnimations() {
+		if (metadata.isAnimating) {
 			firstBindAnimation?.setTarget(itemView)
 			firstBindAnimation?.start()
 		} else {

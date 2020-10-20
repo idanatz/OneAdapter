@@ -31,7 +31,9 @@ interface SelectionStateConfig : Config {
     var selectionTrigger: SelectionTrigger
 
     enum class SelectionTrigger {
-        Click, LongClick
+        Click, // click on an Item will start a selection session
+		LongClick, // long click on an Item will start a selection session
+		Manual // selection session can be started only by calling the startSelection() function
     }
 }
 
