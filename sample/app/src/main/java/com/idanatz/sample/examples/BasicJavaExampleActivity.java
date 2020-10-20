@@ -11,23 +11,26 @@ import com.idanatz.oneadapter.OneAdapter;
 import com.idanatz.oneadapter.external.event_hooks.ClickEventHook;
 import com.idanatz.oneadapter.external.modules.EmptinessModule;
 import com.idanatz.oneadapter.external.modules.ItemModule;
+import com.idanatz.oneadapter.external.modules.PagingModule;
 import com.idanatz.oneadapter.sample.R;
 import com.idanatz.sample.models.MessageModel;
 
 import androidx.annotation.Nullable;
 
-class BasicJavaExampleActivity
-		extends BaseExampleActivity {
+public class BasicJavaExampleActivity extends BaseExampleActivity {
+
+	private OneAdapter oneAdapter;
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		OneAdapter oneAdapter = new OneAdapter(recyclerView)
+		oneAdapter = new OneAdapter(recyclerView)
 				.attachItemModule(new MessageItem())
-                .attachEmptinessModule(new EmptinessModuleImpl());
+                .attachEmptinessModule(new EmptinessModuleImpl())
+				.attachPagingModule(new PagingModuleImpl());
 
-		oneAdapter.setItems(getModelGenerator().generateMessages(10));
+		initActionsDialog(ActionsDialog.Action.SetAll, ActionsDialog.Action.ClearAll).setListener(this);
 	}
 
 	private static class MessageItem extends ItemModule<MessageModel> {
@@ -77,5 +80,31 @@ class BasicJavaExampleActivity
 				return null;
 			});
 		}
+	}
+
+	private class PagingModuleImpl extends PagingModule {
+
+		public PagingModuleImpl() {
+			config(builder -> {
+				builder.setLayoutResource(R.layout.load_more);
+				builder.setVisibleThreshold(3);
+				return null;
+			});
+
+			onLoadMore((currentPage) -> {
+				oneAdapter.add(getModelGenerator().generateMessages(10));
+				return null;
+			});
+		}
+	}
+
+	@Override
+	public void onClearAllClicked() {
+		oneAdapter.clear();
+	}
+
+	@Override
+	public void onSetAllClicked() {
+		oneAdapter.setItems(getModelGenerator().generateMessages(10));
 	}
 }

@@ -32,6 +32,7 @@
         <activity android:name="com.idanatz.sample.examples.binding.ButterKnifeActivity"/>
         <activity android:name="com.idanatz.sample.examples.binding.data_binding.DataBindingActivity"/>
         <activity android:name="com.idanatz.sample.examples.complete.CompleteExampleActivity" />
+        <activity android:name="com.idanatz.sample.examples.BasicJavaExampleActivity" />
     </application>
 
 </manifest>

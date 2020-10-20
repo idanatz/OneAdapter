@@ -4,6 +4,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.internal.holders.OneViewHolder
 import java.lang.IllegalStateException
 
@@ -51,4 +52,4 @@ internal fun RecyclerView.LayoutManager.findLastVisibleItemPosition(): Int {
     }
 }
 
-internal fun RecyclerView.ViewHolder.toOneViewHolder() = this as OneViewHolder<*>
+internal fun RecyclerView.ViewHolder.toOneViewHolder() = this as OneViewHolder<Diffable>

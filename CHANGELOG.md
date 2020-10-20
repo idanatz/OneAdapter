@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 2.0.1
+-------------
+* Added: new selection trigger - Manual
+* Fixed: selection metadata not updated correctly
+
 Version 2.0.0
 -------------
 * Breaking Changes: Kotlin is now the first priority of this library and as such comes a full API change, every Module, Hook and State is now created using dedicated DSLs

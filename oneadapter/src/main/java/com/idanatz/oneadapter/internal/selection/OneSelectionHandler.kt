@@ -1,13 +1,12 @@
 package com.idanatz.oneadapter.internal.selection
 
-import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.RecyclerView
-import com.idanatz.oneadapter.external.interfaces.Diffable
 import com.idanatz.oneadapter.external.modules.ItemSelectionModule
 import com.idanatz.oneadapter.external.modules.ItemSelectionModuleConfig
-import com.idanatz.oneadapter.internal.holders.OneViewHolder
+import com.idanatz.oneadapter.external.states.SelectionStateConfig
+import com.idanatz.oneadapter.internal.utils.extensions.toOneViewHolder
 import java.util.*
 
 @Suppress("UNCHECKED_CAST")
@@ -27,9 +26,26 @@ internal class OneSelectionHandler(
 			OneItemDetailLookup(recyclerView),
 			StorageStrategy.createLongStorage()
 	)
-	.withSelectionPredicate(when (selectionModule.config!!.selectionType) {
-		ItemSelectionModuleConfig.SelectionType.Single -> SelectionPredicates.createSelectSingleAnything()
-		ItemSelectionModuleConfig.SelectionType.Multiple -> SelectionPredicates.createSelectAnything()
+	.withSelectionPredicate(object : SelectionTracker.SelectionPredicate<Long>() {
+		override fun canSetStateForKey(key: Long, nextState: Boolean): Boolean {
+			if (key == ghostKey)
+				return true // always accept let the ghost key
+
+			val forbidSelection = recyclerView.findViewHolderForItemId(key)?.toOneViewHolder()?.let { holder ->
+				holder.statesHooksMap?.getSelectionState()?.config?.let { selectionStateConfig ->
+					selectionStateConfig.selectionTrigger == SelectionStateConfig.SelectionTrigger.Manual && !isInManualSelection()
+				} ?: true
+			} ?: true
+
+			return !forbidSelection
+		}
+
+		override fun canSetStateAtPosition(position: Int, nextState: Boolean): Boolean = true
+
+		override fun canSelectMultiple(): Boolean = when (selectionModule.config.selectionType) {
+			ItemSelectionModuleConfig.SelectionType.Single -> false
+			ItemSelectionModuleConfig.SelectionType.Multiple -> true
+		}
 	})
 	.build()
 	.also { it.addObserver(this) }
@@ -55,8 +71,8 @@ internal class OneSelectionHandler(
 	}
 
 	override fun onItemStateChanged(key: Long, selected: Boolean) {
-		recyclerView.findViewHolderForItemId(key)?.let { holder ->
-			observer?.onItemStateChanged(holder as OneViewHolder<Diffable>, itemKeyProvider.getPosition(key), selected)
+		recyclerView.findViewHolderForItemId(key)?.toOneViewHolder()?.let { holder ->
+			observer?.onItemStateChanged(holder, itemKeyProvider.getPosition(key), selected)
 		}
 	}
 
@@ -71,10 +87,12 @@ internal class OneSelectionHandler(
 		// ghost key is not an actual item but a trick to start manual selection
 		// no need to include it in the selection count
 		val countToNotify =
-				if (selectionTracker.isSelected(ghostKey)) currentSelectionCount - 1
+				if (isInManualSelection()) currentSelectionCount - 1
 				else currentSelectionCount
 		observer?.onSelectionUpdated(countToNotify)
 
 		previousSelectionCount = currentSelectionCount
 	}
+
+	private fun isInManualSelection() = selectionTracker.isSelected(ghostKey)
 }
