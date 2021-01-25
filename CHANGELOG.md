@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 2.0.2
+-------------
+* Added: new selection trigger - Manual
+* Added: support for Android view binding
+* Fixed: selection metadata not updated correctly
+
 Version 2.0.1
 -------------
 * Added: new selection trigger - Manual
