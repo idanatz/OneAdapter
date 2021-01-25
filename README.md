@@ -306,6 +306,26 @@ class MessageModule : ItemModule<MessageModel>() {
 }
 ```
 
+### View Binding
+Built in support for Android View Binding (https://developer.android.com/topic/libraries/view-binding)
+Full example is provided in the example project.
+```kotlin
+class MessageModule : ItemModule<MessageModel>() {
+    init {
+        config {
+            layoutResource = R.layout.message_model
+        }
+        onBind { model, viewBinder, _ ->
+            viewBinder.bindings(MessageModelBinding::bind).run {
+                title.text = model.title
+                body.text = model.body
+                Glide.with(viewBinder.rootView).load(model.avatarImageId).into(avatarImage)
+            }
+        }
+    }
+}
+```
+
 ### Data Binding
 Built in support for Android Data Binding (https://developer.android.com/topic/libraries/data-binding)
 Full example is provided in the example project.

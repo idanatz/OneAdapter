@@ -39,6 +39,7 @@ internal abstract class OneViewHolder<M : Diffable>(
 
 	fun onCreateViewHolder() {
 		this.viewBinder = ViewBinder(itemView)
+		handleEventHooks()
 		onCreated()
 	}
 
@@ -47,7 +48,6 @@ internal abstract class OneViewHolder<M : Diffable>(
 		this.metadata = metadata
 
 		handleAnimations()
-		handleEventHooks()
 		onBind(model)
 	}
 
@@ -98,7 +98,11 @@ internal abstract class OneViewHolder<M : Diffable>(
 
 	private fun handleEventHooks() {
 		if (eventsHooksMap?.isClickEventHookConfigured() == true) {
-			itemView.setOnClickListener { onClicked(model) }
+			itemView.setOnClickListener {
+				if (metadata.position != RecyclerView.NO_POSITION) {
+					onClicked(model)
+				}
+			}
 		}
 	}
 }

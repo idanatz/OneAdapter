@@ -30,6 +30,7 @@
         <activity android:name="com.idanatz.sample.examples.features.SwipeEventHookActivity"/>
         <activity android:name="com.idanatz.sample.examples.features.FirstBindAnimationActivity"/>
         <activity android:name="com.idanatz.sample.examples.binding.ButterKnifeActivity"/>
+        <activity android:name="com.idanatz.sample.examples.binding.view_binding.ViewBindingActivity"/>
         <activity android:name="com.idanatz.sample.examples.binding.data_binding.DataBindingActivity"/>
         <activity android:name="com.idanatz.sample.examples.complete.CompleteExampleActivity" />
         <activity android:name="com.idanatz.sample.examples.BasicJavaExampleActivity" />
