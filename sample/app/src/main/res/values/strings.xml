@@ -17,6 +17,7 @@
 
     // binding
     <string name="butterknife_example">ButterKnife Example</string>
+    <string name="view_binding_example">View Binding Example</string>
     <string name="data_binding_example">Data Binding Example</string>
 
     // complete example

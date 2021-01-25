@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 private const val NUM_OF_ITEMS_TO_ADD = 20
 
 @RunWith(AndroidJUnit4::class)
-class WhenCallingAddOnMultpleItems_ThenInternalState_ShouldBeUpdated : BaseTest() {
+class WhenCallingAddOnMultipleItems_ThenInternalState_ShouldBeUpdated : BaseTest() {
 
     @Test
     fun test() {

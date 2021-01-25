@@ -174,6 +174,14 @@ class OneAdapter(recyclerView: RecyclerView) {
         return internalAdapter.getItemViewTypeFromClass(clazz)
     }
 
+	fun registerAdapterDataObserver(observer: RecyclerView.AdapterDataObserver) {
+		internalAdapter.registerAdapterDataObserver(observer)
+	}
+
+	fun unregisterAdapterDataObserver(observer: RecyclerView.AdapterDataObserver) {
+		internalAdapter.unregisterAdapterDataObserver(observer)
+	}
+
     inner class OneAdapterDslBuilder {
         var itemModules = ItemModulesMap()
         var pagingModule: PagingModule? = null

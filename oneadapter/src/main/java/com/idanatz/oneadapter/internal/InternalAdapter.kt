@@ -81,10 +81,6 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
             notifyItemRangeChanged(position, count, payload)
         }
     }
-    private val diffCallback = object : DiffUtilCallback {
-        override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.uniqueIdentifier == newItem.uniqueIdentifier
-        override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem is Diffable && newItem is Diffable && oldItem.javaClass == newItem.javaClass && oldItem.areContentTheSame(newItem)
-    }
 
     init {
         setHasStableIds(true)
@@ -195,7 +191,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
             }
 
             // handle the diffing
-            val diffResult = DiffUtil.calculateDiff(OneDiffUtil(data, incomingData, diffCallback))
+            val diffResult = DiffUtil.calculateDiff(OneDiffUtil(data, incomingData))
 
             uiHandler.post {
                 if (currentUpdateDataInvocationNum == updateDataInvocationNum) {

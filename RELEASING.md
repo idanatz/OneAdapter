@@ -8,3 +8,4 @@ Release Steps
 6. Tag release commit.
 7. Create release branch.
 8. Merge to master.
+9. Create Git Release from the version tag.

@@ -11,6 +11,7 @@ import com.idanatz.sample.examples.BaseExampleActivity
 import com.idanatz.sample.examples.complete.CompleteExampleActivity
 import com.idanatz.sample.examples.binding.ButterKnifeActivity
 import com.idanatz.sample.examples.binding.data_binding.DataBindingActivity
+import com.idanatz.sample.examples.binding.view_binding.ViewBindingActivity
 import com.idanatz.sample.examples.features.*
 import com.idanatz.sample.models.ActivityModel
 import com.idanatz.sample.models.HeaderModel
@@ -35,8 +36,9 @@ class MainActivity : BaseExampleActivity() {
 				ActivityModel(getString(R.string.click_event_hook_example), Intent(this@MainActivity, ClickEventHookActivity::class.java)),
 				ActivityModel(getString(R.string.swipe_event_hook_example), Intent(this@MainActivity, SwipeEventHookActivity::class.java)),
 				ActivityModel(getString(R.string.first_bind_animation_example), Intent(this@MainActivity, FirstBindAnimationActivity::class.java)),
-				HeaderModel(1, "Binding Example"),
+				HeaderModel(1, "Bindings Example"),
 				ActivityModel(getString(R.string.butterknife_example), Intent(this@MainActivity, ButterKnifeActivity::class.java)),
+				ActivityModel(getString(R.string.view_binding_example), Intent(this@MainActivity, ViewBindingActivity::class.java)),
 				ActivityModel(getString(R.string.data_binding_example), Intent(this@MainActivity, DataBindingActivity::class.java)),
 				HeaderModel(2, "Complete Example"),
 				ActivityModel(getString(R.string.complete_example), Intent(this@MainActivity, CompleteExampleActivity::class.java))
