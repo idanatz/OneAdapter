@@ -15,9 +15,9 @@ class WhenCallingClear_ThenInternalState_ShouldBeUpdated : BaseTest() {
     fun test() {
         configure {
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule())
-                    internalAdapter.data = mutableListOf(modelGenerator.generateModel())
+                    setItems(mutableListOf(modelGenerator.generateModel()))
                 }
             }
             actOnActivity {

@@ -20,7 +20,7 @@ class WhenCallingGetItemViewTypeFromPosition_ThenItemViewTypes_ShouldBeCorrect :
     fun test() {
         configure {
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(TestItemModule1())
                     attachItemModule(TestItemModule2())
                     attachEmptinessModule(modulesGenerator.generateValidEmptinessModule())

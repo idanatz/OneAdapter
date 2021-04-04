@@ -9,6 +9,7 @@ import org.amshove.kluent.shouldNotContain
 import org.junit.Test
 import org.junit.runner.RunWith
 
+private const val NUMBER_OF_MODELS = 3
 private const val INDEX_TO_REMOVE = 1
 
 @RunWith(AndroidJUnit4::class)
@@ -17,15 +18,14 @@ class RemoveSingleItemByIndex : BaseTest() {
     @Test
     fun test() {
         configure {
-            val models = modelGenerator.generateModels(3)
+            val models = modelGenerator.generateModels(NUMBER_OF_MODELS)
             val modelToRemove = models[INDEX_TO_REMOVE]
-            var oldItemCount = -1
+            val oldItemCount = NUMBER_OF_MODELS
 
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule())
-                    internalAdapter.data = models.toMutableList()
-                    oldItemCount = itemCount
+                    setItems(models.toMutableList())
                 }
             }
             actOnActivity {

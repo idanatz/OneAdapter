@@ -44,7 +44,7 @@ android {
     }
 }
 
-apply from: rootProject.file('gradle/android_mvn_push.gradle')
+apply from: rootProject.file('gradle/maven_publish.gradle')
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KOTLIN_VERSION"

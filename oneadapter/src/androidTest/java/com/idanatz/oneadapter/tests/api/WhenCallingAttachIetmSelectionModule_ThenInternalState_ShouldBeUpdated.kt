@@ -19,7 +19,7 @@ class WhenCallingAttachIetmSelectionModule_ThenInternalState_ShouldBeUpdated : B
             val testItemSelectionModule = ItemSelectionModule()
 
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemSelectionModule(testItemSelectionModule)
                 }
             }

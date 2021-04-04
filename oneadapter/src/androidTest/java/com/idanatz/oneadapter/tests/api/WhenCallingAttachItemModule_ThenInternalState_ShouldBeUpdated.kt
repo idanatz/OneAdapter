@@ -19,7 +19,7 @@ class WhenCallingAttachItemModule_ThenInternalState_ShouldBeUpdated : BaseTest()
             val testItemModule = modulesGenerator.generateValidItemModule()
 
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(testItemModule)
                 }
             }

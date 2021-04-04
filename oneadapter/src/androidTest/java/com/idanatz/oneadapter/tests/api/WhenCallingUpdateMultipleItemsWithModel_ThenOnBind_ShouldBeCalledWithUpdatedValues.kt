@@ -12,6 +12,7 @@ import org.amshove.kluent.shouldEqualTo
 import org.junit.Test
 import org.junit.runner.RunWith
 
+private const val NUMBER_OF_MODELS = 2
 private const val UPDATED_VALUE_1 = "updated1"
 private const val UPDATED_VALUE_2 = "updated2"
 
@@ -21,14 +22,13 @@ class WhenCallingUpdateMultipleItemsWithModel_ThenOnBind_ShouldBeCalledWithUpdat
     @Test
     fun test() {
         configure {
-            val modelsToUpdate = modelGenerator.generateModels(2)
-            var oldItemCount = -1
+            val modelsToUpdate = modelGenerator.generateModels(NUMBER_OF_MODELS)
+            val oldItemCount = NUMBER_OF_MODELS
 
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(TestItemModule())
-                    internalAdapter.data = modelsToUpdate.toMutableList()
-                    oldItemCount = itemCount
+                    setItems(modelsToUpdate.toMutableList())
                 }
             }
             actOnActivity {
@@ -42,9 +42,9 @@ class WhenCallingUpdateMultipleItemsWithModel_ThenOnBind_ShouldBeCalledWithUpdat
                 val model2 = (oneAdapter.internalAdapter.data[1] as TestModel)
 
                 model1.content shouldBeEqualTo UPDATED_VALUE_1
-                model1.onBindCalls shouldEqualTo 1
+                model1.onBindCalls shouldEqualTo 2 // 1 for the prepare and 1 for the update
                 model2.content shouldBeEqualTo UPDATED_VALUE_2
-                model2.onBindCalls shouldEqualTo 1
+                model2.onBindCalls shouldEqualTo 2 // 1 for the prepare and 1 for the update
                 newItemCount shouldEqualTo oldItemCount
             }
         }

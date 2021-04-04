@@ -18,7 +18,7 @@ class WhenCallingGetItemViewTypeFromClass_ThenItemViewTypes_ShouldBeCorrect : Ba
     fun test() {
         configure {
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule())
                     attachPagingModule(modulesGenerator.generateValidPagingModule())
                     attachEmptinessModule(modulesGenerator.generateValidEmptinessModule())
