@@ -11,11 +11,11 @@ internal fun <T : Diffable> List<T>.createMutableCopyAndApply(block: MutableList
     return LinkedList(this).apply(block)
 }
 
-internal fun <T : Diffable, M : Diffable> MutableList<T>.findIndexOfClass(classToFind: Class<M>): Int? {
+internal fun <T : Diffable, M : Diffable> List<T>.findIndexOfClass(classToFind: Class<M>): Int? {
     return indexOfFirst { classToFind.isInstance(it) }.takeIf { it != -1 }
 }
 
-internal fun <T : Diffable, M : Diffable> MutableList<T>.isClassExists(classToFind: Class<M>): Boolean {
+internal fun <T : Diffable, M : Diffable> List<T>.isClassExists(classToFind: Class<M>): Boolean {
     return indexOfFirst { classToFind.isInstance(it) } != -1
 }
 

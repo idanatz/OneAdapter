@@ -20,10 +20,10 @@ class WhenClearingItems_ThenOnBind_ShouldBeCalledEachTime : BaseTest() {
     fun test() {
         configure {
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule())
                     attachEmptinessModule(TestEmptinessModule())
-                    oneAdapter.internalAdapter.data = mutableListOf(modelGenerator.generateModel())
+                    setItems(mutableListOf(modelGenerator.generateModel()))
                 }
             }
             actOnActivity {

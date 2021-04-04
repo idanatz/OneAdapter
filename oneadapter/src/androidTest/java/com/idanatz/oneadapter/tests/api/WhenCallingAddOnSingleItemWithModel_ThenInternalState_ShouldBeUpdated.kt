@@ -19,7 +19,7 @@ class WhenCallingAddOnSingleItemWithModel_ThenInternalState_ShouldBeUpdated : Ba
             var oldItemCount = -1
 
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule())
                     oldItemCount = itemCount
                 }

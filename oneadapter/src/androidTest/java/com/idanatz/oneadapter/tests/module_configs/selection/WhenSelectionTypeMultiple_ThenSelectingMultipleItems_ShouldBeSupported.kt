@@ -33,10 +33,10 @@ class WhenSelectionTypeMultiple_ThenSelectingMultipleItems_ShouldBeSupported : B
 			modelSelectedEvents.put(models[1].id, 0)
 
 			prepareOnActivity {
-				oneAdapter.apply {
+				oneAdapter.run {
 					attachItemModule(TestItemModule())
 					attachItemSelectionModule(TestItemSelectionModule())
-					oneAdapter.internalAdapter.data = models.toMutableList()
+					setItems(models.toMutableList())
 				}
 			}
 			actOnActivity {

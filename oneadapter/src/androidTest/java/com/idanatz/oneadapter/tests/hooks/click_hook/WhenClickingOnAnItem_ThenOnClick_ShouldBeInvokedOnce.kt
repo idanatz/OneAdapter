@@ -20,8 +20,10 @@ class WhenClickingOnAnItem_ThenOnClick_ShouldBeInvokedOnce : BaseTest() {
 	fun test() {
 		configure {
 			prepareOnActivity {
-				oneAdapter.attachItemModule(modulesGenerator.generateValidItemModule().apply { eventHooks += TestClickEventHook() })
-				oneAdapter.internalAdapter.data = mutableListOf(modelGenerator.generateModel())
+				oneAdapter.run {
+					attachItemModule(modulesGenerator.generateValidItemModule().apply { eventHooks += TestClickEventHook() })
+					setItems(mutableListOf(modelGenerator.generateModel()))
+				}
 			}
 			actOnActivity {
 				runWithDelay {

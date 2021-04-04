@@ -20,7 +20,7 @@ class WhenAddingItem_ThenOnUnbind_ShouldBeCalledOnce : BaseTest() {
     fun test() {
         configure {
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule())
                     attachEmptinessModule(TestEmptinessModule())
                 }

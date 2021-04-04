@@ -15,7 +15,7 @@ class WhenAttachingItemModuleWithExistingModel_ThenAttachItemModule_ShouldThrowE
     fun test() {
         // action & assertion
         throw catchException {
-            oneAdapter.apply {
+            oneAdapter.run {
                 attachItemModule(modulesGenerator.generateValidItemModule())
                 attachItemModule(modulesGenerator.generateValidItemModule())
             }

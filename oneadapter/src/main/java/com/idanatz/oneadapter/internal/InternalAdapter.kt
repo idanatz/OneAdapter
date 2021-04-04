@@ -4,9 +4,7 @@ import android.graphics.Canvas
 import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListUpdateCallback
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import com.idanatz.oneadapter.external.event_hooks.SwipeEventHook
 import com.idanatz.oneadapter.external.holders.EmptyIndicator
 import com.idanatz.oneadapter.external.holders.LoadingIndicator
@@ -18,13 +16,10 @@ import com.idanatz.oneadapter.internal.holders.*
 import com.idanatz.oneadapter.internal.holders.OneViewHolder
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreator
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreatorsStore
-import com.idanatz.oneadapter.internal.interfaces.DiffUtilCallback
 import com.idanatz.oneadapter.internal.paging.EndlessScrollListener
 import com.idanatz.oneadapter.internal.paging.LoadMoreObserver
 import com.idanatz.oneadapter.internal.selection.*
 import com.idanatz.oneadapter.internal.swiping.OneItemTouchHelper
-import com.idanatz.oneadapter.internal.threading.IdentifiableFuture
-import com.idanatz.oneadapter.internal.threading.OneSingleThreadPoolExecutor
 import com.idanatz.oneadapter.internal.utils.Logger
 import com.idanatz.oneadapter.internal.utils.extensions.createMutableCopyAndApply
 import com.idanatz.oneadapter.internal.utils.extensions.isClassExists
@@ -39,12 +34,14 @@ private const val UPDATE_DATA_DELAY_MILLIS = 100L
 internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Adapter<OneViewHolder<Diffable>>(),
         LoadMoreObserver, SelectionObserver, ItemSelectionActions {
 
+	internal val modules = Modules()
+	internal val data: List<Diffable>
+		get() = differ.currentList
+
+	internal val holderVisibilityResolver: HolderVisibilityResolver = HolderVisibilityResolver(this)
+
     private val context
         get() = recyclerView.context
-
-    internal val modules = Modules()
-    internal var data: MutableList<Diffable> = mutableListOf()
-    internal val holderVisibilityResolver: HolderVisibilityResolver = HolderVisibilityResolver(this)
 
     private val viewHolderCreatorsStore = ViewHolderCreatorsStore()
     private val animationPositionHandler = AnimationPositionHandler()
@@ -57,12 +54,9 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     private var oneSelectionHandler: OneSelectionHandler? = null
 
     // Threads Executors
-    private val backgroundExecutor = OneSingleThreadPoolExecutor()
     private val uiHandler = Handler(Looper.getMainLooper())
 
     // Diffing
-    private var updateDataInvocationNum = 0
-    private var currentSetItemFuture: IdentifiableFuture<*>? = null
     private val listUpdateCallback = object : ListUpdateCallback {
         override fun onInserted(position: Int, count: Int) {
             logger.logd { "onInserted -> position: $position, count: $count" }
@@ -81,8 +75,9 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
             notifyItemRangeChanged(position, count, payload)
         }
     }
+	private val differ = AsyncListDiffer(listUpdateCallback, AsyncDifferConfig.Builder<Diffable>(OneDiffUtil()).build())
 
-    init {
+	init {
         setHasStableIds(true)
 
         recyclerView.apply {
@@ -142,20 +137,10 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     //endregion
 
     fun updateData(incomingData: MutableList<Diffable>) {
-        val currentUpdateDataInvocationNum = ++updateDataInvocationNum
-        logger.logd { "updateData -> diffing request (#$currentUpdateDataInvocationNum) with incomingData: $incomingData" }
+        logger.logd { "updateData -> diffing request with incomingData: $incomingData" }
 
         // handle the fast and simple cases where no diffing is required
         when {
-            data.isEmpty() -> {
-                Validator.validateItemsAgainstRegisteredModules(modules.itemModules, incomingData)
-                uiHandler.post {
-                    logger.logd { "updateData -> no diffing required, inserting all incoming data" }
-                    data = incomingData
-                    listUpdateCallback.onInserted(0, incomingData.size)
-                }
-                return
-            }
             incomingData.isEmpty() && data.contains(EmptyIndicator) -> {
                 uiHandler.post {
                     logger.logd { "updateData -> no diffing required, refreshing EmptyModule" }
@@ -165,44 +150,25 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
             }
         }
 
-        // cancel the last (maybe running) diffing executor
-        if (currentSetItemFuture?.isDone == false) {
-            logger.logd { "updateData -> canceling old diffing executor (#${currentSetItemFuture?.id})" }
-            currentSetItemFuture?.cancel(true)
-        }
+		Validator.validateItemsAgainstRegisteredModules(modules.itemModules, incomingData)
 
-        currentSetItemFuture = backgroundExecutor.submit(currentUpdateDataInvocationNum, Runnable {
-            logger.logd { "updateData -> executing on background (#$currentUpdateDataInvocationNum)" }
+		// modify the incomingData if needed
+		when (incomingData.size) {
+			0 -> {
+				animationPositionHandler.resetState()
 
-            Validator.validateItemsAgainstRegisteredModules(modules.itemModules, incomingData)
+				if (modules.emptinessModule != null) { incomingData.add(EmptyIndicator) }
+				if (modules.pagingModule != null) { endlessScrollListener?.resetState() }
+			}
+			else -> {
+				if (modules.emptinessModule != null) incomingData.remove(EmptyIndicator)
+				if (modules.pagingModule != null) incomingData.remove(LoadingIndicator)
+			}
+		}
 
-            // modify the incomingData if needed
-            when (incomingData.size) {
-                0 -> {
-                    animationPositionHandler.resetState()
-
-                    if (modules.emptinessModule != null) { incomingData.add(EmptyIndicator) }
-                    if (modules.pagingModule != null) { endlessScrollListener?.resetState() }
-                }
-                else -> {
-                    if (modules.emptinessModule != null) incomingData.remove(EmptyIndicator)
-                    if (modules.pagingModule != null) incomingData.remove(LoadingIndicator)
-                }
-            }
-
-            // handle the diffing
-            val diffResult = DiffUtil.calculateDiff(OneDiffUtil(data, incomingData))
-
-            uiHandler.post {
-                if (currentUpdateDataInvocationNum == updateDataInvocationNum) {
-                    logger.logd { "updateData -> dispatching update (#$currentUpdateDataInvocationNum) with incomingData: $incomingData" }
-                    data = incomingData
-                    diffResult.dispatchUpdatesTo(listUpdateCallback)
-                } else {
-                    logger.logd { "updateData -> discarding old diffing result (#$currentUpdateDataInvocationNum)" }
-                }
-            }
-        })
+		// handle the diffing
+		logger.logd { "updateData -> dispatching update with incomingData: $incomingData" }
+		differ.submitList(incomingData)
     }
 
     //region Item Module
@@ -271,7 +237,8 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     private fun configureEmptinessModule() {
         // in case emptiness module is configured, add empty indicator item
         if (data.isEmpty() && modules.emptinessModule != null) {
-            data.add(0, EmptyIndicator)
+//            data.add(0, EmptyIndicator)
+			differ.submitList(listOf(EmptyIndicator, *data.toTypedArray()))
         }
     }
     //endregion
@@ -317,7 +284,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     override fun onLoadingStateChanged(loading: Boolean) {
         if (loading && !data.isClassExists(LoadingIndicator.javaClass)) {
-            data.add(data.size, LoadingIndicator)
+			differ.submitList(listOf(*data.toTypedArray(), LoadingIndicator))
 
             // post it to the UI handler because the recycler crashes when calling notify from an onScroll callback
             uiHandler.post { notifyItemInserted(data.size) }

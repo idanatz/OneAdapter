@@ -26,10 +26,10 @@ class WhenSelectingItem_ThenOnSelected_ShouldBeCalledOnce : BaseTest() {
 	fun test() {
 		configure {
 			prepareOnActivity {
-				oneAdapter.apply {
+				oneAdapter.run {
 					attachItemModule(TestItemModule())
 					attachItemSelectionModule(ItemSelectionModule())
-					oneAdapter.internalAdapter.data = mutableListOf(modelGenerator.generateModel())
+					setItems(mutableListOf(modelGenerator.generateModel()))
 				}
 			}
 			actOnActivity {

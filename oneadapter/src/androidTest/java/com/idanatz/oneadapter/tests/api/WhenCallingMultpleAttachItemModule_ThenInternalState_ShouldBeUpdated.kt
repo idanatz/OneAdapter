@@ -23,7 +23,7 @@ class WhenCallingMultpleAttachItemModule_ThenInternalState_ShouldBeUpdated : Bas
             val testItemModule2 = TestItemModule2()
 
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModules(testItemModule1, testItemModule2)
                 }
             }

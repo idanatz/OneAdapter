@@ -9,9 +9,11 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:$GRADLE_PLUGIN_VERSION"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
-        classpath "com.github.dcendents:android-maven-gradle-plugin:$MAVEN_PLUGIN_VERSION"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$BINTRAY_PLUGIN_VERSION"
     }
+}
+
+plugins {
+    id 'maven-publish'
 }
 
 allprojects {
@@ -23,9 +25,4 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
-}
-
-task publishSdk {
-    dependsOn 'clean'
-    dependsOn 'oneadapter:bintrayUpload'
 }

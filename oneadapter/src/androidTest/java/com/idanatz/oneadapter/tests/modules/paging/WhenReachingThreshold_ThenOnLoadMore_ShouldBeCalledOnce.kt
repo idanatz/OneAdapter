@@ -23,10 +23,10 @@ class WhenReachingThreshold_ThenOnLoadMore_ShouldBeCalledOnce : BaseTest() {
     fun test() {
         configure {
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule(R.layout.test_model_large))
                     attachPagingModule(TestPagingModule())
-                    oneAdapter.internalAdapter.data = modelGenerator.generateModels(numberOfItemsToCreate).toMutableList()
+                    setItems(modelGenerator.generateModels(numberOfItemsToCreate).toMutableList())
                 }
             }
             actOnActivity {

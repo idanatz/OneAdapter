@@ -35,10 +35,10 @@ class WhenSelectionTypeSingle_ThenSelectingMultipleItems_ShouldNotBeSupported : 
 			modelSelectedEvents.put(models[1].id, IntArray(2))
 
 			prepareOnActivity {
-				oneAdapter.apply {
+				oneAdapter.run {
 					attachItemModule(TestItemModule())
 					attachItemSelectionModule(TestItemSelectionModule())
-					oneAdapter.internalAdapter.data = models.toMutableList()
+					setItems(models.toMutableList())
 				}
 			}
 			actOnActivity {

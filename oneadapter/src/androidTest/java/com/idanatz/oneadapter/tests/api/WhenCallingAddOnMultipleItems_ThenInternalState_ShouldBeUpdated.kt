@@ -21,7 +21,7 @@ class WhenCallingAddOnMultipleItems_ThenInternalState_ShouldBeUpdated : BaseTest
             var oldItemCount = -1
 
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule())
                     oldItemCount = itemCount
                 }

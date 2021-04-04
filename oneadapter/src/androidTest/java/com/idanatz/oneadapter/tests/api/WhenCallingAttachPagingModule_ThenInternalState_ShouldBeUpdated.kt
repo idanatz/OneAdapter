@@ -17,7 +17,7 @@ class WhenCallingAttachPagingModule_ThenInternalState_ShouldBeUpdated : BaseTest
             val testPagingModule = modulesGenerator.generateValidPagingModule()
 
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachPagingModule(testPagingModule)
                 }
             }

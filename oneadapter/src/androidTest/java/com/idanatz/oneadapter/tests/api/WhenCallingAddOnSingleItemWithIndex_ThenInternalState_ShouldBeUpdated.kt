@@ -9,6 +9,7 @@ import org.amshove.kluent.shouldEqualTo
 import org.junit.Test
 import org.junit.runner.RunWith
 
+private const val NUMBER_OF_MODELS = 5
 private const val INDEX_TO_ADD = 3
 
 @RunWith(AndroidJUnit4::class)
@@ -18,13 +19,12 @@ class AddSingleItemToIndex : BaseTest() {
     fun test() {
         configure {
             val modelToAdd = modelGenerator.generateModel()
-            var oldItemCount = -1
+            val oldItemCount = NUMBER_OF_MODELS
 
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule())
-                    internalAdapter.data = modelGenerator.generateModels(5).toMutableList()
-                    oldItemCount = oneAdapter.itemCount
+					setItems(modelGenerator.generateModels(NUMBER_OF_MODELS).toMutableList())
                 }
             }
             actOnActivity {

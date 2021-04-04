@@ -9,21 +9,22 @@ import org.amshove.kluent.shouldNotContain
 import org.junit.Test
 import org.junit.runner.RunWith
 
+private const val NUMBER_OF_MODELS = 4
+
 @RunWith(AndroidJUnit4::class)
 class WhenCallingRemoveOnMultipleItemsWithModels_ThenInternalState_ShouldBeUpdated : BaseTest() {
 
     @Test
     fun test() {
         configure {
-            val models = modelGenerator.generateModels(4)
+            val models = modelGenerator.generateModels(NUMBER_OF_MODELS)
             val modelsToRemove = models.subList(1, 3)
-            var oldItemCount = -1
+            val oldItemCount = NUMBER_OF_MODELS
 
             prepareOnActivity {
-                oneAdapter.apply {
+                oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule())
-                    internalAdapter.data = models.toMutableList()
-                    oldItemCount = itemCount
+                    setItems(models.toMutableList())
                 }
             }
             actOnActivity {
