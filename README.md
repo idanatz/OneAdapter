@@ -35,9 +35,19 @@ Check the example below or sample project for reference for Kotlin & Java use.
 
 
 # Include in your project
+Root build.gradle:
+```groovy
+allprojects {
+ repositories {
+    jcenter()
+    maven { url "https://jitpack.io" }
+ }
+}
+```
+App build.gradle:
 ```groovy
 dependencies {
-  implementation "com.ironsource.aura.oneadapter:oneadapter:${LATEST_VERSION}"
+  implementation "com.github.idanatz:OneAdapter:${LATEST_VERSION}"
 }
 ```
 

@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 2.1.0
+-------------
+* Updated: internal diffing mechanism to fix the famous inconsistency crash
+* Updated: removed deprecated bitray publish and moved to jitpack
+
 Version 2.0.2
 -------------
 * Added: new selection trigger - Manual
