@@ -168,7 +168,9 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
 		// handle the diffing
 		logger.logd { "updateData -> dispatching update with incomingData: $incomingData" }
-		differ.submitList(incomingData)
+		uiHandler.post {
+			differ.submitList(incomingData)
+		}
     }
 
     //region Item Module

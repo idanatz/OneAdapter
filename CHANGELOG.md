@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 2.1.1
+-------------
+* Fixed: unable to update data from a background thread
+
 Version 2.1.0
 -------------
 * Updated: internal diffing mechanism to fix the famous inconsistency crash
