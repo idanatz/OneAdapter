@@ -4,11 +4,13 @@ Changelog
 Version 2.1.1
 -------------
 * Fixed: unable to update data from a background thread
+* Fixed: paging not triggered when RecyclerView can't scroll
+* Fixed: paging triggers on EmptyIndicator
 
 Version 2.1.0
 -------------
 * Updated: internal diffing mechanism to fix the famous inconsistency crash
-* Updated: removed deprecated bitray publish and moved to jitpack
+* Updated: removed deprecated Bintray publish and moved to Jitpack
 
 Version 2.0.2
 -------------
