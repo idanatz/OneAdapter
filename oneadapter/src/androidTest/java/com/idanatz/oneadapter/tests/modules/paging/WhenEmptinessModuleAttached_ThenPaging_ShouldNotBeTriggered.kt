@@ -3,20 +3,18 @@
 package com.idanatz.oneadapter.tests.modules.paging
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.idanatz.oneadapter.external.modules.EmptinessModule
 import com.idanatz.oneadapter.external.modules.PagingModule
-import com.idanatz.oneadapter.external.modules.PagingModuleConfig
 import com.idanatz.oneadapter.helpers.BaseTest
 import com.idanatz.oneadapter.test.R
 import org.amshove.kluent.shouldEqualTo
 import org.junit.Test
 import org.junit.runner.RunWith
 
-private const val numberOfItemsToCreate = 10
-private const val pagingVisibleThreshold = 1
-
 @RunWith(AndroidJUnit4::class)
-class WhenReachingThreshold_ThenOnLoadMore_ShouldBeCalledOnce : BaseTest() {
+class WhenEmptinessModuleAttached_ThenPaging_ShouldNotBeTriggered : BaseTest() {
 
+    private var onBindCalls = 0
     private var onLoadMoreCalls = 0
 
     @Test
@@ -24,29 +22,37 @@ class WhenReachingThreshold_ThenOnLoadMore_ShouldBeCalledOnce : BaseTest() {
         configure {
             prepareOnActivity {
                 oneAdapter.run {
-                    attachItemModule(modulesGenerator.generateValidItemModule(R.layout.test_model_large))
+                    attachEmptinessModule(TestEmptinessModule())
                     attachPagingModule(TestPagingModule())
-                    setItems(modelGenerator.generateModels(numberOfItemsToCreate).toMutableList())
                 }
             }
             actOnActivity {
                 runWithDelay { // run with delay to let the items settle
-                    val positionToScroll = numberOfItemsToCreate - pagingVisibleThreshold + 1 // + 1 for passing the threshold
-                    recyclerView.smoothScrollToPosition(positionToScroll)
+                    recyclerView.smoothScrollToPosition(oneAdapter.itemCount)
                 }
             }
-            untilAsserted {
-                onLoadMoreCalls shouldEqualTo 1
+            untilAsserted(assertDelay = 800) {
+				onBindCalls shouldEqualTo 0
+                onLoadMoreCalls shouldEqualTo 0
             }
         }
     }
 
+	inner class TestEmptinessModule : EmptinessModule() {
+		init {
+			config = modulesGenerator.generateValidEmptinessModuleConfig(resourceId = R.layout.test_big_empty)
+		}
+	}
+
     inner class TestPagingModule : PagingModule() {
         init {
-        	config = modulesGenerator.generateValidPagingModuleConfig(pagingVisibleThreshold)
-            onLoadMore {
-                onLoadMoreCalls++
-            }
+        	config = modulesGenerator.generateValidPagingModuleConfig()
+			onBind { _, _ ->
+				onBindCalls++
+			}
+			onLoadMore {
+				onLoadMoreCalls++
+			}
         }
     }
 }

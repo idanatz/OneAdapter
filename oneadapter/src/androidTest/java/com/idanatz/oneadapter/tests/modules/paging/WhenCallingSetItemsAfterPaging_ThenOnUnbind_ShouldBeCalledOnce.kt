@@ -24,7 +24,7 @@ class WhenCallingSetItemsAfterPaging_ThenOnUnbind_ShouldBeCalledOnce : BaseTest(
                 oneAdapter.run {
                     attachItemModule(modulesGenerator.generateValidItemModule(R.layout.test_model_large))
                     attachPagingModule(TestPagingModule())
-                    setItems(modelGenerator.generateModels(10).toMutableList())
+                    setItems(modelGenerator.generateModels(15).toMutableList())
                 }
             }
             actOnActivity {
@@ -43,12 +43,10 @@ class WhenCallingSetItemsAfterPaging_ThenOnUnbind_ShouldBeCalledOnce : BaseTest(
         init {
             config = modulesGenerator.generateValidPagingModuleConfig()
             onLoadMore {
-                configure {
-                    runWithDelay {
-                        // generate 2 other models
-                        oneAdapter.setItems(modelGenerator.generateModels(2))
-                    }
-                }
+				runWithDelay {
+					// generate 2 other models
+					oneAdapter.setItems(modelGenerator.generateModels(2))
+				}
             }
             onUnbind { _, _ ->
                 onUnbindCalls++

@@ -3,4 +3,5 @@
 
     <dimen name="small_model_height">10dp</dimen>
     <dimen name="large_model_height">100dp</dimen>
+    <dimen name="huge_model_height">1000dp</dimen>
 </resources>

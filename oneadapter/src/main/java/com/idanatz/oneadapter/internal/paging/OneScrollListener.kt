@@ -6,10 +6,9 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.idanatz.oneadapter.internal.utils.Logger
 import com.idanatz.oneadapter.internal.utils.extensions.findLastVisibleItemPosition
 
-internal class EndlessScrollListener (
+internal class OneScrollListener (
         private val layoutManager: RecyclerView.LayoutManager,
         private var visibleThreshold: Int, // The minimum amount of items to have below your current scroll position before loading more.
-        private val includeEmptyState: Boolean,
         private val loadMoreObserver: LoadMoreObserver,
         private val logger: Logger
 ) : RecyclerView.OnScrollListener() {
@@ -33,28 +32,36 @@ internal class EndlessScrollListener (
             return
         }
 
-        when (evaluateLoadingState()) {
-            LoadingState.FinishLoading -> {
-                loading = false
-                loadMoreObserver.onLoadingStateChanged(loading)
-            }
-            LoadingState.LoadingStarted -> {
-                loading = true
-                loadMoreObserver.onLoadingStateChanged(loading)
-                currentPage++
-                loadMoreObserver.onLoadMore(currentPage)
-            }
-            else -> {}
-        }
+		handleLoadingEvent()
+	}
 
-        // update the previous item count to the current item count
-        this.previousTotalItemCount = layoutManager.itemCount
-    }
+	fun handleLoadingEvent() {
+		if (!loadMoreObserver.shouldHandleLoadingEvent()) {
+			return
+		}
 
-    fun resetState() {
+		when (evaluateLoadingState()) {
+			LoadingState.FinishLoading -> {
+				loading = false
+				loadMoreObserver.onLoadingStateChanged(loading)
+			}
+			LoadingState.LoadingStarted -> {
+				loading = true
+				loadMoreObserver.onLoadingStateChanged(loading)
+				currentPage++
+				loadMoreObserver.onLoadMore(currentPage)
+			}
+			else -> { }
+		}
+
+		// update the previous item count to the current item count
+		this.previousTotalItemCount = layoutManager.itemCount
+	}
+
+	fun resetState() {
         currentPage = startingPageIndex
         loading = false
-        previousTotalItemCount = if (includeEmptyState) 1 else 0
+        previousTotalItemCount = 0
     }
 
     private fun isUserScrolled(view: RecyclerView) = view.scrollState != RecyclerView.SCROLL_STATE_IDLE

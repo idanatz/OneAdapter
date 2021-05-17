@@ -16,7 +16,7 @@ import com.idanatz.oneadapter.internal.holders.*
 import com.idanatz.oneadapter.internal.holders.OneViewHolder
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreator
 import com.idanatz.oneadapter.internal.holders_creators.ViewHolderCreatorsStore
-import com.idanatz.oneadapter.internal.paging.EndlessScrollListener
+import com.idanatz.oneadapter.internal.paging.OneScrollListener
 import com.idanatz.oneadapter.internal.paging.LoadMoreObserver
 import com.idanatz.oneadapter.internal.selection.*
 import com.idanatz.oneadapter.internal.swiping.OneItemTouchHelper
@@ -48,7 +48,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     private val logger = Logger(this)
 
     // Paging
-    private var endlessScrollListener: EndlessScrollListener? = null
+    private var oneScrollListener: OneScrollListener? = null
 
     // Item Selection
     private var oneSelectionHandler: OneSelectionHandler? = null
@@ -75,7 +75,19 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
             notifyItemRangeChanged(position, count, payload)
         }
     }
-	private val differ = AsyncListDiffer(listUpdateCallback, AsyncDifferConfig.Builder<Diffable>(OneDiffUtil()).build())
+
+	private val differ = AsyncListDiffer(
+			listUpdateCallback,
+			AsyncDifferConfig.Builder<Diffable>(OneDiffUtil()).build()
+	).apply {
+		addListListener { _, _ ->
+			// verify manually if paging should be triggered
+			// relevant when the new data matches the paging conditions and should not wait for a scroll event
+			if (modules.pagingModule != null) {
+				recyclerView.post { oneScrollListener?.handleLoadingEvent() }
+			}
+		}
+	}
 
 	init {
         setHasStableIds(true)
@@ -158,7 +170,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 				animationPositionHandler.resetState()
 
 				if (modules.emptinessModule != null) { incomingData.add(EmptyIndicator) }
-				if (modules.pagingModule != null) { endlessScrollListener?.resetState() }
+				if (modules.pagingModule != null) { oneScrollListener?.resetState() }
 			}
 			else -> {
 				if (modules.emptinessModule != null) incomingData.remove(EmptyIndicator)
@@ -239,7 +251,6 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
     private fun configureEmptinessModule() {
         // in case emptiness module is configured, add empty indicator item
         if (data.isEmpty() && modules.emptinessModule != null) {
-//            data.add(0, EmptyIndicator)
 			differ.submitList(listOf(EmptyIndicator, *data.toTypedArray()))
         }
     }
@@ -274,17 +285,21 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
         })
 
         recyclerView.layoutManager?.let { layoutManager ->
-            endlessScrollListener = EndlessScrollListener(
+            oneScrollListener = OneScrollListener(
                     layoutManager = layoutManager,
                     visibleThreshold = moduleConfig.visibleThreshold,
-                    includeEmptyState = modules.emptinessModule != null,
                     loadMoreObserver = this@InternalAdapter,
                     logger = logger
             ).also { recyclerView.addOnScrollListener(it) }
         }
     }
 
-    override fun onLoadingStateChanged(loading: Boolean) {
+	override fun shouldHandleLoadingEvent(): Boolean {
+		// paging should be disabled when EmptyIndicator is present
+		return !data.contains(EmptyIndicator)
+	}
+
+	override fun onLoadingStateChanged(loading: Boolean) {
         if (loading && !data.isClassExists(LoadingIndicator.javaClass)) {
 			differ.submitList(listOf(*data.toTypedArray(), LoadingIndicator))
 
@@ -355,7 +370,7 @@ internal class InternalAdapter(val recyclerView: RecyclerView) : RecyclerView.Ad
 
     //region RecyclerView
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
-        endlessScrollListener?.let { recyclerView.removeOnScrollListener(it) }
+        oneScrollListener?.let { recyclerView.removeOnScrollListener(it) }
     }
     //endregion
 }
