@@ -45,5 +45,4 @@ jobs:
                 with:
                     api-level: ${{ matrix.api-level }}
                     arch: x86
-                    profile: Nexus 6
                     script: ./gradlew connectedDebugAndroidTest
