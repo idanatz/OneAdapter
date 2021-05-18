@@ -42,12 +42,10 @@ class WhenCallingSetItemsAfterPaging_ThenOnUnbind_ShouldBeCalledOnce : BaseTest(
     inner class TestPagingModule : PagingModule() {
         init {
             config = modulesGenerator.generateValidPagingModuleConfig()
-            onLoadMore {
-				runWithDelay {
-					// generate 2 other models
-					oneAdapter.setItems(modelGenerator.generateModels(2))
-				}
-            }
+			onBind { _, _ ->
+				// generate 2 other models
+				oneAdapter.setItems(modelGenerator.generateModels(2))
+			}
             onUnbind { _, _ ->
                 onUnbindCalls++
             }
